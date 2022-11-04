@@ -13,6 +13,8 @@ public enum UIState {
 
   //menu specific
   NEW_GAME,
+  HOST_SETUP,
+  CLIENT_SETUP,
 
   //gameplay specific
   PAUSED,

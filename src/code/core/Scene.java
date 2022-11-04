@@ -20,6 +20,7 @@ import java.util.List;
 */
 public class Scene
 {
+  //TODO break this into multiple classes; menu; lobby; and game
   private int mapSX;
   private int mapSY;
   private TileGrid[][] map;

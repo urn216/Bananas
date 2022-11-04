@@ -1,8 +1,9 @@
 package code.ui.interactables;
 
 import code.ui.UIInteractable;
-import code.ui.UIAction;
 import code.ui.UIActionSetter;
+import code.ui.UIAction;
+import code.ui.UIController;
 
 import java.awt.Color;
 
@@ -10,8 +11,8 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 
 /**
-* Class for making functional text fields
-*/
+ * Class for making functional text fields
+ */
 public class UITextfield extends UIInteractable {
   private char[] text;
   private int ind[];
@@ -20,21 +21,31 @@ public class UITextfield extends UIInteractable {
   private final int numLines;
 
   private final UIAction enterAction;
+  private final UIAction clearAction;
 
   /**
-  * Constructor for Text Fields
-  */
-  public UITextfield(int maxLength, int numLines, UIActionSetter<UITextfield> select, UIAction enter) {
+   * Constructor for Text Fields.
+   * 
+   * @param maxLength the maximum number of characters allowed in the field.
+   * @param numLines the maximum number of lines this field may utilise. Must be at least 1.
+   * @param enter the destination for the text in this field when enter is pressed. Leave null for new line functionality.
+   * @param ui the UIController for this field.
+   */
+  public UITextfield(int maxLength, int numLines, UIActionSetter<String> enter, UIController ui) {
     assert (numLines > 0);
     this.name = "UI_Text_Field";
     this.text = new char[maxLength+1];
     this.numLines = numLines;
     this.ind = new int[numLines];
-    this.primeAction = () -> select.set(this);
-    this.enterAction = enter;
+    this.primeAction = () -> ui.setActiveTextfield(this);
+    this.clearAction = () -> ui.setActiveTextfield(null);
+    this.enterAction = enter != null ? () -> enter.set(getText()) : this::newLine;
   }
 
-  public void enterAct() {if (enterAction!=null) enterAction.perform();}
+  /**
+   * Performs the enter functionality.
+   */
+  public void enterAct() {enterAction.perform();}
 
   public String getText() {
     return new String(text, 0, totind);
@@ -82,7 +93,10 @@ public class UITextfield extends UIInteractable {
   }
 
   public void newLine() {
-    if (line >= numLines-1) return;
+    if (line >= numLines-1) {
+      clearAction.perform();
+      return;
+    }
     print('\n');
     // System.out.println(ind[line]);
     line++;

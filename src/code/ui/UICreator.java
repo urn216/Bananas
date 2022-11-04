@@ -12,13 +12,13 @@ import java.awt.Font;
 
 public class UICreator {
   // private static final UIElement VIRTUAL_KEYBOARD = new ElemKeyboard();
-
+  
   /**
   * Creates the UI pane for the main menu.
   */
   public static UIPane createMain(Core c, UIController ui) {
     UIPane mainMenu = new UIPane();
-    boolean[] Tties = {true, false, true, false};
+
     UIElement title = new ElemTitle(
     new Vector2(0, 0),
     new Vector2(0.28, 0.14),
@@ -26,75 +26,130 @@ public class UICreator {
     Font.BOLD,
     75,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    Tties
+    new boolean[]{true, false, true, false}
     );
-    boolean[] Bties = {false, false, true, false};
-    UIInteractable[] topButtons = {
-      new UIButton("New Game"       , c::newGame                       ),
-      new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS)),
-      new UIButton("Quit to Desktop", c::quitToDesk                    ),
-    };
+
     UIElement outPanel = new ElemButtons(
     new Vector2(0, 0.28),
-    new Vector2(0.12, 0.56),
+    new Vector2(0.12, 0.4536),
     42.48,
     15,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    topButtons,
-    Bties
+    new UIInteractable[]{
+      new UIButton("Play"           , () -> ui.setMode(UIState.NEW_GAME)),
+      new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS) ),
+      new UIButton("Quit to Desktop", c::quitToDesk                     ),
+    },
+    new boolean[]{false, false, true, false}
     );
-    UIInteractable[] OptButtons = {
-      new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
-      new UIButton("Audio"   , () -> ui.setMode(UIState.AUDIO)   ),
-      new UIButton("Gameplay", () -> ui.setMode(UIState.GAMEPLAY)),
-      new UIButton("Back"    , ui::back                          ),
-    };
+
+    UIElement playModes = new ElemButtons(
+    new Vector2(0, 0.28),
+    new Vector2(0.12, 0.4536),
+    42.48,
+    15,
+    ColourPacks.DEFAULT_COLOUR_PACK,
+    new UIInteractable[]{
+      new UIButton("Host Game"   , () -> ui.setMode(UIState.HOST_SETUP)  ),
+      new UIButton("Join Game"   , () -> ui.setMode(UIState.CLIENT_SETUP)),
+      new UIButton("Back"        , ui::back                              ),
+    },
+    new boolean[]{false, false, true, false}
+    );
+
+    UIElement hostSetup = new ElemButtons(
+    new Vector2(0.44, 0.28),
+    new Vector2(0.56, 0.5068),
+    42.48,
+    15,
+    ColourPacks.DEFAULT_COLOUR_PACK,
+    new UIInteractable[]{
+      new UITextfield(24, 1, null, ui),
+      new UIButton("Test2", null),
+      new UIButton("Test3", null),
+      new UIButton("Test4", null),
+    },
+    new boolean[]{false, false, true, false}
+    );
+
+    UIElement clientSetup = new ElemButtons(
+    new Vector2(0.44, 0.28),
+    new Vector2(0.56, 0.5068),
+    42.48,
+    15,
+    ColourPacks.DEFAULT_COLOUR_PACK,
+    new UIInteractable[]{
+      new UITextfield(24, 1, null, ui),
+      new UIButton("Test2", null),
+      new UIButton("Test3", null),
+      new UIButton("Connect!", null),
+    },
+    new boolean[]{false, false, true, false}
+    );
+
     UIElement options = new ElemButtons(
     new Vector2(0, 0.28),
     new Vector2(0.12, 0.5068),
     42.48,
     15,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    OptButtons,
-    Bties
+    new UIInteractable[]{
+      new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
+      new UIButton("Audio"   , () -> ui.setMode(UIState.AUDIO)   ),
+      new UIButton("Gameplay", () -> ui.setMode(UIState.GAMEPLAY)),
+      new UIButton("Back"    , ui::back                          ),
+    },
+    new boolean[]{false, false, true, false}
     );
-    UIInteractable[] OViButtons = {
-      new UIButton("Test1", null),
-      new UIButton("Test2", null),
-      new UIButton("Test3", null),
-      new UIButton("Test4", null),
-    };
+
     UIElement optvid = new ElemButtons(
     new Vector2(0.44, 0.28),
     new Vector2(0.56, 0.5068),
     42.48,
     15,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    OViButtons,
-    Bties
+    new UIInteractable[]{
+      new UIButton("Test1", null),
+      new UIButton("Test2", null),
+      new UIButton("Test3", null),
+      new UIButton("Test4", null),
+    },
+    new boolean[]{false, false, true, false}
     );
-    UIInteractable[] OAuButtons = {
-      new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> c.globalSettings.getSetting    ("soundFX")    , (v) -> c.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> c.globalSettings.getSetting    ("soundMusic") , (v) -> c.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
-      new UIToggle("Subtitles"    , () -> c.globalSettings.getBoolSetting("subtitles")  , (v) -> c.globalSettings.setBoolSetting("subtitles"  , v)),
-    };
+
     UIElement optaud = new ElemButtons(
     new Vector2(0.44, 0.28),
     new Vector2(0.56, 0.625),
     42.48,
     15,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    OAuButtons,
-    Bties
+    new UIInteractable[]{
+      new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d" , () -> c.globalSettings.getSetting    ("soundFX")    , (v) -> c.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"    , () -> c.globalSettings.getSetting    ("soundMusic") , (v) -> c.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
+      new UIToggle("Subtitles"    , () -> c.globalSettings.getBoolSetting("subtitles")  , (v) -> c.globalSettings.setBoolSetting("subtitles"  , v)),
+    },
+    new boolean[]{false, false, true, false}
     );
+
     mainMenu.addElement(title);
     mainMenu.addElement(outPanel);
+    mainMenu.addElement(playModes);
+    mainMenu.addElement(hostSetup);
+    mainMenu.addElement(clientSetup);
     mainMenu.addElement(options);
     mainMenu.addElement(optvid);
     mainMenu.addElement(optaud);
     mainMenu.addMode(UIState.DEFAULT, title);
     mainMenu.addMode(UIState.DEFAULT, outPanel);
+    mainMenu.addMode(UIState.NEW_GAME, title, UIState.DEFAULT);
+    mainMenu.addMode(UIState.NEW_GAME, playModes);
+    mainMenu.addMode(UIState.HOST_SETUP, title, UIState.NEW_GAME);
+    mainMenu.addMode(UIState.HOST_SETUP, playModes);
+    mainMenu.addMode(UIState.HOST_SETUP, hostSetup);
+    mainMenu.addMode(UIState.CLIENT_SETUP, title, UIState.NEW_GAME);
+    mainMenu.addMode(UIState.CLIENT_SETUP, playModes);
+    mainMenu.addMode(UIState.CLIENT_SETUP, clientSetup);
     mainMenu.addMode(UIState.OPTIONS, title, UIState.DEFAULT);
     mainMenu.addMode(UIState.OPTIONS, options);
     mainMenu.addMode(UIState.VIDEO, title, UIState.OPTIONS);
@@ -103,97 +158,84 @@ public class UICreator {
     mainMenu.addMode(UIState.AUDIO, title, UIState.OPTIONS);
     mainMenu.addMode(UIState.AUDIO, options);
     mainMenu.addMode(UIState.AUDIO, optaud);
-
+    
     return mainMenu;
   }
-
+  
   /**
   * Creates the HUD for use during gameplay.
   */
   public static UIPane createHUD(Core c, UIController ui) {
     UIPane HUD = new UIPane();
-    boolean[] Tties = {false, false, false, false};
+
     UIElement greyed = new ElemPlain(
     new Vector2(0,0),
     new Vector2(1, 1),
     ColourPacks.DEFAULT_COLOUR_PACK,
-    Tties
+    new boolean[]{false, false, false, false}
     );
-    // boolean[] hTies = {true, false, true, false};
-    // int[] hI = {0, 3, 4, 5};
-    // UIElement health = new ElemInfo(
-    // new Vector2(0, 0),
-    // new Vector2(0.125, 0.2),
-    // 0,
-    // hI,
-    // Font.BOLD,
-    // 30,
-    // ColourPacks.DEFAULT_COLOUR_PACK,
-    // hTies
-    // );
-    boolean[] Bties = {false, true, true, true};
-    UIInteractable[] topButtons = {
-      new UIButton("Resume"         , ui::back                         ),
-      new UIButton("Save Game"      , null                             ),
-      new UIButton("Load Game"      , null                             ),
-      new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS)),
-      new UIButton("Quit to Title"  , c::quitToMenu                    ),
-      new UIButton("Quit to Desktop", c::quitToDesk                    ),
-    };
+
     UIElement outPause = new ElemButtons(
     new Vector2(0.4415, 0.332),
     new Vector2(0.5585, 0.668),
     42.48,
     15,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    topButtons,
-    Bties
+    new UIInteractable[]{
+      new UIButton("Resume"         , ui::back                         ),
+      new UIButton("Save Game"      , null                             ),
+      new UIButton("Load Game"      , null                             ),
+      new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS)),
+      new UIButton("Quit to Title"  , c::quitToMenu                    ),
+      new UIButton("Quit to Desktop", c::quitToDesk                    ),
+    },
+    new boolean[]{false, true, true, true}
     );
-    UIInteractable[] OptButtons = {
-      new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
-      new UIButton("Audio"   , () -> ui.setMode(UIState.AUDIO)   ),
-      new UIButton("Gameplay", () -> ui.setMode(UIState.GAMEPLAY)),
-      new UIButton("Back"    , ui::back                          ),
-    };
+
     UIElement options = new ElemButtons(
     new Vector2(0.4415, 0.388),
     new Vector2(0.5585, 0.612),
     42.48,
     15,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    OptButtons,
-    Bties
+    new UIInteractable[]{
+      new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
+      new UIButton("Audio"   , () -> ui.setMode(UIState.AUDIO)   ),
+      new UIButton("Gameplay", () -> ui.setMode(UIState.GAMEPLAY)),
+      new UIButton("Back"    , ui::back                          ),
+    },
+    new boolean[]{false, true, true, true}
     );
-    UIInteractable[] OViButtons = {
-      new UIButton("AH"          , null    ),
-      new UIButton("MAKE IT STOP", null    ),
-      new UIButton("PLEASE"      , null    ),
-      new UIButton("Back"        , ui::back),
-    };
+
     UIElement optvid = new ElemButtons(
     new Vector2(0.4415, 0.388),
     new Vector2(0.5585, 0.612),
     42.48,
     15,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    OViButtons,
-    Bties
+    new UIInteractable[]{
+      new UIButton("AH"          , null    ),
+      new UIButton("MAKE IT STOP", null    ),
+      new UIButton("PLEASE"      , null    ),
+      new UIButton("Back"        , ui::back),
+    },
+    new boolean[]{false, true, true, true}
     );
-    UIInteractable[] OAuButtons = {
-      new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> c.globalSettings.getSetting    ("soundFX")    , (v) -> c.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> c.globalSettings.getSetting    ("soundMusic") , (v) -> c.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
-      new UIToggle("Subtitles"    , () -> c.globalSettings.getBoolSetting("subtitles")  , (v) -> c.globalSettings.setBoolSetting("subtitles"  , v)),
-      new UIButton("Back"         , ui::back),
-    };//0.398
+
     UIElement optaud = new ElemButtons(
     new Vector2(0.4415, 0.301),
     new Vector2(0.5585, 0.699),
     42.48,
     15,
     ColourPacks.DEFAULT_COLOUR_PACK,
-    OAuButtons,
-    Bties
+    new UIInteractable[]{
+      new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d" , () -> c.globalSettings.getSetting    ("soundFX")    , (v) -> c.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"    , () -> c.globalSettings.getSetting    ("soundMusic") , (v) -> c.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
+      new UIToggle("Subtitles"    , () -> c.globalSettings.getBoolSetting("subtitles")  , (v) -> c.globalSettings.setBoolSetting("subtitles"  , v)),
+      new UIButton("Back"         , ui::back),
+    },
+    new boolean[]{false, true, true, true}
     );
     // HUD.addElement(health);
     HUD.addElement(greyed);
@@ -211,7 +253,7 @@ public class UICreator {
     HUD.addMode(UIState.VIDEO, optvid);
     HUD.addMode(UIState.AUDIO, greyed, UIState.OPTIONS);
     HUD.addMode(UIState.AUDIO, optaud);
-
+    
     return HUD;
   }
 }

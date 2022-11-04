@@ -36,11 +36,11 @@ public class ElemButtons extends UIElement {
   *
   * @param tL The percent inwards from the top left corner of the screen for the top left corner of this element
   * @param bR The percent inwards from the top left corner of the screen for the bottom right corner of this element
+  * @param buttonHeight The height in pixels of each button in this element
   * @param buffer The amount of buffer space between buttons
   * @param colours The colour pack to use for this element
-  * @param bNames an array containing all the buttons to have in the column
-  * @param actions an array containing all the actions for the buttons to perform
-  * @param ties Determines which directions should be faded from/towards in transitions
+  * @param clickables an array containing all the buttons to have in the column
+  * @param ties Determines which directions should be faded from/towards in transitions (up, down, left, right)
   */
   public ElemButtons(Vector2 tL, Vector2 bR, double buttonHeight, double buffer, Color[] colours, UIInteractable[] clickables, boolean[] ties) {
     assert(ties.length==4);

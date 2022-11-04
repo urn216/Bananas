@@ -67,7 +67,7 @@ public class Core extends JPanel {
   private final UIController uiCon;
   
   private Scene current;
-
+  
   private Server server = null;
   
   private Camera cam;
@@ -132,7 +132,7 @@ public class Core extends JPanel {
     uiCon.putPane("Main Menu", UICreator.createMain(this, uiCon));
     uiCon.putPane("HUD"      , UICreator.createHUD(this, uiCon) );
     
-    toScene(true);
+    toMenu();
     
     initialiseControls();
   }
@@ -142,19 +142,31 @@ public class Core extends JPanel {
   *
   * @param name The name of the scene to switch to
   */
-  public void toScene(boolean menu) {
-    current = new Scene(menu);
+  public void toMenu() {
+    server = null;
+    current = new Scene(true);
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
-    if (menu) {
-      state = State.MAINMENU;
-      uiCon.setCurrent("Main Menu");
-      // ai = null;
-      return;
-    }
+    state = State.MAINMENU;
+    uiCon.setCurrent("Main Menu");
+  }
+  
+  public void hostGame() {
+    server = new Server();
+    current = new Scene(false);
+    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
+    
     state = State.RUN;
     uiCon.setCurrent("HUD");
-    //ai = new MineAI(current, current.getMapSX(), current.getMapSY());
+  }
+
+  public void joinGame() {
+    server = null;
+    current = new Scene(false);
+    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
+    
+    state = State.RUN;
+    uiCon.setCurrent("HUD");
   }
   
   /**
@@ -196,22 +208,10 @@ public class Core extends JPanel {
   }
   
   /**
-  * Sets a flag to start up a new game in the save game slot and switch to the opening scene
-  *
-  * @param newSaveName the name of the new save game.
-  */
-  public void newGame() {
-    try {
-      Thread.sleep(32);
-    } catch(InterruptedException e){Thread.currentThread().interrupt();}
-    toScene(false);
-  }
-  
-  /**
   * Returns the scene to the main menu state
   */
   public void quitToMenu() {
-    toScene(true);
+    toMenu();
   }
   
   /**
@@ -227,7 +227,7 @@ public class Core extends JPanel {
   private void playGame() {
     while (true) {
       long tickTime = System.currentTimeMillis();
-
+      
       switch (state) {
         case MAINMENU:
         break;
@@ -241,7 +241,7 @@ public class Core extends JPanel {
         }
         break;
       }
-
+      
       repaint();
       if (quit) {
         System.exit(0);
