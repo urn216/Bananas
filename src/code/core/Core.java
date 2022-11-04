@@ -10,6 +10,7 @@ import code.ui.UIController;
 import code.ui.UICreator;
 
 import code.board.Camera;
+import code.board.Server;
 
 //import java.util.*;
 //import java.awt.Color;
@@ -34,6 +35,7 @@ import java.awt.Graphics2D;
 
 enum State {
   MAINMENU,
+  HOST,
   RUN,
   END
 }
@@ -65,6 +67,8 @@ public class Core extends JPanel {
   private final UIController uiCon;
   
   private Scene current;
+
+  private Server server = null;
   
   private Camera cam;
   private int screenSizeX;
@@ -227,6 +231,8 @@ public class Core extends JPanel {
       switch (state) {
         case MAINMENU:
         break;
+        case HOST:
+        server.broadcast("Hello");
         case RUN:
         case END:
         if (mouseDown[2] || mouseDown[3]) {
@@ -256,6 +262,7 @@ public class Core extends JPanel {
       if (current != null) {current.draw(g, cam, false);}
       uiCon.draw(g, screenSizeX, screenSizeY);
       break;
+      case HOST:
       case RUN:
       case END:
       current.draw(g, cam, false);
