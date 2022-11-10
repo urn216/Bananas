@@ -29,8 +29,13 @@ public class UIPane {
   }
 
   public void reset() {
-    current = null;
     setMode(UIState.DEFAULT);
+  }
+
+  public void clear() {
+    for (UIElement e : elements) {
+      e.deactivate();
+    }
   }
 
   public UIElement getPane(int i) {

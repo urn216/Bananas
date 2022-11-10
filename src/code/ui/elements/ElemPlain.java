@@ -31,7 +31,7 @@ public class ElemPlain extends UIElement {
     assert(ties.length==4);
     topLeft = tL;
     botRight = bR;
-    bgCol = colours[0];
+    bgCol = colours[1];
     if (ties[0] || ties[1]) {
       fadeUp    = ties[0] ? 1 : -1;
       fadeDown  = ties[1] ? -1 : 1;

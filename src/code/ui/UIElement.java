@@ -55,6 +55,13 @@ public abstract class UIElement {
   }
 
   /**
+   * Sets the element to an inactive state immediately without transitioning
+   */
+  public void deactivate() {
+    transIn = transOut = active = false;
+  }
+
+  /**
   * Gets the transition state of this element
   *
   * @return true if the element is transitioning
@@ -117,7 +124,7 @@ public abstract class UIElement {
   * @param screenSizeY The height of the screen
   * @param playerStats The stats of the player to draw onto the screen
   */
-  public void draw(Graphics2D g, double UIscale, int screenSizeX, int screenSizeY, UIInteractable highlighted, double[] playerStats) {}
+  public abstract void draw(Graphics2D g, double UIscale, int screenSizeX, int screenSizeY, UIInteractable highlighted, double[] playerStats);
 
   public Color fadeCol(Color toFade, double percent) {
     return new Color(toFade.getRed(), toFade.getGreen(), toFade.getBlue(), (int)(toFade.getAlpha()*percent));

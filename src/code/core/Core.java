@@ -68,13 +68,13 @@ public class Core extends JPanel {
   
   private Scene current;
   
-  private Server server = null;
-  
   private Camera cam;
   private int screenSizeX;
   private int screenSizeY;
-  private int smallScreenX = (int)DEFAULT_SCREEN_SIZE.x;
-  private int smallScreenY = (int)DEFAULT_SCREEN_SIZE.y;
+  // private int smallScreenX = (int)DEFAULT_SCREEN_SIZE.x;
+  // private int smallScreenY = (int)DEFAULT_SCREEN_SIZE.y;
+  private int smallScreenX = 1280;
+  private int smallScreenY = 720;
   
   // private long pFTime = System.currentTimeMillis();
   // private int fCount = 0;
@@ -143,26 +143,29 @@ public class Core extends JPanel {
   * @param name The name of the scene to switch to
   */
   public void toMenu() {
-    server = null;
-    current = new Scene(true);
+    Server.shutdown();
+    Client.disconnect();
+    current = Menu.MENU;
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.MAINMENU;
     uiCon.setCurrent("Main Menu");
   }
   
-  public void hostGame() {
-    server = new Server();
-    current = new Scene(false);
+  public void hostGame(int port) {
+    Server.startup(port);
+    Client.connect("localhost", port);
+    current = new Scene();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
-    state = State.RUN;
+    state = State.HOST;
     uiCon.setCurrent("HUD");
   }
-
-  public void joinGame() {
-    server = null;
-    current = new Scene(false);
+  
+  public void joinGame(String ip, int port) {
+    Server.shutdown();
+    Client.connect(ip, port);
+    current = new Scene();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.RUN;
@@ -232,7 +235,6 @@ public class Core extends JPanel {
         case MAINMENU:
         break;
         case HOST:
-        server.broadcast("Hello");
         case RUN:
         case END:
         if (mouseDown[2] || mouseDown[3]) {

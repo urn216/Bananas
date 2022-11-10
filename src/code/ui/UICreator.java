@@ -31,9 +31,9 @@ public class UICreator {
 
     UIElement outPanel = new ElemButtons(
     new Vector2(0, 0.28),
-    new Vector2(0.12, 0.4536),
-    42.48,
-    15,
+    new Vector2(0.24, 0.565),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UIButton("Play"           , () -> ui.setMode(UIState.NEW_GAME)),
@@ -45,9 +45,9 @@ public class UICreator {
 
     UIElement playModes = new ElemButtons(
     new Vector2(0, 0.28),
-    new Vector2(0.12, 0.4536),
-    42.48,
-    15,
+    new Vector2(0.24, 0.565),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UIButton("Host Game"   , () -> ui.setMode(UIState.HOST_SETUP)  ),
@@ -57,41 +57,45 @@ public class UICreator {
     new boolean[]{false, false, true, false}
     );
 
+    UITextfield hostport = new UITextfield(5, 1, null, ui){public boolean isValid() {return totind > 0 && Integer.parseInt(getText()) >= 0 && Integer.parseInt(getText()) <= 0xFFFF;}};
     UIElement hostSetup = new ElemButtons(
-    new Vector2(0.44, 0.28),
-    new Vector2(0.56, 0.5068),
-    42.48,
-    15,
+    new Vector2(0.38, 0.28),
+    new Vector2(0.62, 0.475),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
-      new UITextfield(24, 1, null, ui),
-      new UIButton("Test2", null),
-      new UIButton("Test3", null),
-      new UIButton("Test4", null),
+      hostport,
+      new UIButton("Host New Game", () -> {if (hostport.isValid()) c.hostGame(Integer.parseInt(hostport.getText()));}),
     },
     new boolean[]{false, false, true, false}
     );
 
+    UITextfield ipaddr = new UITextfield(15, 1, null, ui){public boolean isValid() {return totind > 0;}};
+    UITextfield joinport = new UITextfield(5, 1, null, ui){public boolean isValid() {return totind > 0 && Integer.parseInt(getText()) >= 0 && Integer.parseInt(getText()) <= 0xFFFF;}};
     UIElement clientSetup = new ElemButtons(
-    new Vector2(0.44, 0.28),
-    new Vector2(0.56, 0.5068),
-    42.48,
-    15,
+    new Vector2(0.38, 0.28),
+    new Vector2(0.62, 0.565),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
-      new UITextfield(24, 1, null, ui),
-      new UIButton("Test2", null),
-      new UIButton("Test3", null),
-      new UIButton("Connect!", null),
+      ipaddr,
+      joinport,
+      new UIButton("Connect!", () -> {
+        if (joinport.isValid() && ipaddr.isValid()) {
+          c.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
+        }
+      }),
     },
     new boolean[]{false, false, true, false}
     );
 
     UIElement options = new ElemButtons(
     new Vector2(0, 0.28),
-    new Vector2(0.12, 0.5068),
-    42.48,
-    15,
+    new Vector2(0.24, 0.655),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
@@ -103,10 +107,10 @@ public class UICreator {
     );
 
     UIElement optvid = new ElemButtons(
-    new Vector2(0.44, 0.28),
-    new Vector2(0.56, 0.5068),
-    42.48,
-    15,
+    new Vector2(0.38, 0.28),
+    new Vector2(0.62, 0.655),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UIButton("Test1", null),
@@ -118,10 +122,10 @@ public class UICreator {
     );
 
     UIElement optaud = new ElemButtons(
-    new Vector2(0.44, 0.28),
-    new Vector2(0.56, 0.625),
-    42.48,
-    15,
+    new Vector2(0.38, 0.28),
+    new Vector2(0.62, 0.88),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
@@ -176,10 +180,10 @@ public class UICreator {
     );
 
     UIElement outPause = new ElemButtons(
-    new Vector2(0.4415, 0.332),
-    new Vector2(0.5585, 0.668),
-    42.48,
-    15,
+    new Vector2(0.38, 0.2225),
+    new Vector2(0.62, 0.7775),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UIButton("Resume"         , ui::back                         ),
@@ -193,10 +197,10 @@ public class UICreator {
     );
 
     UIElement options = new ElemButtons(
-    new Vector2(0.4415, 0.388),
-    new Vector2(0.5585, 0.612),
-    42.48,
-    15,
+    new Vector2(0.38, 0.3125),
+    new Vector2(0.62, 0.6875),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
@@ -208,10 +212,10 @@ public class UICreator {
     );
 
     UIElement optvid = new ElemButtons(
-    new Vector2(0.4415, 0.388),
-    new Vector2(0.5585, 0.612),
-    42.48,
-    15,
+    new Vector2(0.38, 0.3125),
+    new Vector2(0.62, 0.6875),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UIButton("AH"          , null    ),
@@ -223,10 +227,10 @@ public class UICreator {
     );
 
     UIElement optaud = new ElemButtons(
-    new Vector2(0.4415, 0.301),
-    new Vector2(0.5585, 0.699),
-    42.48,
-    15,
+    new Vector2(0.38, 0.155),
+    new Vector2(0.62, 0.845),
+    81,
+    16.2,
     ColourPacks.DEFAULT_COLOUR_PACK,
     new UIInteractable[]{
       new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
@@ -259,13 +263,13 @@ public class UICreator {
 }
 
 class ColourPacks {
-  public static final Color DEFAULT_BACKGROUND = new Color(100, 100, 100, 127);
+  public static final Color DEFAULT_BACKGROUND = new Color(200, 180, 150, 127);
   public static final Color DEFAULT_SCREEN_TINT = new Color(50, 50, 50, 127);
-  public static final Color DEFAULT_BUTTON_OUT_ACC = new Color(200, 200, 200);
-  public static final Color DEFAULT_BUTTON_BACKGROUND = new Color(160, 160, 160, 160);
-  public static final Color DEFAULT_BUTTON_IN_ACC = new Color(0, 255, 255);
+  public static final Color DEFAULT_BUTTON_OUT_ACC = new Color(200, 190, 180);
+  public static final Color DEFAULT_BUTTON_BACKGROUND = new Color(160, 150, 140);
+  public static final Color DEFAULT_BUTTON_IN_ACC = new Color(255, 255, 0);
   public static final Color DEFAULT_BUTTON_LOCKED = new Color(180, 180, 180);
-  public static final Color DEFAULT_BUTTON_HOVER = new Color(0, 180, 180);
+  public static final Color DEFAULT_BUTTON_HOVER = new Color(200, 200, 0);
   public static final Color[] DEFAULT_COLOUR_PACK = {
     DEFAULT_BACKGROUND, DEFAULT_SCREEN_TINT, DEFAULT_BUTTON_OUT_ACC, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_IN_ACC, DEFAULT_BUTTON_LOCKED, DEFAULT_BUTTON_HOVER
   };

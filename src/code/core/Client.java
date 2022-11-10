@@ -1,57 +1,50 @@
 package code.core;
 
-import java.io.PrintWriter;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
-import java.util.Scanner;
 import java.io.IOException;
 import java.net.Socket;
 
-public class Client {
-
-  public static void main(String[] args) {
+public abstract class Client {
+  public static volatile Socket sock = new Socket();
+  
+  /**
+  * Disconnects the client from a server if it is connected to one.
+  * Closes the client socket.
+  */
+  public static void disconnect() {
     try {
-      // Socket clientSock = new Socket("122.58.44.177", 2556);
-      Socket clientSock = new Socket("localhost", 2556);
-      BufferedReader in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
-      // Scanner in = new Scanner(clientSock.getInputStream());
-      new OutGoing(clientSock).start();
-      while (OutGoing.isActive) {
-        System.out.print((char)in.read());
-        // System.out.println(in.nextLine());
-      }
-
-      in.close();
-      clientSock.close();
-    } catch(IOException e){System.out.println(e);}
-    Scanner scanner = new Scanner(System.in);
-    scanner.nextLine();
-    scanner.close();
+      sock.close();
+    } catch(IOException e){System.out.println("clientcls "+e);}
   }
-}
-
-class OutGoing extends Thread {
-  public static boolean isActive = true;
-  Socket clientSock;
-
-  public OutGoing(Socket clientSock) {
-    this.clientSock = clientSock;
-  }
-
-  public void run() {
+  
+  /**
+  * Connects the client to a server as chosen by the supplied IPv4 address and port number.
+  * 
+  * @param ip the IPv4 address to attempt to connect to
+  * @param port the port number to access the server through
+  */
+  public static void connect(String ip, int port) {
     try {
-      PrintWriter out = new PrintWriter(clientSock.getOutputStream(), true);
-      Scanner scanner = new Scanner(System.in);
-      System.out.print("Username: ");
-      while(true) {
-        String msg = scanner.nextLine();
-        out.println(msg);
-        if (msg.equals("exit")) break;
+      sock = new Socket(ip, port);
+    } catch(IOException e){System.out.println("clientcon "+e);}
+    
+    new Thread(){
+      public void run() {
+        try {
+          while(true) {
+            System.in.transferTo(sock.getOutputStream());
+          }
+        } catch(IOException e){System.out.println("clientout "+e);}
       }
-      isActive = false;
-      out.close();
-      scanner.close();
-      clientSock.close();
-    } catch(IOException e){System.out.println(e);}
+    }.start();
+    
+    new Thread() {
+      public void run() {
+        try {
+          while (true) {
+            sock.getInputStream().transferTo(System.out);
+          }
+        } catch(IOException e){System.out.println("clientin  "+e);}
+      }
+    }.start();
   }
 }

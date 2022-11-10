@@ -45,7 +45,7 @@ public class UISlider extends UIInteractable {
   }
 
   @Override
-  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color textCol) {
+  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color tl, Color br, Color textCol) {
     height*=2;
     float inset = ((height/2 - metrics.getHeight())/2);
     float nodeWidth = (height/2-inset*2)/3;

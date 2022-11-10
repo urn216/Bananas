@@ -19,7 +19,7 @@ public class UIController {
   private final Settings globalSettings;
 
   private HashMap<String, UIPane> panes;
-  private UIPane current;
+  private UIPane current = new UIPane();
 
   private UIInteractable highlighted = null;
   private UITextfield activeTextfield = null;
@@ -39,6 +39,7 @@ public class UIController {
   }
 
   public UIPane setCurrent(String name) {
+    current.clear();
     current = panes.get(name);
     current.reset();
     return current;

@@ -7,102 +7,105 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
 
-public class Server {
-  HashMap<Integer, ClientHandler> sockets = new HashMap<Integer, ClientHandler>();
+public abstract class Server {
+  private static volatile ServerSocket sock;
+  public static volatile HashMap<Integer, ClientHandler> clients = new HashMap<Integer, ClientHandler>();
 
-  public static void main(String[] args) {
-    new Server().startup();
+  static {
+    try {
+      sock = new ServerSocket();
+    } catch(IOException e){System.out.println(e);}
   }
-
-  public void broadcast(String msg) {
-    System.out.println(msg);
-    for (ClientHandler c : sockets.values()) {
-      c.send(msg, "SERVER");
+  
+  public static void broadcast(String msg) {
+    // System.out.println(msg);
+    for (int i : clients.keySet()) {
+      clients.get(i).send(-1, msg, "SERVER");
     }
   }
-
-  private void startup() {
-    ServerSocket sock;
-    System.out.println("Creating new Server!");
+  
+  /**
+  * Shuts down the server if it is currently running.
+  * Closes the server socket and all the client sockets connected to the server at runtime.
+  */
+  public static void shutdown() {
     try {
-      int id = 0;
-      sock = new ServerSocket(2556);
-      while (true) {
-        ClientHandler newClient = new ClientHandler(sock.accept(), sockets, id, this);
-        sockets.put(id, newClient);
-        newClient.start();
-        id++;
-        System.out.println("number of active users: " + sockets.size());
+      for (ClientHandler ch : clients.values()) {ch.clientSock.close();}
+      clients.clear();
+      sock.close();
+    } catch(IOException e){System.out.println("servercls "+e);}
+  }
+  
+  /**
+   * Starts a fresh server on a given port to host a game through.
+   * Creates a lobby that will wait for connections from potential clients.
+   * 
+   * @param port the port number to host the server on.
+   */
+  public static void startup(int port) {
+    // shutdown();
+    try {
+      sock = new ServerSocket(port);
+    } catch(IOException e){System.out.println("serveropn "+e);}
+    System.out.println("\nCreating new Server!");
+    
+    new Thread(){
+      public void run() {
+        try {
+          for(int id = 0; true; id++) {
+            ClientHandler newClient = new ClientHandler(sock.accept(), id);
+            clients.put(id, newClient);
+            newClient.start();
+            System.out.println("number of active users: " + clients.size());
+          }
+        }
+        catch (IOException e) {System.out.println("serverlby "+e);}
       }
-    } catch(IOException e){System.out.println(e);}
-    System.out.println("Server closed unexpectedly!");
-    System.out.println("Press Enter to continue...");
-    Scanner scanner = new Scanner(System.in);
-    scanner.nextLine();
-    scanner.close();
+    }.start();
   }
 }
 
 class ClientHandler extends Thread {
-  final Server s;
-  HashMap<Integer, ClientHandler> sockets;
-  Socket clientSock;
+  public final Socket clientSock;
+  public final int id;
+  
   PrintWriter out;
   String uid;
-  final int id;
-
-  public ClientHandler(Socket clientSock, HashMap<Integer, ClientHandler> sockets, int id, Server s) {
-    this.s = s;
+  
+  public ClientHandler(Socket clientSock, int id) {
     this.clientSock = clientSock;
-    this.sockets = sockets;
     this.id = id;
   }
-
-  public void send(String msg, String user) {
-    if (user.equals(uid)) return;
+  
+  public void send(int id, String msg, String user) {
+    if (this.id == id) return;
     out.println(user + "> " + msg);
   }
-
+  
   public void run() {
     try {
       System.out.println("Client Connected");
       out = new PrintWriter(clientSock.getOutputStream(), true);
       out.println("Welcome, new user!");
-      out.println(getQuote());
+      out.print("Username: ");
+      out.flush();
       BufferedReader in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
-
+      
       uid = in.readLine();
-
-      s.broadcast("Welcome, " + uid);
+      
+      Server.broadcast("Welcome, " + uid);
       while (true) {
         String msg = in.readLine();
-        if (msg.equals("exit")) break;
-        System.out.println(uid + "> " + msg);
-        for (ClientHandler c : sockets.values()) {
-          c.send(msg, uid);
+        if (msg == null || msg.equals("exit")) break;
+        for (ClientHandler c : Server.clients.values()) {
+          c.send(id, msg, uid);
         }
       }
-      in.close();
-      out.close();
       clientSock.close();
-      s.broadcast("User " + uid + " disconnected");
-      sockets.remove(id);
-    } catch(IOException e){s.broadcast("User " + uid + " disconnected poorly: " + e); sockets.remove(id);}
-    System.out.println("number of active users: " + sockets.size());
-  }
-
-  private static String getQuote() {
-    String[] quotes = {
-      "Wow, you're so cool!",
-      "[Insert inspiration here]",
-      "I bet you could achieve that task if you put your mind to it for once!",
-      "Fold your laundry!",
-      "[Something funny]",
-      "Someone smart probably said something about missing basketball shots or something...",
-      "Hang in there!"
-    };
-    return quotes[(int)(Math.random()*quotes.length)];
+      Server.broadcast("User " + uid + " disconnected");
+      Server.clients.remove(id);
+    } catch(IOException e){Server.broadcast("User " + uid + " disconnected poorly: " + e); Server.clients.remove(id);}
+    System.out.println("number of active users: " + Server.clients.size());
   }
 }

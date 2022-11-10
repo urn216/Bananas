@@ -21,33 +21,27 @@ import java.util.List;
 public class Scene
 {
   //TODO break this into multiple classes; menu; lobby; and game
-  private int mapSX;
-  private int mapSY;
-  private TileGrid[][] map;
+  protected int mapSX;
+  protected int mapSY;
+  protected TileGrid[][] map;
   
-  private Decal bg;
+  protected Decal bg;
   
-  private final List<TileGrid> selectedTiles = new ArrayList<TileGrid>();
+  protected final List<TileGrid> selectedTiles = new ArrayList<TileGrid>();
 
-  private final List<TilePiece> inventory = new ArrayList<TilePiece>();
+  protected final List<TilePiece> inventory = new ArrayList<TilePiece>();
 
-  private TilePiece held = new TilePiece('A');
+  protected TilePiece held = new TilePiece('A');
   
   /**
   * Constructor for Scenes
   */
-  public Scene(boolean menu) {
+  public Scene() {
     bg = new Decal(1920, 1080, "BG/Menu.png", false);
-    if (menu) menuSetup();
-    else gameSetup();
+    gameSetup();
   }
   
-  public void menuSetup() {
-    map = new TileGrid[0][0];
-    mapSX = mapSY = 0;
-  }
-  
-  public void gameSetup() {
+  private void gameSetup() {
     map = GenerateRandom.generate();
     mapSX = map.length;
     mapSY = map[0].length;

@@ -6,6 +6,7 @@ import java.awt.FontMetrics;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Path2D;
 
 /**
 * Class for making clickable items in a User Interface
@@ -67,22 +68,45 @@ public abstract class UIInteractable {
     this.width = width;
     this.height = height;
 
+    Color high = bodyCol.brighter();
+    Color low = bodyCol.darker();
+
     if (locked) {
-      drawBody(g, 0, lockedBodyCol, textCol);
+      drawBody(g, 0, lockedBodyCol, high, low, textCol);
     }
     else if (in) {
-      drawBody(g, 2, inBodyCol, inTextCol);
+      drawBody(g, 2, inBodyCol, low, high, inTextCol);
     }
     else {
-      drawBody(g, 0, bodyCol, textCol);
+      drawBody(g, 0, bodyCol, high, low, textCol);
     }
   }
 
-  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color textCol) {
+  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color tl, Color br, Color textCol) {
+    double incrx = width/16;
+    double incry = height/16;
+
+    g.setColor(tl);
+    g.fill(new Rectangle2D.Double(x, y, width, height));
+    
+    g.setColor(br);
+    Path2D p = new Path2D.Double();
+    p.moveTo(x-incry, y+height);
+    p.lineTo(x+width, y+height);
+    p.lineTo(x+width, y);
+    p.closePath();
+    g.fill(p);
+    
     g.setColor(bodyCol);
-    g.fill(new Rectangle2D.Double(x+off, y+off, width-off, height-off));
+    g.fill(new Rectangle2D.Double(x+incrx, y+incry, width-incrx*2, height-incry*2));
     g.setColor(textCol);
-    g.draw(new Rectangle2D.Double(x, y, width, height));
     g.drawString(name, x+off+(width-metrics.stringWidth(name))/2, y+off+((height - metrics.getHeight())/2) + metrics.getAscent());
   }
 }
+
+
+// g.setColor(bodyCol);
+// g.fill(new Rectangle2D.Double(x+off, y+off, width-off, height-off));
+// g.setColor(textCol);
+// g.draw(new Rectangle2D.Double(x, y, width, height));
+// g.drawString(name, x+off+(width-metrics.stringWidth(name))/2, y+off+((height - metrics.getHeight())/2) + metrics.getAscent());

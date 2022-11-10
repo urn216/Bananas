@@ -14,11 +14,11 @@ import java.awt.geom.Rectangle2D;
  * Class for making functional text fields
  */
 public class UITextfield extends UIInteractable {
-  private char[] text;
-  private int ind[];
-  private int line = 0;
-  private int totind = 0;
-  private final int numLines;
+  protected char[] text;
+  protected int ind[];
+  protected int line = 0;
+  protected int totind = 0;
+  protected final int numLines;
 
   private final UIAction enterAction;
   private final UIAction clearAction;
@@ -76,6 +76,8 @@ public class UITextfield extends UIInteractable {
     return true;
   }
 
+  public boolean isValid() {return true;}
+
   public void print(char c) {
     if (totind>=text.length-1) return;
     // System.out.print(c);
@@ -110,7 +112,7 @@ public class UITextfield extends UIInteractable {
   }
 
   @Override
-  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color textCol) {
+  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color tl, Color br, Color textCol) {
     g.setColor(bodyCol);
     g.fill(new Rectangle2D.Double(x, y, width, height));
     g.setColor(textCol);
