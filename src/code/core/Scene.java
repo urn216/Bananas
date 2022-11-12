@@ -18,9 +18,8 @@ import java.util.List;
 /**
 * Scene class
 */
-public class Scene
+public abstract class Scene
 {
-  //TODO break this into multiple classes; menu; lobby; and game
   protected int mapSX;
   protected int mapSY;
   protected TileGrid[][] map;
@@ -28,28 +27,8 @@ public class Scene
   protected Decal bg;
   
   protected final List<TileGrid> selectedTiles = new ArrayList<TileGrid>();
-
-  protected final List<TilePiece> inventory = new ArrayList<TilePiece>();
-
-  protected TilePiece held = new TilePiece('A');
   
-  /**
-  * Constructor for Scenes
-  */
-  public Scene() {
-    bg = new Decal(1920, 1080, "BG/Menu.png", false);
-    gameSetup();
-  }
-  
-  private void gameSetup() {
-    map = GenerateRandom.generate();
-    mapSX = map.length;
-    mapSY = map[0].length;
-  }
-  
-  public void reset() {
-    gameSetup();
-  }
+  public abstract void reset();
   
   public int[] getStats() {
     int[] stats = {};
@@ -60,12 +39,10 @@ public class Scene
   
   public int getMapSY() {return mapSY;}
   
-  public TileGrid getTile(Vector2I p) {return map[p.x][p.y];}
-
-  public TilePiece getHeldTile() {return held;}
+  private TileGrid getTile(Vector2I p) {return map[p.x][p.y];}
   
   public List<TileGrid> getSelectedTiles() {return selectedTiles;}
-
+  
   public boolean hasSelectedTiles() {return !selectedTiles.isEmpty();}
   
   public Vector2 createPoint(int x, int y) {return new Vector2((x-mapSX/2)*TileGrid.TILE_SIZE, (y-mapSY/2)*TileGrid.TILE_SIZE);}
@@ -76,15 +53,41 @@ public class Scene
     return true;
   }
   
+  public boolean isSelected(Vector2I p) {
+    if (validate(p)) {
+      TileGrid t = getTile(p);
+      if (t.isPlaced() && (t.isIn() || selectedTiles.contains(t))) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   public void pressTile(Vector2I p) {
     if (!validate(p)) return;
     TileGrid t = getTile(p);
     t.setIn();
   }
   
-  public void selectTile(Vector2I p) {
+  public boolean selectTile(Vector2I p) {
     deselectTiles();
     if (validate(p) && getTile(p).isIn()) selectedTiles.add(getTile(p));
+    unsetIn();
+    return hasSelectedTiles();
+  }
+  
+  public void selectTiles(Vector2I a, Vector2I b) {
+    deselectTiles();
+    if (validate(a) && validate(b)) {
+      Vector2I tL = new Vector2I(Math.min(a.x, b.x), Math.min(a.y, b.y));
+      Vector2I bR = new Vector2I(Math.max(a.x, b.x), Math.max(a.y, b.y));
+      for (int y = tL.y; y <= bR.y; y++) {
+        for (int x = tL.x; x <= bR.x; x++) {
+          TileGrid t = getTile(new Vector2I(x, y));
+          if (t.isPlaced()) selectedTiles.add(t);
+        }
+      }
+    }
     unsetIn();
   }
   
@@ -107,7 +110,7 @@ public class Scene
     if (validate(p)) {
       TileGrid t = getTile(p);
       if (t.isIn() && selectedTiles.contains(t)) {
-        inventory.add(t.unPlace());
+        t.unPlace();
       }
     }
     unsetIn();
@@ -126,8 +129,8 @@ public class Scene
     return new Vector2I ((int)(((pos.x+cam.conX())/(cam.getZoom()*TileGrid.TILE_SIZE))+mapSX/2), (int)(((pos.y+cam.conY())/(cam.getZoom()*TileGrid.TILE_SIZE))+mapSX/2));
   }
   
-  public void draw(Graphics2D g, Camera cam, boolean revealAll) {
-    bg.draw(g, cam);
+  public void draw(Graphics2D g, Camera cam) {
+    bg.draw(g);
     
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {

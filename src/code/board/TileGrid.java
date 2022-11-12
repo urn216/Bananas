@@ -35,6 +35,8 @@ public class TileGrid
   }
   
   public void place(TilePiece piece) {this.piece = piece;}
+
+  public TilePiece getTilePiece() {return this.piece;}
   
   public TilePiece unPlace() {TilePiece p = piece; piece = null; return p;}
   

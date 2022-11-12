@@ -2,7 +2,6 @@ package code.board;
 
 import code.math.MathHelp;
 import code.core.Core;
-import code.core.GenerateRandom;
 import code.math.Vector2;
 import code.math.Vector2I;
 
@@ -13,9 +12,9 @@ public class Camera
 {
   private static final double CLOSE_MAGNITUDE = 0.125;
 
-  private static final int OFFSET_BOUNDS   = GenerateRandom.DEFAULT_MAP_SIZE*TileGrid.TILE_SIZE/2;
+  private static final int OFFSET_BOUNDS   = Core.DEFAULT_MAP_SIZE*TileGrid.TILE_SIZE/2;
   private static final double ZOOM_BOUND_U = 3;
-  private static final double ZOOM_BOUND_L = 0.5;
+  private static final double ZOOM_BOUND_L = 0.25;
 
   private double defaultZoom;
   private double zoom;

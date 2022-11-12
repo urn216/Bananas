@@ -11,4 +11,6 @@ public class Menu extends Scene {
     map = new TileGrid[0][0];
     mapSX = mapSY = 0;
   }
+
+  public void reset() {}
 }

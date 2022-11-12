@@ -6,10 +6,12 @@ import code.board.TilePiece;
 import java.awt.event.MouseWheelEvent;
 import code.math.IOHelp;
 import code.math.Vector2;
+import code.math.Vector2I;
 import code.ui.UIController;
 import code.ui.UICreator;
 
 import code.board.Camera;
+import code.board.Decal;
 import code.board.Server;
 
 //import java.util.*;
@@ -17,6 +19,8 @@ import code.board.Server;
 //import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.awt.Insets;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 //import java.awt.Toolkit;
 
 import java.awt.event.KeyEvent;
@@ -30,6 +34,8 @@ import java.awt.event.ComponentAdapter;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
@@ -37,7 +43,7 @@ enum State {
   MAINMENU,
   HOST,
   RUN,
-  END
+  END, SPLASH
 }
 
 /**
@@ -52,8 +58,15 @@ public class Core extends JPanel {
   private static final double TICKS_PER_SECOND = 60;
   private static final double MILLISECONDS_PER_TICK = 1000/TICKS_PER_SECOND;
   
+  private static final long START_TIME = System.currentTimeMillis();
+  private static final int SPLASH_TIME = 3000;
+  
+  public static final int DEFAULT_MAP_SIZE = 32;
+  
   private JFrame f;
   private boolean maximized = true;
+  
+  private final Decal splash;
   
   private boolean quit = false;
   
@@ -61,8 +74,11 @@ public class Core extends JPanel {
   
   private boolean[] keyDown = new boolean[65536];
   private boolean[] mouseDown = new boolean[4];
-  private Vector2 mousePos;
-  private Vector2 mousePre;
+  private Vector2 mousePos = new Vector2();
+  private Vector2 mousePre = new Vector2();
+  private Vector2 mouseBnd = new Vector2();
+  
+  private boolean bounding = false;
   
   private final UIController uiCon;
   
@@ -71,16 +87,14 @@ public class Core extends JPanel {
   private Camera cam;
   private int screenSizeX;
   private int screenSizeY;
-  // private int smallScreenX = (int)DEFAULT_SCREEN_SIZE.x;
-  // private int smallScreenY = (int)DEFAULT_SCREEN_SIZE.y;
-  private int smallScreenX = 1280;
-  private int smallScreenY = 720;
+  private int smallScreenX;
+  private int smallScreenY;
   
   // private long pFTime = System.currentTimeMillis();
   // private int fCount = 0;
   
   /** Current game state */
-  private State state = State.MAINMENU;
+  private State state = State.SPLASH;
   
   public final Settings globalSettings;
   
@@ -104,6 +118,15 @@ public class Core extends JPanel {
     f.setResizable(true);
     BufferedImage image = IOHelp.readImage("icon.png");
     f.setIconImage(image);
+    f.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    f.setUndecorated(true);
+    
+    GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+    smallScreenX = gd.getDisplayMode().getWidth()/2;
+    smallScreenY = gd.getDisplayMode().getHeight()/2;
+    splash = new Decal(smallScreenX, smallScreenY, "splash.png", false);
+    f.setBackground(new Color(173, 173, 173));
+    
     f.addWindowListener( new WindowAdapter() {
       @Override
       public void windowClosing(WindowEvent e) {
@@ -119,8 +142,7 @@ public class Core extends JPanel {
         // System.out.println(screenSizeX + ", " + screenSizeY);
       }
     });
-    f.setExtendedState(JFrame.MAXIMIZED_BOTH);
-    f.setUndecorated(true);
+    
     f.setVisible(true);
     f.requestFocus();
     globalSettings = new Settings();
@@ -130,17 +152,11 @@ public class Core extends JPanel {
     uiCon = new UIController(globalSettings);
     
     uiCon.putPane("Main Menu", UICreator.createMain(this, uiCon));
-    uiCon.putPane("HUD"      , UICreator.createHUD(this, uiCon) );
-    
-    toMenu();
-    
-    initialiseControls();
+    uiCon.putPane("HUD"      , UICreator.createHUD (this, uiCon));
   }
   
   /**
-  * Switches the current scene to a new one via the new scene's name
-  *
-  * @param name The name of the scene to switch to
+  * Switches the current scene to the main menu
   */
   public void toMenu() {
     Server.shutdown();
@@ -155,7 +171,7 @@ public class Core extends JPanel {
   public void hostGame(int port) {
     Server.startup(port);
     Client.connect("localhost", port);
-    current = new Scene();
+    current = new LocalGame();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.HOST;
@@ -165,7 +181,7 @@ public class Core extends JPanel {
   public void joinGame(String ip, int port) {
     Server.shutdown();
     Client.connect(ip, port);
-    current = new Scene();
+    current = new LocalGame();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.RUN;
@@ -232,14 +248,20 @@ public class Core extends JPanel {
       long tickTime = System.currentTimeMillis();
       
       switch (state) {
+        case SPLASH:
+        if (tickTime-START_TIME >= SPLASH_TIME) {
+          initialiseControls();
+          toMenu();
+        }
         case MAINMENU:
         break;
+        
         case HOST:
         case RUN:
         case END:
         if (mouseDown[2] || mouseDown[3]) {
           cam.setOffset(cam.getOffset().add(mousePos.subtract(mousePre)));
-          mousePre = mousePos.copy();
+          mousePre = mousePos;
         }
         break;
       }
@@ -260,16 +282,28 @@ public class Core extends JPanel {
     Graphics2D g = (Graphics2D) gra;
     
     switch (state) {
-      case MAINMENU:
-      if (current != null) {current.draw(g, cam, false);}
-      uiCon.draw(g, screenSizeX, screenSizeY);
+      case SPLASH:
+      splash.draw(g);
       break;
+      
       case HOST:
       case RUN:
-      case END:
-      current.draw(g, cam, false);
-      if (mouseDown[1]) current.getHeldTile().draw(g, mousePos, cam.getZoom(), false, false);
+      current.draw(g, cam);
+      if (mouseDown[1]) {
+        if (bounding) uiCon.drawBoundingBox(g, mouseBnd, mousePos);
+        else {
+          for (TileGrid p : current.getSelectedTiles()) {
+            if (p.getTilePiece()!=null) p.getTilePiece().draw(g, mousePos, cam.getZoom(), false, false);
+          }
+        }
+      }
       // uiCon.draw(g, screenSizeX, screenSizeY, current.getStats());
+      uiCon.draw(g, screenSizeX, screenSizeY);
+      break;
+      
+      case MAINMENU:
+      case END:
+      current.draw(g, cam);
       uiCon.draw(g, screenSizeX, screenSizeY);
       break;
     }
@@ -307,13 +341,20 @@ public class Core extends JPanel {
         mousePos = new Vector2(x, y);
         
         if (uiCon.getHighlighted() == null) mouseDown[e.getButton()] = true;
-        mousePre = mousePos.copy();
+        mousePre = mousePos;
         
         //left click
         if (e.getButton() == 1) {
           uiCon.cursorMove(x, y);
           if (uiCon.press()) return;
-          current.pressTile(current.convertToIndex(mousePos, cam));
+          Vector2I ind = current.convertToIndex(mousePos, cam);
+          current.pressTile(ind);
+          if (!current.isSelected(ind)) {
+            mouseBnd = mousePos;
+            bounding = true;
+            return;
+          }
+          bounding = false;
         }
         
         //right click
@@ -330,7 +371,9 @@ public class Core extends JPanel {
         
         //left click
         if (e.getButton() == 1) {
-          current.selectTile(current.convertToIndex(mousePos, cam));
+          Vector2I ind = current.convertToIndex(mousePos, cam);
+          if (!current.selectTile(ind) && bounding)
+          current.selectTiles(current.convertToIndex(mouseBnd, cam), ind);
           uiCon.cursorMove(x, y);
           uiCon.release();
           return;
@@ -381,7 +424,7 @@ public class Core extends JPanel {
         }
         else if (keyCode >= 65 && keyCode <= 90) {
           TileGrid t = current.hasSelectedTiles() ? current.getSelectedTiles().get(0) : null;
-          if (t != null) t.place(new TilePiece((char)keyCode));
+          if (t != null) t.place(new TilePiece((char)keyCode, false));
         }
       }
       

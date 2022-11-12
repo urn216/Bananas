@@ -66,4 +66,8 @@ public class Vector2I extends Vector2  // implements Comparable<Vector2>
   public Vector2I copy() {
     return new Vector2I(this);
   }
+
+  public String toString() {
+    return "(" + x + ", " + y + ")";
+  }
 }

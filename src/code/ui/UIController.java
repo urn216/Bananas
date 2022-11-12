@@ -5,11 +5,13 @@ import code.ui.interactables.UITextfield;
 
 import code.core.Core;
 import code.core.Settings;
+import code.math.Vector2;
 
 import java.awt.event.KeyEvent;
 
 import java.util.*;
 import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 
 /**
 * UI class
@@ -18,7 +20,7 @@ public class UIController {
 
   private final Settings globalSettings;
 
-  private HashMap<String, UIPane> panes;
+  private final HashMap<String, UIPane> panes;
   private UIPane current = new UIPane();
 
   private UIInteractable highlighted = null;
@@ -127,7 +129,26 @@ public class UIController {
   }
 
   public void draw(Graphics2D g, int screenSizeX, int screenSizeY) {
-    if (current != null) {current.draw(g, screenSizeY/Core.DEFAULT_SCREEN_SIZE.y, screenSizeX, screenSizeY, highlighted);}
+    current.draw(g, screenSizeY/Core.DEFAULT_SCREEN_SIZE.y, screenSizeX, screenSizeY, highlighted);
+  }
+
+  public void drawBoundingBox(Graphics2D g, Vector2 a, Vector2 b) {
+    double u = a.y;
+    double d = b.y;
+    if (a.y > b.y) {
+      u = b.y;
+      d = a.y;
+    }
+
+    double l = a.x;
+    double r = b.x;
+    if (a.x > b.x) {
+      l = b.x;
+      r = a.x;
+    }
+    
+    g.setColor(ColourPacks.DEFAULT_BUTTON_OUT_ACC);
+    g.draw(new Rectangle2D.Double(l, u, r-l, d-u));
   }
 
   /**
@@ -165,7 +186,9 @@ public class UIController {
     activeTextfield = null;
     if (interact != null && interact.isIn()) {
       interact.primeAct();
-      if (interact instanceof UITextfield) return;
+      resetClickables();
+      if (interact instanceof UITextfield) interact.setIn();
+      return;
     }
     resetClickables();
   }

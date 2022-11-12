@@ -15,18 +15,21 @@ public class TilePiece implements Comparable<TilePiece> {
   private static final int TILE_SIZE = TileGrid.TILE_SIZE;
   
   public final char letter;
+
+  public final boolean hidden;
   
   /**
   * Constructs a piece used in the game
   * 
   * @param letter the letter representing this piece
   */
-  public TilePiece(char letter) {
+  public TilePiece(char letter, boolean hidden) {
     this.letter = letter;
+    this.hidden = hidden;
   }
   
   @Override
-  public TilePiece clone() {return new TilePiece(letter);}
+  public TilePiece clone() {return new TilePiece(letter, hidden);}
   
   @Override
   public int compareTo(TilePiece o) {
@@ -36,6 +39,10 @@ public class TilePiece implements Comparable<TilePiece> {
   @Override
   public boolean equals(Object o) {
     return o instanceof TilePiece ? this.letter == ((TilePiece)o).letter : false;
+  }
+
+  public TilePiece reveal() {
+    return new TilePiece(letter, false);
   }
   
   /**
@@ -48,7 +55,7 @@ public class TilePiece implements Comparable<TilePiece> {
   * @param isIn whether or not the tile should be drawn pressed down
   */
   public void draw(Graphics2D g, Vector2 position, double z, boolean selected, boolean isIn) {
-    drawToScreen(g, position.subtract(0.5*TILE_SIZE*z), TILE_SIZE*z, letter, selected, isIn);
+    drawToScreen(g, position.subtract(0.5*TILE_SIZE*z), TILE_SIZE*z, letter, selected, isIn, hidden);
   }
   
   /**
@@ -63,7 +70,7 @@ public class TilePiece implements Comparable<TilePiece> {
   * @param isIn whether or not the tile should be drawn pressed down
   */
   public void draw(Graphics2D g, Vector2 origin, double z, double conX, double conY, boolean selected, boolean isIn) {
-    drawToScreen(g, origin.scale(z).subtract(conX, conY), TILE_SIZE*z, letter, selected, isIn);
+    drawToScreen(g, origin.scale(z).subtract(conX, conY), TILE_SIZE*z, letter, selected, isIn, hidden);
   }
   
   /**
@@ -76,7 +83,7 @@ public class TilePiece implements Comparable<TilePiece> {
    * @param selected whether or not the tile should be drawn selected
   * @param isIn whether or not the tile should be drawn pressed down
    */
-  private static void drawToScreen(Graphics2D g, Vector2 origin, double size, char letter, boolean selected, boolean isIn) {
+  private static void drawToScreen(Graphics2D g, Vector2 origin, double size, char letter, boolean selected, boolean isIn, boolean hidden) {
     Font font = new Font("Copperplate", Font.BOLD, (int) Math.round(0.7*size));
     FontMetrics metrics = g.getFontMetrics(font);
     g.setFont(font);
@@ -107,6 +114,8 @@ public class TilePiece implements Comparable<TilePiece> {
     //implement for green/red borders (spell check)
     // g.fill(new Rectangle2D.Double((origin.x+TILE_INCR*2)*z-conX, (origin.y+TILE_INCR*2)*z-conY, (TILE_SIZE-TILE_INCR*4)*z, (TILE_SIZE-TILE_INCR*4)*z));
     
+    if(hidden) return;
+
     g.setColor(TileTheme.tileText);
     g.drawString(""+letter, (int)(origin.x+(size-metrics.charWidth(letter))/2), (int)(origin.y+((size - metrics.getHeight())/2) + metrics.getAscent()));
   }

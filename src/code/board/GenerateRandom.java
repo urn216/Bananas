@@ -1,8 +1,6 @@
-package code.core;
+package code.board;
 
-// import code.math.IOHelp;
-
-import code.board.TileGrid;
+import code.core.Core;
 
 //import java.io.*;
 //import java.nio.file.*;
@@ -15,11 +13,11 @@ import code.board.TileGrid;
 public class GenerateRandom
 {
   
-  public static final int DEFAULT_MAP_SIZE = 30;
+  
   
   public static TileGrid[][] generate() {
     long seed = System.nanoTime();
-    return generate(seed, DEFAULT_MAP_SIZE, DEFAULT_MAP_SIZE);
+    return generate(seed, Core.DEFAULT_MAP_SIZE, Core.DEFAULT_MAP_SIZE);
   }
   
   public static TileGrid[][] generate(long seed, int width, int height) {

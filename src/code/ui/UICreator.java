@@ -162,6 +162,8 @@ public class UICreator {
     mainMenu.addMode(UIState.AUDIO, title, UIState.OPTIONS);
     mainMenu.addMode(UIState.AUDIO, options);
     mainMenu.addMode(UIState.AUDIO, optaud);
+
+    mainMenu.clear();
     
     return mainMenu;
   }
@@ -257,6 +259,8 @@ public class UICreator {
     HUD.addMode(UIState.VIDEO, optvid);
     HUD.addMode(UIState.AUDIO, greyed, UIState.OPTIONS);
     HUD.addMode(UIState.AUDIO, optaud);
+
+    HUD.clear();
     
     return HUD;
   }
