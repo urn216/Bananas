@@ -1,6 +1,7 @@
 package code.core;
 
 import code.board.Decal;
+import code.board.GenerateRandom;
 import code.board.TileGrid;
 
 public class LocalGame extends Scene {
@@ -16,7 +17,8 @@ public class LocalGame extends Scene {
         map[x][y] = new TileGrid();
       }
     }
-    mapSX = mapSY = Core.DEFAULT_MAP_SIZE;
+    pile = GenerateRandom.generate();
+    mapSX = mapSY = map.length;
   }
 
   public void reset() {

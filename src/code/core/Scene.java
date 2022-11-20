@@ -23,6 +23,7 @@ public abstract class Scene
   protected int mapSX;
   protected int mapSY;
   protected TileGrid[][] map;
+  protected TileGrid[][] pile;
   
   protected Decal bg;
   
@@ -39,7 +40,7 @@ public abstract class Scene
   
   public int getMapSY() {return mapSY;}
   
-  private TileGrid getTile(Vector2I p) {return map[p.x][p.y];}
+  private TileGrid getTile(Vector2I p) {return p.y >= mapSY ? map[p.x][p.y-mapSY] : pile[p.x][p.y];}
   
   public List<TileGrid> getSelectedTiles() {return selectedTiles;}
   
@@ -49,7 +50,7 @@ public abstract class Scene
   
   private boolean validate(Vector2I p) {
     if (p.x < 0 || p.x >= mapSX
-    ||  p.y < 0 || p.y >= mapSY) return false;
+    ||  p.y < 0 || p.y >= mapSY*2) return false;
     return true;
   }
   
@@ -121,21 +122,31 @@ public abstract class Scene
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
         map[i][j].unsetIn();
+        pile[i][j].unsetIn();
       }
     }
   }
   
   public Vector2I convertToIndex(Vector2 pos, Camera cam) {
-    return new Vector2I ((int)(((pos.x+cam.conX())/(cam.getZoom()*TileGrid.TILE_SIZE))+mapSX/2), (int)(((pos.y+cam.conY())/(cam.getZoom()*TileGrid.TILE_SIZE))+mapSX/2));
+    Vector2I res = new Vector2I ((int)(((pos.x+cam.conX())/(cam.getZoom()*TileGrid.TILE_SIZE))+mapSX/2), (int)(((pos.y+cam.conY())/(cam.getZoom()*TileGrid.TILE_SIZE))+mapSX/2));
+    if (res.y >= mapSY) res = res.subtract(0, 1);
+    return res;
   }
   
   public void draw(Graphics2D g, Camera cam) {
     bg.draw(g);
+
+    for (int i = 0; i < mapSX; i++) {
+      for (int j = 0; j < mapSY; j++) {
+        TileGrid t = pile[i][j];
+        if (t.onScreen(cam, i-mapSX/2, j-mapSY/2)) t.draw(g, cam, i-mapSX/2, j-mapSY/2, selectedTiles.contains(t));
+      }
+    }
     
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
         TileGrid t = map[i][j];
-        if (t.onScreen(cam, i-mapSX/2, j-mapSY/2)) t.draw(g, cam, i-mapSX/2, j-mapSY/2, selectedTiles.contains(t));
+        if (t.onScreen(cam, i-mapSX/2, j+1+mapSY/2)) t.draw(g, cam, i-mapSX/2, j+1+mapSY/2, selectedTiles.contains(t));
       }
     }
   }

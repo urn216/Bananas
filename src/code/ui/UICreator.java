@@ -192,7 +192,7 @@ public class UICreator {
       new UIButton("Save Game"      , null                             ),
       new UIButton("Load Game"      , null                             ),
       new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS)),
-      new UIButton("Quit to Title"  , c::quitToMenu                    ),
+      new UIButton("Quit to Title"  , c::toMenu                        ),
       new UIButton("Quit to Desktop", c::quitToDesk                    ),
     },
     new boolean[]{false, true, true, true}
@@ -267,14 +267,14 @@ public class UICreator {
 }
 
 class ColourPacks {
-  public static final Color DEFAULT_BACKGROUND = new Color(200, 180, 150, 127);
+  public static final Color DEFAULT_BACKGROUND = new Color(200, 180, 150, 100);
   public static final Color DEFAULT_SCREEN_TINT = new Color(50, 50, 50, 127);
   public static final Color DEFAULT_BUTTON_OUT_ACC = new Color(200, 190, 180);
-  public static final Color DEFAULT_BUTTON_BACKGROUND = new Color(160, 150, 140);
+  public static final Color DEFAULT_BUTTON_BODY = new Color(160, 150, 140);
   public static final Color DEFAULT_BUTTON_IN_ACC = new Color(255, 255, 0);
   public static final Color DEFAULT_BUTTON_LOCKED = new Color(180, 180, 180);
   public static final Color DEFAULT_BUTTON_HOVER = new Color(200, 200, 0);
   public static final Color[] DEFAULT_COLOUR_PACK = {
-    DEFAULT_BACKGROUND, DEFAULT_SCREEN_TINT, DEFAULT_BUTTON_OUT_ACC, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_IN_ACC, DEFAULT_BUTTON_LOCKED, DEFAULT_BUTTON_HOVER
+    DEFAULT_BACKGROUND, DEFAULT_SCREEN_TINT, DEFAULT_BUTTON_OUT_ACC, DEFAULT_BUTTON_BODY, DEFAULT_BUTTON_IN_ACC, DEFAULT_BUTTON_LOCKED, DEFAULT_BUTTON_HOVER
   };
 }

@@ -162,8 +162,8 @@ public abstract class IOHelp {
    * @return an encoded byte array containing all the supplied data, ready to be transmitted online
    */
   public static byte[] encodeTilePos(int x, int y, char c, boolean pile) {
-    if (c<'a' || c>'z') c = '{';
-    int m = (y*Core.DEFAULT_MAP_SIZE+x)<<6 | (c-97)<<1 | (pile ? 1 : 0);
+    if (c<'A' || c>'Z') c = '[';
+    int m = (y*Core.DEFAULT_MAP_SIZE+x)<<6 | (c-65)<<1 | (pile ? 1 : 0);
 
     return new byte[]{(byte)(m>>8), (byte)m};
   }
@@ -215,7 +215,7 @@ public abstract class IOHelp {
    * @return a char representing the underlying tile
    */
   public static char extractLetter(int m) {
-    return (char)(((m>>>1)&0b11111)+97);
+    return (char)(((m>>>1)&0b11111)+65);
   }
 
   /**
@@ -234,7 +234,7 @@ public abstract class IOHelp {
    * @param args Unused
    */
   public static void main(String[] args) {
-    byte[] test = encodeTilePos(29, 11, 'r', false);
+    byte[] test = encodeTilePos(29, 11, 'Z', false);
     System.out.println("encoded bytes: " + Arrays.toString(test));
     int m = decodeTilePos(test, 0);
     System.out.println("decoded int: " + m);

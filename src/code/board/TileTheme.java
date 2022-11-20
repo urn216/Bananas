@@ -4,7 +4,7 @@ import java.awt.Color;
 
 public abstract class TileTheme {
   public static final Color tileBody = new Color(255,180,80);
-  public static final Color tileSele = new Color(220,120,40);
+  public static final Color tileSele = new Color(220,140,60);
   public static final Color tileHigh = new Color(255,230,180);
   public static final Color tileShad = new Color(205,130,30);
   public static final Color tileText = new Color(0, 0, 0);

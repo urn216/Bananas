@@ -12,7 +12,7 @@ public class Camera
 {
   private static final double CLOSE_MAGNITUDE = 0.125;
 
-  private static final int OFFSET_BOUNDS   = Core.DEFAULT_MAP_SIZE*TileGrid.TILE_SIZE/2;
+  private static final int OFFSET_BOUNDS   = Core.DEFAULT_MAP_SIZE*TileGrid.TILE_SIZE*3/2 + TileGrid.TILE_SIZE;
   private static final double ZOOM_BOUND_U = 3;
   private static final double ZOOM_BOUND_L = 0.25;
 

@@ -1,7 +1,7 @@
 package code.core;
 
 import code.board.TileGrid;
-import code.board.TilePiece;
+// import code.board.TilePiece;
 
 import java.awt.event.MouseWheelEvent;
 import code.math.IOHelp;
@@ -9,19 +9,14 @@ import code.math.Vector2;
 import code.math.Vector2I;
 import code.ui.UIController;
 import code.ui.UICreator;
-
 import code.board.Camera;
 import code.board.Decal;
 import code.board.Server;
 
-//import java.util.*;
-//import java.awt.Color;
-//import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.awt.Insets;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-//import java.awt.Toolkit;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
@@ -59,7 +54,7 @@ public class Core extends JPanel {
   private static final double MILLISECONDS_PER_TICK = 1000/TICKS_PER_SECOND;
   
   private static final long START_TIME = System.currentTimeMillis();
-  private static final int SPLASH_TIME = 3000;
+  private static final int SPLASH_TIME = 1000;
   
   public static final int DEFAULT_MAP_SIZE = 32;
   
@@ -156,39 +151,6 @@ public class Core extends JPanel {
   }
   
   /**
-  * Switches the current scene to the main menu
-  */
-  public void toMenu() {
-    Server.shutdown();
-    Client.disconnect();
-    current = Menu.MENU;
-    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
-    
-    state = State.MAINMENU;
-    uiCon.setCurrent("Main Menu");
-  }
-  
-  public void hostGame(int port) {
-    Server.startup(port);
-    Client.connect("localhost", port);
-    current = new LocalGame();
-    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
-    
-    state = State.HOST;
-    uiCon.setCurrent("HUD");
-  }
-  
-  public void joinGame(String ip, int port) {
-    Server.shutdown();
-    Client.connect(ip, port);
-    current = new LocalGame();
-    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
-    
-    state = State.RUN;
-    uiCon.setCurrent("HUD");
-  }
-  
-  /**
   * A helper method that updates the window insets to match their current state
   */
   private void updateInsets() {
@@ -225,12 +187,43 @@ public class Core extends JPanel {
     f.requestFocus();
     maximized = !maximized;
   }
-  
+
   /**
-  * Returns the scene to the main menu state
+  * Switches the current scene to the main menu
   */
-  public void quitToMenu() {
-    toMenu();
+  public void toMenu() {
+    Client.disconnect();
+    Server.shutdown();
+    current = Menu.MENU;
+    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
+    
+    state = State.MAINMENU;
+    uiCon.setCurrent("Main Menu");
+  }
+  
+  public void hostGame(int port) {
+    Client.disconnect();
+    Server.shutdown();
+    
+    Server.startup(port);
+    Client.connect("localhost", port);
+    current = new LocalGame();
+    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
+    
+    state = State.HOST;
+    uiCon.setCurrent("HUD");
+  }
+  
+  public void joinGame(String ip, int port) {
+    Client.disconnect();
+    Server.shutdown();
+
+    Client.connect(ip, port);
+    current = new LocalGame();
+    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
+    
+    state = State.RUN;
+    uiCon.setCurrent("HUD");
   }
   
   /**
@@ -253,6 +246,8 @@ public class Core extends JPanel {
           initialiseControls();
           toMenu();
         }
+        break;
+
         case MAINMENU:
         break;
         
@@ -268,6 +263,8 @@ public class Core extends JPanel {
       
       repaint();
       if (quit) {
+        Client.disconnect();
+        Server.shutdown();
         System.exit(0);
       }
       tickTime = System.currentTimeMillis() - tickTime;
@@ -355,11 +352,13 @@ public class Core extends JPanel {
             return;
           }
           bounding = false;
+          return;
         }
         
         //right click
         if (e.getButton() == 3) {
           current.pressTile(current.convertToIndex(mousePos, cam));
+          return;
         }
       }
       
@@ -372,8 +371,8 @@ public class Core extends JPanel {
         //left click
         if (e.getButton() == 1) {
           Vector2I ind = current.convertToIndex(mousePos, cam);
-          if (!current.selectTile(ind) && bounding)
-          current.selectTiles(current.convertToIndex(mouseBnd, cam), ind);
+          if (!current.selectTile(ind) && bounding) current.selectTiles(current.convertToIndex(mouseBnd, cam), ind);
+          bounding = false;
           uiCon.cursorMove(x, y);
           uiCon.release();
           return;
@@ -381,7 +380,7 @@ public class Core extends JPanel {
         
         //right click
         if (e.getButton() == 3) {
-          current.removeTile(current.convertToIndex(mousePos, cam));
+          // current.removeTile(current.convertToIndex(mousePos, cam));
           current.deselectTiles();
           return;
         }
@@ -409,23 +408,29 @@ public class Core extends JPanel {
         // System.out.print(keyCode);
         if (keyCode == KeyEvent.VK_F11) {
           doFull();
+          return;
         }
-        else if (keyCode == KeyEvent.VK_ESCAPE) {
+        if (keyCode == KeyEvent.VK_ESCAPE) {
           uiCon.back();
+          return;
         }
-        else if (keyCode == KeyEvent.VK_ENTER) {
+        if (keyCode == KeyEvent.VK_ENTER) {
           uiCon.press();
+          return;
         }
-        else if (keyCode == KeyEvent.VK_MINUS) {
-          cam.setZoom(cam.getZoom()/2);
+        if (keyCode == KeyEvent.VK_MINUS) {
+          cam.setZoom(cam.getZoom()/1.1);
+          return;
         }
-        else if (keyCode == KeyEvent.VK_EQUALS) {
-          cam.setZoom(cam.getZoom()*2);
+        if (keyCode == KeyEvent.VK_EQUALS) {
+          cam.setZoom(cam.getZoom()*1.1);
+          return;
         }
-        else if (keyCode >= 65 && keyCode <= 90) {
-          TileGrid t = current.hasSelectedTiles() ? current.getSelectedTiles().get(0) : null;
-          if (t != null) t.place(new TilePiece((char)keyCode, false));
-        }
+        // if (keyCode >= 65 && keyCode <= 90) {
+        //   TileGrid t = current.hasSelectedTiles() ? current.getSelectedTiles().get(0) : null;
+        //   if (t != null) t.place(new TilePiece((char)keyCode, false));
+        //   return;
+        // }
       }
       
       @Override

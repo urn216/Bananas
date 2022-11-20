@@ -44,7 +44,6 @@ public abstract class Server {
    * @param port the port number to host the server on.
    */
   public static void startup(int port) {
-    // shutdown();
     try {
       sock = new ServerSocket(port);
     } catch(IOException e){System.out.println("serveropn "+e);}
