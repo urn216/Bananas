@@ -38,7 +38,8 @@ enum State {
   MAINMENU,
   HOST,
   RUN,
-  END, SPLASH
+  END, 
+  SPLASH
 }
 
 /**
@@ -187,7 +188,7 @@ public class Core extends JPanel {
     f.requestFocus();
     maximized = !maximized;
   }
-
+  
   /**
   * Switches the current scene to the main menu
   */
@@ -201,12 +202,19 @@ public class Core extends JPanel {
     uiCon.setCurrent("Main Menu");
   }
   
+  /**
+   * Creates a new server under a given port number and connects the client to it
+   * 
+   * @param port the port number to host the server through
+   */
   public void hostGame(int port) {
     Client.disconnect();
     Server.shutdown();
     
     Server.startup(port);
     Client.connect("localhost", port);
+    if (!Client.isConnected()) return;
+    
     current = new LocalGame();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
@@ -214,11 +222,19 @@ public class Core extends JPanel {
     uiCon.setCurrent("HUD");
   }
   
+  /**
+  * Connects the client to an existing server
+  * 
+  * @param ip the ip address to connect to
+  * @param port the port number to connect to
+  */
   public void joinGame(String ip, int port) {
     Client.disconnect();
     Server.shutdown();
-
+    
     Client.connect(ip, port);
+    if (!Client.isConnected()) return;
+
     current = new LocalGame();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
@@ -247,7 +263,7 @@ public class Core extends JPanel {
           toMenu();
         }
         break;
-
+        
         case MAINMENU:
         break;
         
@@ -261,12 +277,12 @@ public class Core extends JPanel {
         break;
       }
       
-      repaint();
       if (quit) {
         Client.disconnect();
         Server.shutdown();
         System.exit(0);
       }
+      repaint();
       tickTime = System.currentTimeMillis() - tickTime;
       try {
         Thread.sleep(Math.max((long)(MILLISECONDS_PER_TICK - tickTime), 0));
@@ -276,7 +292,7 @@ public class Core extends JPanel {
   
   @Override
   public void paintComponent(Graphics gra) {
-    Graphics2D g = (Graphics2D) gra;
+    Graphics2D g = (Graphics2D) gra.create();
     
     switch (state) {
       case SPLASH:
@@ -304,6 +320,8 @@ public class Core extends JPanel {
       uiCon.draw(g, screenSizeX, screenSizeY);
       break;
     }
+    
+    g.dispose();
   }
   
   /**
@@ -382,6 +400,7 @@ public class Core extends JPanel {
         if (e.getButton() == 3) {
           // current.removeTile(current.convertToIndex(mousePos, cam));
           current.deselectTiles();
+          current.unsetIn();
           return;
         }
       }
@@ -427,21 +446,22 @@ public class Core extends JPanel {
           return;
         }
         // if (keyCode >= 65 && keyCode <= 90) {
-        //   TileGrid t = current.hasSelectedTiles() ? current.getSelectedTiles().get(0) : null;
-        //   if (t != null) t.place(new TilePiece((char)keyCode, false));
-        //   return;
-        // }
-      }
-      
-      @Override
-      public void keyReleased(KeyEvent e){
-        int keyCode = e.getKeyCode();
-        keyDown[keyCode] = false;
-        
-        if (keyCode == KeyEvent.VK_ENTER) {
-          uiCon.release();
+          //   TileGrid t = current.hasSelectedTiles() ? current.getSelectedTiles().get(0) : null;
+          //   if (t != null) t.place(new TilePiece((char)keyCode, false));
+          //   return;
+          // }
         }
-      }
-    });
+        
+        @Override
+        public void keyReleased(KeyEvent e){
+          int keyCode = e.getKeyCode();
+          keyDown[keyCode] = false;
+          
+          if (keyCode == KeyEvent.VK_ENTER) {
+            uiCon.release();
+          }
+        }
+      });
+    }
   }
-}
+  

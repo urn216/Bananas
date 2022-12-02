@@ -1,11 +1,11 @@
 package code.ui;
 
-import code.ui.interactables.UISlider;
-import code.ui.interactables.UITextfield;
-
-import code.core.Core;
 import code.core.Settings;
 import code.math.Vector2;
+import code.ui.components.UIComponent;
+import code.ui.components.UIInteractable;
+import code.ui.components.interactables.UISlider;
+import code.ui.components.interactables.UITextfield;
 
 import java.awt.event.KeyEvent;
 
@@ -75,8 +75,8 @@ public class UIController {
     return current.isTransitioning();
   }
 
-  public UIInteractable getClickable(double x, double y) {
-    return current == null ? null : current.getClickable(x, y);
+  public UIComponent getComponent(double x, double y) {
+    return current == null ? null : current.getComponent(x, y);
   }
 
   public void resetClickables() {
@@ -112,7 +112,8 @@ public class UIController {
   public UITextfield getActiveTextfield() {return this.activeTextfield;}
 
   public void cursorMove(int x, int y) {
-    setHighlighted(getClickable(x, y));
+    UIComponent comp = getComponent(x, y);
+    setHighlighted(comp instanceof UIInteractable ? (UIInteractable) comp : null);
   }
 
   public boolean press() {
@@ -129,7 +130,7 @@ public class UIController {
   }
 
   public void draw(Graphics2D g, int screenSizeX, int screenSizeY) {
-    current.draw(g, screenSizeY/Core.DEFAULT_SCREEN_SIZE.y, screenSizeX, screenSizeY, highlighted);
+    current.draw(g, screenSizeX, screenSizeY, highlighted);
   }
 
   public void drawBoundingBox(Graphics2D g, Vector2 a, Vector2 b) {
@@ -147,7 +148,7 @@ public class UIController {
       r = a.x;
     }
     
-    g.setColor(ColourPacks.DEFAULT_BUTTON_OUT_ACC);
+    g.setColor(UIColours.DEFAULT[UIColours.BUTTON_OUT_ACC]);
     g.draw(new Rectangle2D.Double(l, u, r-l, d-u));
   }
 

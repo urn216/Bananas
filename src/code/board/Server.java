@@ -11,7 +11,7 @@ import java.net.Socket;
 public abstract class Server {
   private static volatile ServerSocket sock;
   public static volatile HashMap<Integer, ClientHandler> clients = new HashMap<Integer, ClientHandler>();
-
+  
   static {
     try {
       sock = new ServerSocket();
@@ -38,11 +38,11 @@ public abstract class Server {
   }
   
   /**
-   * Starts a fresh server on a given port to host a game through.
-   * Creates a lobby that will wait for connections from potential clients.
-   * 
-   * @param port the port number to host the server on.
-   */
+  * Starts a fresh server on a given port to host a game through.
+  * Creates a lobby that will wait for connections from potential clients.
+  * 
+  * @param port the port number to host the server on.
+  */
   public static void startup(int port) {
     try {
       sock = new ServerSocket(port);
@@ -53,10 +53,18 @@ public abstract class Server {
       public void run() {
         try {
           for(int id = 0; true; id++) {
-            ClientHandler newClient = new ClientHandler(sock.accept(), id);
-            clients.put(id, newClient);
-            newClient.start();
-            System.out.println("number of active users: " + clients.size());
+            for (int i = 0; i < 8; i++) {
+              boolean found = false;
+              for (ClientHandler ch : Server.clients.values()) {
+                if (ch.player.getPlayerNum()==i) {found = true; break;}
+              }
+              if (found) continue;
+              ClientHandler newClient = new ClientHandler(sock.accept(), id, i);
+              clients.put(id, newClient);
+              newClient.start();
+              System.out.println("number of active users: " + clients.size());
+              break;
+            }
           }
         }
         catch (IOException e) {System.out.println("serverlby "+e);}
@@ -68,13 +76,15 @@ public abstract class Server {
 class ClientHandler extends Thread {
   public final Socket clientSock;
   public final int id;
+  public final Player player;
   
   PrintWriter out;
-  String uid;
+  String username;
   
-  public ClientHandler(Socket clientSock, int id) {
+  public ClientHandler(Socket clientSock, int id, int playerNum) {
     this.clientSock = clientSock;
     this.id = id;
+    this.player = new Player(playerNum);
   }
   
   public void send(int id, String msg, String user) {
@@ -91,20 +101,20 @@ class ClientHandler extends Thread {
       out.flush();
       BufferedReader in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
       
-      uid = in.readLine();
+      username = in.readLine();
       
-      Server.broadcast("Welcome, " + uid);
+      Server.broadcast("Welcome, " + username);
       while (true) {
         String msg = in.readLine();
         if (msg == null || msg.equals("exit")) break;
         for (ClientHandler c : Server.clients.values()) {
-          c.send(id, msg, uid);
+          c.send(id, msg, username);
         }
       }
       clientSock.close();
-      Server.broadcast("User " + uid + " disconnected");
+      Server.broadcast("User " + username + " disconnected");
       Server.clients.remove(id);
-    } catch(IOException e){Server.broadcast("User " + uid + " disconnected poorly: " + e); Server.clients.remove(id);}
+    } catch(IOException e){Server.broadcast("User " + username + " disconnected poorly: " + e); Server.clients.remove(id);}
     System.out.println("number of active users: " + Server.clients.size());
   }
 }

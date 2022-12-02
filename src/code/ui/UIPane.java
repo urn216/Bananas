@@ -3,6 +3,11 @@ package code.ui;
 // import code.math.Vector2;
 
 import java.util.*;
+
+import code.ui.components.UIComponent;
+import code.ui.components.UIInteractable;
+import code.ui.elements.UIElement;
+
 import java.awt.Graphics2D;
 
 // import java.awt.Color;
@@ -29,6 +34,7 @@ public class UIPane {
   }
 
   public void reset() {
+    clear();
     setMode(UIState.DEFAULT);
   }
 
@@ -123,10 +129,10 @@ public class UIPane {
   *
   * @return the UIClickable present at this location, or null if none applicable
   */
-  public UIInteractable getClickable(double x, double y) {
-    UIInteractable res = null;
+  public UIComponent getComponent(double x, double y) {
+    UIComponent res = null;
     for (UIElement e : elements) {
-      UIInteractable c = e.getClickable(x, y);
+      UIComponent c = e.getComponent(x, y);
       if (e.isActive() && c!=null) res = c;
     }
     return res;
@@ -141,16 +147,9 @@ public class UIPane {
     }
   }
 
-  public void draw(Graphics2D g, double UIscale, int screenSizeX, int screenSizeY, UIInteractable highlighted) {
-    double[] empty = {};
+  public void draw(Graphics2D g, int screenSizeX, int screenSizeY, UIInteractable highlighted) {
     for (UIElement e : elements) {
-      e.draw(g, UIscale, screenSizeX, screenSizeY, highlighted, empty);
-    }
-  }
-
-  public void draw(Graphics2D g, double UIscale, int screenSizeX, int screenSizeY, UIInteractable highlighted, double[] playerStats) {
-    for (UIElement e : elements) {
-      e.draw(g, UIscale, screenSizeX, screenSizeY, highlighted, playerStats);
+      e.draw(g, screenSizeX, screenSizeY, highlighted);
     }
   }
 }

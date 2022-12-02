@@ -1,4 +1,4 @@
-package code.ui.interactables;
+package code.ui.components.interactables;
 
 import code.math.MathHelp;
 
@@ -6,9 +6,9 @@ import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.awt.Graphics2D;
 
-import code.ui.UIInteractable;
 import code.ui.UIActionGetter;
 import code.ui.UIActionSetter;
+import code.ui.components.UIInteractable;
 
 /**
 * Class for making functional Sliders
@@ -25,8 +25,8 @@ public class UISlider extends UIInteractable {
   /**
   * Constructor for Sliders
   */
-  public UISlider(String name, UIActionGetter<Integer> get, UIActionSetter<Integer> set, int min, int max) {
-    this.name = name;
+  public UISlider(String text, UIActionGetter<Integer> get, UIActionSetter<Integer> set, int min, int max) {
+    this.text = text;
     this.get = get;
     this.set = set;
     this.min = min;
@@ -63,6 +63,6 @@ public class UISlider extends UIInteractable {
     g.fill(new Rectangle2D.Double(zeroLine+percent*barLength-off/2, y-off/2+height/2+inset, nodeWidth+off, height/2-inset*2+off));
     g.setColor(textCol);
     g.draw(new Rectangle2D.Double(zeroLine+percent*barLength-off/2, y-off/2+height/2+inset, nodeWidth+off, height/2-inset*2+off));
-    g.drawString(String.format(name, get()), x+inset, y+inset + metrics.getAscent());
+    g.drawString(String.format(text, get()), x+inset, y+inset + metrics.getAscent());
   }
 }

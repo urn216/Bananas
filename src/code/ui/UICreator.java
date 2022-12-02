@@ -3,38 +3,44 @@ package code.ui;
 import code.core.Core;
 
 import code.math.Vector2;
-
+import code.ui.components.UIComponent;
+import code.ui.components.UIInteractable;
+import code.ui.components.UIText;
+import code.ui.components.interactables.*;
 import code.ui.elements.*;
-import code.ui.interactables.*;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics2D;
 
 public class UICreator {
   // private static final UIElement VIRTUAL_KEYBOARD = new ElemKeyboard();
+  
+  private static final double BUTTON_HEIGHT = 0.075;
+  private static final double BUFFER_HEIGHT = 0.015;
   
   /**
   * Creates the UI pane for the main menu.
   */
   public static UIPane createMain(Core c, UIController ui) {
     UIPane mainMenu = new UIPane();
-
-    UIElement title = new ElemTitle(
+    
+    UIElement title = new UIElement(
     new Vector2(0, 0),
     new Vector2(0.28, 0.14),
-    "Bananas",
-    Font.BOLD,
-    75,
-    ColourPacks.DEFAULT_COLOUR_PACK,
     new boolean[]{true, false, true, false}
-    );
-
-    UIElement outPanel = new ElemButtons(
+    ){
+      protected void init() {components = new UIComponent[]{new UIText("Bananas", 0.6, Font.BOLD)};}
+      protected void draw(Graphics2D g, int screenSizeY, Vector2 tL, Vector2 bR, Color[] c, UIInteractable highlighted) {
+        components[0].draw(g, (float)tL.x, (float)tL.y, (float)(bR.x-tL.x), (float)(bR.y-tL.y), c[UIColours.TEXT]);
+      }
+    };
+    
+    UIElement outPanel = new ElemList(
     new Vector2(0, 0.28),
     new Vector2(0.24, 0.565),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Play"           , () -> ui.setMode(UIState.NEW_GAME)),
       new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS) ),
@@ -42,13 +48,12 @@ public class UICreator {
     },
     new boolean[]{false, false, true, false}
     );
-
-    UIElement playModes = new ElemButtons(
+    
+    UIElement playModes = new ElemList(
     new Vector2(0, 0.28),
     new Vector2(0.24, 0.565),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Host Game"   , () -> ui.setMode(UIState.HOST_SETUP)  ),
       new UIButton("Join Game"   , () -> ui.setMode(UIState.CLIENT_SETUP)),
@@ -56,47 +61,91 @@ public class UICreator {
     },
     new boolean[]{false, false, true, false}
     );
-
-    UITextfield hostport = new UITextfield(5, 1, null, ui){public boolean isValid() {return totind > 0 && Integer.parseInt(getText()) >= 0 && Integer.parseInt(getText()) <= 0xFFFF;}};
-    UIElement hostSetup = new ElemButtons(
+    
+    ElemInfo portErr = new ElemInfo(
+    new Vector2(0.38, 0.395),
+    new Vector2(0.62, 0.605), 
+    BUFFER_HEIGHT, 
+    new boolean[]{false, false, false, false},
+    "Port must be a number",
+    "less than 65536"
+    );
+    
+    ElemInfo ipErr = new ElemInfo(
+    new Vector2(0.38, 0.42125),
+    new Vector2(0.62, 0.57875), 
+    BUFFER_HEIGHT, 
+    new boolean[]{false, false, false, false},
+    "Address required"
+    );
+    
+    ElemInfo connectErr = new ElemInfo(
+    new Vector2(0.34, 0.395),
+    new Vector2(0.66, 0.605),  
+    BUFFER_HEIGHT, 
+    new boolean[]{false, false, false, false},
+    "Connection failed!",
+    "Please check details are correct"
+    );
+    
+    UITextfield hostport = new UITextfield("Port Number", 5, 1, null, ui){
+      public boolean isValid() {
+        try {return totind > 0 && Integer.parseInt(getText()) >= 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
+        catch (NumberFormatException e) {return false;}
+      }
+    };
+    
+    UIElement hostSetup = new ElemList(
     new Vector2(0.38, 0.28),
     new Vector2(0.62, 0.475),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       hostport,
-      new UIButton("Host New Game", () -> {if (hostport.isValid()) c.hostGame(Integer.parseInt(hostport.getText()));}),
-    },
-    new boolean[]{false, false, true, false}
-    );
-
-    UITextfield ipaddr = new UITextfield(15, 1, null, ui){public boolean isValid() {return totind > 0;}};
-    UITextfield joinport = new UITextfield(5, 1, null, ui){public boolean isValid() {return totind > 0 && Integer.parseInt(getText()) >= 0 && Integer.parseInt(getText()) <= 0xFFFF;}};
-    UIElement clientSetup = new ElemButtons(
-    new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.565),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
-    new UIInteractable[]{
-      ipaddr,
-      joinport,
-      new UIButton("Connect!", () -> {
-        if (joinport.isValid() && ipaddr.isValid()) {
-          c.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
-        }
+      new UIButton("Host New Game", () -> {
+        if (hostport.isValid()) {
+          c.hostGame(Integer.parseInt(hostport.getText()));
+          connectErr.transIn();
+        } else portErr.transIn();
       }),
     },
     new boolean[]{false, false, true, false}
     );
-
-    UIElement options = new ElemButtons(
+    
+    UITextfield ipaddr = new UITextfield("Server Address", 15, 1, null, ui){public boolean isValid() {return totind > 0;}};
+    
+    UITextfield joinport = new UITextfield("Port Number", 5, 1, null, ui){
+      public boolean isValid() {
+        try {return totind > 0 && Integer.parseInt(getText()) >= 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
+        catch (NumberFormatException e) {return false;}
+      }
+    };
+    
+    UIElement clientSetup = new ElemList(
+    new Vector2(0.38, 0.28),
+    new Vector2(0.62, 0.565),
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
+    new UIInteractable[]{
+      ipaddr,
+      joinport,
+      new UIButton("Connect!", () -> {
+        if (ipaddr.isValid()) {
+          if (joinport.isValid()) {
+            c.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
+            connectErr.transIn();
+          } else portErr.transIn();
+        } else ipErr.transIn();
+      }),
+    },
+    new boolean[]{false, false, true, false}
+    );
+    
+    UIElement options = new ElemList(
     new Vector2(0, 0.28),
     new Vector2(0.24, 0.655),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
       new UIButton("Audio"   , () -> ui.setMode(UIState.AUDIO)   ),
@@ -105,13 +154,12 @@ public class UICreator {
     },
     new boolean[]{false, false, true, false}
     );
-
-    UIElement optvid = new ElemButtons(
+    
+    UIElement optvid = new ElemList(
     new Vector2(0.38, 0.28),
     new Vector2(0.62, 0.655),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Test1", null),
       new UIButton("Test2", null),
@@ -120,13 +168,12 @@ public class UICreator {
     },
     new boolean[]{false, false, true, false}
     );
-
-    UIElement optaud = new ElemButtons(
+    
+    UIElement optaud = new ElemList(
     new Vector2(0.38, 0.28),
     new Vector2(0.62, 0.88),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
       new UISlider("Sound FX: %d" , () -> c.globalSettings.getSetting    ("soundFX")    , (v) -> c.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
@@ -135,7 +182,7 @@ public class UICreator {
     },
     new boolean[]{false, false, true, false}
     );
-
+    
     mainMenu.addElement(title);
     mainMenu.addElement(outPanel);
     mainMenu.addElement(playModes);
@@ -144,6 +191,9 @@ public class UICreator {
     mainMenu.addElement(options);
     mainMenu.addElement(optvid);
     mainMenu.addElement(optaud);
+    mainMenu.addElement(portErr);
+    mainMenu.addElement(ipErr);
+    mainMenu.addElement(connectErr);
     mainMenu.addMode(UIState.DEFAULT, title);
     mainMenu.addMode(UIState.DEFAULT, outPanel);
     mainMenu.addMode(UIState.NEW_GAME, title, UIState.DEFAULT);
@@ -162,7 +212,7 @@ public class UICreator {
     mainMenu.addMode(UIState.AUDIO, title, UIState.OPTIONS);
     mainMenu.addMode(UIState.AUDIO, options);
     mainMenu.addMode(UIState.AUDIO, optaud);
-
+    
     mainMenu.clear();
     
     return mainMenu;
@@ -173,20 +223,21 @@ public class UICreator {
   */
   public static UIPane createHUD(Core c, UIController ui) {
     UIPane HUD = new UIPane();
-
-    UIElement greyed = new ElemPlain(
+    
+    UIElement greyed = new UIElement(
     new Vector2(0,0),
     new Vector2(1, 1),
-    ColourPacks.DEFAULT_COLOUR_PACK,
     new boolean[]{false, false, false, false}
-    );
-
-    UIElement outPause = new ElemButtons(
+    ){
+      protected void init() {this.backgroundColour = UIColours.SCREEN_TINT;}
+      protected void draw(Graphics2D g, int screenSizeY, Vector2 tL, Vector2 bR, Color[] c, UIInteractable highlighted) {}
+    };
+    
+    UIElement outPause = new ElemList(
     new Vector2(0.38, 0.2225),
     new Vector2(0.62, 0.7775),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Resume"         , ui::back                         ),
       new UIButton("Save Game"      , null                             ),
@@ -197,13 +248,12 @@ public class UICreator {
     },
     new boolean[]{false, true, true, true}
     );
-
-    UIElement options = new ElemButtons(
+    
+    UIElement options = new ElemList(
     new Vector2(0.38, 0.3125),
     new Vector2(0.62, 0.6875),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
       new UIButton("Audio"   , () -> ui.setMode(UIState.AUDIO)   ),
@@ -212,13 +262,12 @@ public class UICreator {
     },
     new boolean[]{false, true, true, true}
     );
-
-    UIElement optvid = new ElemButtons(
+    
+    UIElement optvid = new ElemList(
     new Vector2(0.38, 0.3125),
     new Vector2(0.62, 0.6875),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("AH"          , null    ),
       new UIButton("MAKE IT STOP", null    ),
@@ -227,13 +276,12 @@ public class UICreator {
     },
     new boolean[]{false, true, true, true}
     );
-
-    UIElement optaud = new ElemButtons(
+    
+    UIElement optaud = new ElemList(
     new Vector2(0.38, 0.155),
     new Vector2(0.62, 0.845),
-    81,
-    16.2,
-    ColourPacks.DEFAULT_COLOUR_PACK,
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
     new UIInteractable[]{
       new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
       new UISlider("Sound FX: %d" , () -> c.globalSettings.getSetting    ("soundFX")    , (v) -> c.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
@@ -259,22 +307,9 @@ public class UICreator {
     HUD.addMode(UIState.VIDEO, optvid);
     HUD.addMode(UIState.AUDIO, greyed, UIState.OPTIONS);
     HUD.addMode(UIState.AUDIO, optaud);
-
+    
     HUD.clear();
     
     return HUD;
   }
-}
-
-class ColourPacks {
-  public static final Color DEFAULT_BACKGROUND = new Color(200, 180, 150, 100);
-  public static final Color DEFAULT_SCREEN_TINT = new Color(50, 50, 50, 127);
-  public static final Color DEFAULT_BUTTON_OUT_ACC = new Color(200, 190, 180);
-  public static final Color DEFAULT_BUTTON_BODY = new Color(160, 150, 140);
-  public static final Color DEFAULT_BUTTON_IN_ACC = new Color(255, 255, 0);
-  public static final Color DEFAULT_BUTTON_LOCKED = new Color(180, 180, 180);
-  public static final Color DEFAULT_BUTTON_HOVER = new Color(200, 200, 0);
-  public static final Color[] DEFAULT_COLOUR_PACK = {
-    DEFAULT_BACKGROUND, DEFAULT_SCREEN_TINT, DEFAULT_BUTTON_OUT_ACC, DEFAULT_BUTTON_BODY, DEFAULT_BUTTON_IN_ACC, DEFAULT_BUTTON_LOCKED, DEFAULT_BUTTON_HOVER
-  };
 }

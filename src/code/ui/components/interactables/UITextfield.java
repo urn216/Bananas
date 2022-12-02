@@ -1,12 +1,12 @@
-package code.ui.interactables;
+package code.ui.components.interactables;
 
-import code.ui.UIInteractable;
 import code.ui.UIActionSetter;
 import code.ui.UIAction;
 import code.ui.UIController;
+import code.ui.components.UIInteractable;
 
 import java.awt.Color;
-
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 
@@ -14,7 +14,7 @@ import java.awt.geom.Rectangle2D;
  * Class for making functional text fields
  */
 public class UITextfield extends UIInteractable {
-  protected char[] text;
+  protected char[] textChars;
   protected int ind[];
   protected int line = 0;
   protected int totind = 0;
@@ -31,10 +31,10 @@ public class UITextfield extends UIInteractable {
    * @param enter the destination for the text in this field when enter is pressed. Leave null for new line functionality.
    * @param ui the UIController for this field.
    */
-  public UITextfield(int maxLength, int numLines, UIActionSetter<String> enter, UIController ui) {
+  public UITextfield(String defaultText, int maxLength, int numLines, UIActionSetter<String> enter, UIController ui) {
     assert (numLines > 0);
-    this.name = "UI_Text_Field";
-    this.text = new char[maxLength+1];
+    this.text = defaultText;
+    this.textChars = new char[maxLength+1];
     this.numLines = numLines;
     this.ind = new int[numLines];
     this.primeAction = () -> ui.setActiveTextfield(this);
@@ -48,28 +48,34 @@ public class UITextfield extends UIInteractable {
   public void enterAct() {enterAction.perform();}
 
   public String getText() {
-    return new String(text, 0, totind);
+    return new String(textChars, 0, totind);
   }
 
   public String[] getTextLines() {
+    if (totind == 0) {
+      fontStyle = Font.ITALIC;
+      return new String[] {this.text};
+    }
+
+    fontStyle = Font.BOLD;
     String[] res = new String[numLines];
     int j = 0;
     for (int i = 0; i < numLines; i++) {
       res[i] = "";
       char c = '\u0000';
-      while (c!='\n' && j < text.length) {
+      while (c!='\n' && j < textChars.length) {
         res[i]+=c;
-        c = text[j++];
+        c = textChars[j++];
       }
     }
     return res;
   }
 
   public boolean checkValid(String check) {
-    if (text[0]=='\u0000') return false;
+    if (textChars[0]=='\u0000') return false;
     char[] checker = check.toCharArray();
     for (char cc : checker) {
-      for (char tc : text) {
+      for (char tc : textChars) {
         if (tc == cc) {return false;}
       }
     }
@@ -79,9 +85,9 @@ public class UITextfield extends UIInteractable {
   public boolean isValid() {return true;}
 
   public void print(char c) {
-    if (totind>=text.length-1) return;
+    if (totind>=textChars.length-1) return;
     // System.out.print(c);
-    text[totind] = c;
+    textChars[totind] = c;
     totind++;
     ind[line]++;
   }
@@ -89,9 +95,9 @@ public class UITextfield extends UIInteractable {
   public void backspace() {
     if (totind<=0) return;
     totind--;
-    if (text[totind]=='\n') line--;
+    if (textChars[totind]=='\n') line--;
     ind[line]--;
-    text[totind] = '\u0000';
+    textChars[totind] = '\u0000';
   }
 
   public void newLine() {
@@ -105,7 +111,7 @@ public class UITextfield extends UIInteractable {
   }
 
   public void reset() {
-    text = new char[text.length];
+    textChars = new char[textChars.length];
     ind = new int[numLines];
     line = 0;
     totind = 0;

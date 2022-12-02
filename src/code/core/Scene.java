@@ -118,7 +118,7 @@ public abstract class Scene
     return true;
   }
   
-  private void unsetIn() {
+  public void unsetIn() {
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
         map[i][j].unsetIn();

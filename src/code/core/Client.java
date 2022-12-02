@@ -47,4 +47,13 @@ public abstract class Client {
       }
     }.start();
   }
+
+  /**
+   * Checks to see if the client has a current connection to a server.
+   * 
+   * @return True if the client is connected
+   */
+  public static boolean isConnected() {
+    return !sock.isClosed() && sock.isConnected();
+  }
 }

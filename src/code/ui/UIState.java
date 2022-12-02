@@ -15,6 +15,7 @@ public enum UIState {
   NEW_GAME,
   HOST_SETUP,
   CLIENT_SETUP,
+  LOBBY,
 
   //gameplay specific
   PAUSED,
