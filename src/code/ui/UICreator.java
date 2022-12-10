@@ -26,7 +26,7 @@ public class UICreator {
     UIPane mainMenu = new UIPane();
     
     UIElement title = new UIElement(
-    new Vector2(0, 0),
+    new Vector2(0   , 0),
     new Vector2(0.28, 0.14),
     new boolean[]{true, false, true, false}
     ){
@@ -37,8 +37,8 @@ public class UICreator {
     };
     
     UIElement outPanel = new ElemList(
-    new Vector2(0, 0.28),
-    new Vector2(0.24, 0.565),
+    new Vector2(0   , 0.28),
+    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, BUTTON_HEIGHT)),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -50,8 +50,8 @@ public class UICreator {
     );
     
     UIElement playModes = new ElemList(
-    new Vector2(0, 0.28),
-    new Vector2(0.24, 0.565),
+    new Vector2(0   , 0.28),
+    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, BUTTON_HEIGHT)),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -63,8 +63,8 @@ public class UICreator {
     );
     
     ElemInfo portErr = new ElemInfo(
-    new Vector2(0.38, 0.395),
-    new Vector2(0.62, 0.605), 
+    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Port must be a number",
@@ -72,16 +72,16 @@ public class UICreator {
     );
     
     ElemInfo ipErr = new ElemInfo(
-    new Vector2(0.38, 0.42125),
-    new Vector2(0.62, 0.57875), 
+    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Address required"
     );
     
     ElemInfo connectErr = new ElemInfo(
-    new Vector2(0.34, 0.395),
-    new Vector2(0.66, 0.605),  
+    new Vector2(0.34, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
+    new Vector2(0.66, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Connection failed!",
@@ -90,14 +90,14 @@ public class UICreator {
     
     UITextfield hostport = new UITextfield("Port Number", 5, 1, null, ui){
       public boolean isValid() {
-        try {return totind > 0 && Integer.parseInt(getText()) >= 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
+        try {return totind > 0 && Integer.parseInt(getText()) > 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
         catch (NumberFormatException e) {return false;}
       }
     };
     
     UIElement hostSetup = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.475),
+    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(2, BUFFER_HEIGHT, BUTTON_HEIGHT)),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -116,14 +116,14 @@ public class UICreator {
     
     UITextfield joinport = new UITextfield("Port Number", 5, 1, null, ui){
       public boolean isValid() {
-        try {return totind > 0 && Integer.parseInt(getText()) >= 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
+        try {return totind > 0 && Integer.parseInt(getText()) > 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
         catch (NumberFormatException e) {return false;}
       }
     };
     
     UIElement clientSetup = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.565),
+    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, BUTTON_HEIGHT)),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -142,8 +142,8 @@ public class UICreator {
     );
     
     UIElement options = new ElemList(
-    new Vector2(0, 0.28),
-    new Vector2(0.24, 0.655),
+    new Vector2(0   , 0.28),
+    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -157,7 +157,7 @@ public class UICreator {
     
     UIElement optvid = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.655),
+    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -171,7 +171,7 @@ public class UICreator {
     
     UIElement optaud = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.88),
+    new Vector2(0.62, 0.28+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT)),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -234,14 +234,12 @@ public class UICreator {
     };
     
     UIElement outPause = new ElemList(
-    new Vector2(0.38, 0.2225),
-    new Vector2(0.62, 0.7775),
+    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Resume"         , ui::back                         ),
-      new UIButton("Save Game"      , null                             ),
-      new UIButton("Load Game"      , null                             ),
       new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS)),
       new UIButton("Quit to Title"  , c::toMenu                        ),
       new UIButton("Quit to Desktop", c::quitToDesk                    ),
@@ -250,8 +248,8 @@ public class UICreator {
     );
     
     UIElement options = new ElemList(
-    new Vector2(0.38, 0.3125),
-    new Vector2(0.62, 0.6875),
+    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -264,8 +262,8 @@ public class UICreator {
     );
     
     UIElement optvid = new ElemList(
-    new Vector2(0.38, 0.3125),
-    new Vector2(0.62, 0.6875),
+    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -278,8 +276,8 @@ public class UICreator {
     );
     
     UIElement optaud = new ElemList(
-    new Vector2(0.38, 0.155),
-    new Vector2(0.62, 0.845),
+    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT, BUTTON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT, BUTTON_HEIGHT)/2),
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{

@@ -16,7 +16,7 @@ import java.util.Arrays;
 * class helping do file stuff
 */
 public abstract class IOHelp {
-  public static void saveToFile(String filename, String content) {
+  public static final void saveToFile(String filename, String content) {
     try {
       File f = new File(filename);
       f.createNewFile();
@@ -26,7 +26,7 @@ public abstract class IOHelp {
     } catch(IOException e){System.err.println("Saving failed " + e);}
   }
 
-  public static void copyContents(File source, Path dest) {
+  public static final void copyContents(File source, Path dest) {
     try {
       Files.copy(source.toPath(), dest, StandardCopyOption.valueOf("REPLACE_EXISTING"));
     } catch(IOException e){System.err.println("Copying failed " + e);}
@@ -37,7 +37,7 @@ public abstract class IOHelp {
     }
   }
 
-  public static void copyContents(InputStream source, Path dest) {
+  public static final void copyContents(InputStream source, Path dest) {
     try {
       Files.copy(source, dest, StandardCopyOption.valueOf("REPLACE_EXISTING"));
     } catch(IOException e){System.err.println("Copying failed " + e);}
@@ -52,7 +52,7 @@ public abstract class IOHelp {
   *
   * @return true if creation was a success; false if something went wrong
   */
-  public static boolean createDir(String filename) {
+  public static final boolean createDir(String filename) {
     File fi = new File(filename);
     if (fi.exists()) {
       for (File f : fi.listFiles()) {
@@ -63,7 +63,7 @@ public abstract class IOHelp {
     else {return fi.mkdirs();}
   }
 
-  public static boolean exists(String filename) {return new File(filename).exists();}
+  public static final boolean exists(String filename) {return new File(filename).exists();}
 
   public static boolean delete(File f) {
     if (f.isDirectory()) {
@@ -74,7 +74,7 @@ public abstract class IOHelp {
     return f.delete();
   }
 
-  public static List<String> readAllLines(String filename, boolean inJar) {
+  public static final List<String> readAllLines(String filename, boolean inJar) {
     try {
       if (inJar) {
         BufferedReader file = new BufferedReader(new InputStreamReader(Scene.class.getResourceAsStream(filename)));
@@ -97,7 +97,7 @@ public abstract class IOHelp {
   *
   * @return a buffered image of the desired texture
   */
-  public static BufferedImage readImage(String filename) {
+  public static final BufferedImage readImage(String filename) {
     try {
       return ImageIO.read(Core.class.getResourceAsStream("/data/textures/" + filename));
     }catch(IOException e){System.err.println("Failed to find Texture at " + filename);}
@@ -109,7 +109,7 @@ public abstract class IOHelp {
   *
   * @return a square texture in RGBA array format
   */
-  public static int[] readImageInt(String filename) {
+  public static final int[] readImageInt(String filename) {
     BufferedImage img = IOHelp.readImage(filename);
 
     return img.getRGB(0, 0, img.getHeight(), img.getHeight(), null, 0, img.getWidth());
@@ -129,7 +129,7 @@ public abstract class IOHelp {
    * 
    * @return an encoded byte array containing all the supplied data, ready to be transmitted online
    */
-  public static byte[] encodeFromTo(int x1, int y1, char c1, boolean p1, int x2, int y2, char c2, boolean p2) {
+  public static final byte[] encodeFromTo(int x1, int y1, char c1, boolean p1, int x2, int y2, char c2, boolean p2) {
     byte[] from = encodeTilePos(x1, y1, c1, p1);
     byte[] to = encodeTilePos(x2, y2, c2, p2);
     return new byte[]{from[0], from[1], to[0], to[1]};
@@ -147,7 +147,7 @@ public abstract class IOHelp {
    * 
    * @return an encoded byte array containing all the supplied data, ready to be transmitted online
    */
-  public static byte[] encodeFromTo(Vector2I pos1, char c1, boolean p1, Vector2I pos2, char c2, boolean p2) {
+  public static final byte[] encodeFromTo(Vector2I pos1, char c1, boolean p1, Vector2I pos2, char c2, boolean p2) {
     return encodeFromTo(pos1.x, pos1.y, c1, p1, pos2.x, pos2.y, c2, p2);
   }
 
@@ -161,7 +161,7 @@ public abstract class IOHelp {
    * 
    * @return an encoded byte array containing all the supplied data, ready to be transmitted online
    */
-  public static byte[] encodeTilePos(int x, int y, char c, boolean pile) {
+  public static final byte[] encodeTilePos(int x, int y, char c, boolean pile) {
     if (c<'A' || c>'Z') c = '[';
     int m = (y*Core.DEFAULT_MAP_SIZE+x)<<6 | (c-65)<<1 | (pile ? 1 : 0);
 
@@ -177,7 +177,7 @@ public abstract class IOHelp {
    * 
    * @return an encoded byte array containing all the supplied data, ready to be transmitted online
    */
-  public static byte[] encodeTilePos(Vector2I pos, char c, boolean pile) {
+  public static final byte[] encodeTilePos(Vector2I pos, char c, boolean pile) {
     return encodeTilePos(pos.x, pos.y, c, pile);
   }
 
@@ -191,7 +191,7 @@ public abstract class IOHelp {
    * 
    * @return the underlying encoded integer
    */
-  public static int decodeTilePos(byte[] b, int offset) {
+  public static final int decodeTilePos(byte[] b, int offset) {
     return (b[offset]&0b11111111)<<8 | b[offset+1]&0b11111111;
   }
 
@@ -202,7 +202,7 @@ public abstract class IOHelp {
    * 
    * @return a Vector2I with the x and y coordinates of the underlying tile
    */
-  public static Vector2I extractPos(int m) {
+  public static final Vector2I extractPos(int m) {
     int p = m>>>6;
     return new Vector2I(p%Core.DEFAULT_MAP_SIZE, p/Core.DEFAULT_MAP_SIZE);
   }
@@ -214,7 +214,7 @@ public abstract class IOHelp {
    * 
    * @return a char representing the underlying tile
    */
-  public static char extractLetter(int m) {
+  public static final char extractLetter(int m) {
     return (char)(((m>>>1)&0b11111)+65);
   }
 
@@ -225,7 +225,7 @@ public abstract class IOHelp {
    * 
    * @return a boolean representing whether or not the underlying tile is in the communal pile
    */
-  public static boolean extractPile(int m) {
+  public static final boolean extractPile(int m) {
     return (m&1)==1;
   }
 

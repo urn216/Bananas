@@ -3,7 +3,7 @@ package code.math;
 /**
 * class helping do file stuff
 */
-public class MathHelp {
+public abstract class MathHelp {
   /**
   * Clamps a value to one between an upper and lower bound.
   *

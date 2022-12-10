@@ -7,6 +7,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.Graphics2D;
 
 import code.math.Vector2;
+import code.ui.UIAction;
 import code.ui.UIColours;
 import code.ui.components.UIComponent;
 import code.ui.components.UIInteractable;
@@ -18,7 +19,7 @@ public class ElemConfirmation extends UIElement {
   protected double buffer;
   protected double componentHeight;
 
-  public ElemConfirmation(Vector2 tL, Vector2 bR, double buffer, boolean[] ties, String... info) {
+  public ElemConfirmation(Vector2 tL, Vector2 bR, double buffer, boolean[] ties, UIAction yes, UIAction no, String... info) {
     super(tL, bR, ties);
     this.buffer = buffer;
     this.componentHeight = (bR.y-tL.y-(buffer*(info.length+2)))/(info.length*0.5+1);
@@ -27,8 +28,8 @@ public class ElemConfirmation extends UIElement {
     for (int i = 0; i < info.length; i++) {
       components[i] = new UIText(info[i], 1, Font.PLAIN);
     }
-    components[info.length  ] = new UIButton("Yes"   , this::transOut);
-    components[info.length+1] = new UIButton("No"    , this::transOut);
+    components[info.length  ] = new UIButton("Yes"   , yes           );
+    components[info.length+1] = new UIButton("No"    , no            );
     components[info.length+2] = new UIButton("Cancel", this::transOut);
   }
 
