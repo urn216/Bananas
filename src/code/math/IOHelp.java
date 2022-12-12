@@ -115,6 +115,22 @@ public abstract class IOHelp {
     return img.getRGB(0, 0, img.getHeight(), img.getHeight(), null, 0, img.getWidth());
   }
 
+  //-------------------------------------------------------------------------------------
+
+  public static final byte MSG = 0b0000001;
+  public static final byte MVE = 0b0000010;
+  public static final byte SET = 0b0000011;
+
+  public static final byte ERR = 0b1000000;
+  
+  public static final byte ERR_LOBBY_FULL = 0b1000001;
+  public static final byte ERR_GAME_IN_PROGRESS = 0b1000010;
+  public static final byte ERR_SERVER_CLOSED = 0b1000011;
+
+  public static final boolean isError(byte b) {
+    return (b&ERR)==ERR;
+  }
+
   /**
    * Encodes a move representing the swapping of two tiles in a pair of grids
    * 
