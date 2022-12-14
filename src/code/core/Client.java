@@ -3,6 +3,8 @@ package code.core;
 import java.io.IOException;
 import java.net.Socket;
 
+import code.math.IOHelp;
+
 public abstract class Client {
   public static volatile Socket sock = new Socket();
   
@@ -41,7 +43,7 @@ public abstract class Client {
       public void run() {
         try {
           while (true) {
-            sock.getInputStream().transferTo(System.out);
+            handleInput(sock.getInputStream().read());
           }
         } catch(IOException e){System.out.println("clientin  "+e);}
       }
@@ -55,5 +57,20 @@ public abstract class Client {
    */
   public static boolean isConnected() {
     return !sock.isClosed() && sock.isConnected();
+  }
+
+  private static void handleInput(int header) throws IOException {
+    if (header == IOHelp.MSG) {
+      int c = sock.getInputStream().read();
+      while(c!=IOHelp.END) {
+        System.out.write(c);
+        c = sock.getInputStream().read();
+      }
+      return;
+    }
+    if(IOHelp.isError(header)) {
+      System.out.println("Ruh roh");
+      Core.toMenu(); //TODO warning
+    }
   }
 }

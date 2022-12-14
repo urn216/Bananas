@@ -117,6 +117,7 @@ public abstract class IOHelp {
 
   //-------------------------------------------------------------------------------------
 
+  public static final byte END = 0b0000000;
   public static final byte MSG = 0b0000001;
   public static final byte MVE = 0b0000010;
   public static final byte SET = 0b0000011;
@@ -126,8 +127,9 @@ public abstract class IOHelp {
   public static final byte ERR_LOBBY_FULL = 0b1000001;
   public static final byte ERR_GAME_IN_PROGRESS = 0b1000010;
   public static final byte ERR_SERVER_CLOSED = 0b1000011;
+  public static final byte ERR_KICKED = 0b1000100;
 
-  public static final boolean isError(byte b) {
+  public static final boolean isError(int b) {
     return (b&ERR)==ERR;
   }
 
@@ -243,6 +245,21 @@ public abstract class IOHelp {
    */
   public static final boolean extractPile(int m) {
     return (m&1)==1;
+  }
+
+  /**
+   * Converts a String into a byte array for use in transmitting data
+   * 
+   * @param s The string to convert
+   * @param offset The offset at which to input the string into a byte array
+   * 
+   * @return The converted byte array
+   */
+  public static final byte[] toBytes(String s, int offset) {
+    char[] c = s.toCharArray();
+    byte[] b = new byte[c.length + offset];
+    for (int i = 0; i < c.length; i++) b[i + offset] = (byte)c[i];
+    return b;
   }
 
   /**

@@ -1,12 +1,12 @@
 package code.board;
 
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.BufferedReader;
 import java.util.HashMap;
 
 import code.math.IOHelp;
 
-import java.io.PrintWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -26,20 +26,28 @@ public abstract class Server {
     } catch(IOException e){System.out.println(e);}
   }
   
+  /**
+   * Broadcasts a message to all players from the faceless server
+   * 
+   * @param msg The message to deliver
+   */
   public static void broadcast(String msg) {
-    // System.out.println(msg);
-    synchronized (clients) {
-      for (int i : clients.keySet()) {
-        clients.get(i).send(-1, msg, "SERVER");
-      }
-    }
+    broadcast(-1, msg);
   }
   
-  public static void broadcast(int id, String msg, String sender) {
-    // System.out.println(msg);
+  /**
+   * Broadcasts a message to all players from a given player id
+   * 
+   * @param id The id of the player who sent the message
+   * @param msg The message to deliver
+   */
+  public static void broadcast(int id, String msg) {
+    ClientHandler sender = clients.get(id);
+    String user = sender == null ? "SERVER" : sender.getUserName();
+    // System.out.println(sender + "> " + msg);
     synchronized (clients) {
       for (int i : clients.keySet()) {
-        clients.get(i).send(id, msg, sender);
+        clients.get(i).send(id, msg, user);
       }
     }
   }
@@ -50,7 +58,7 @@ public abstract class Server {
   */
   public static void shutdown() {
     try {
-      for (int id : clients.keySet()) {removeClient(id);}
+      for (int id : clients.keySet().toArray(new Integer[] {})) {removeClient(id, IOHelp.ERR_SERVER_CLOSED);}
       sock.close();
     } catch(IOException e){System.out.println("servercls "+e);}
   }
@@ -78,13 +86,13 @@ public abstract class Server {
           for(int id = 0; ; id++) {
             Socket clientSock = sock.accept();
             if (!lobby) {
-              clientSock.getOutputStream().write(IOHelp.ERR_GAME_IN_PROGRESS);
+              writeToClient(clientSock.getOutputStream(), IOHelp.ERR_GAME_IN_PROGRESS);
               clientSock.close();
               continue;
             }
             int playerNum = lowestFreePlayerNum();
             if (playerNum < 0) {
-              clientSock.getOutputStream().write(IOHelp.ERR_LOBBY_FULL);
+              writeToClient(clientSock.getOutputStream(), IOHelp.ERR_LOBBY_FULL);
               clientSock.close();
               continue;
             }
@@ -100,7 +108,19 @@ public abstract class Server {
       }
     }.start();
   }
+
+  public static void writeToClient(OutputStream clientOut, byte... msg) throws IOException {
+    clientOut.write(msg);
+    clientOut.write(IOHelp.END);
+    clientOut.flush();
+  }
   
+  /**
+   * finds the lowest valued free position in the player roster,
+   * or negative one if no free spaces are available
+   * 
+   * @return the lowest free player slot for a client to join to
+   */
   private static int lowestFreePlayerNum() {
     for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
       if (!playerExists(playerNum)) return playerNum;
@@ -108,6 +128,12 @@ public abstract class Server {
     return -1;
   }
   
+  /**
+   * Checks if player-x exists, where x is a number less than MAX_PLAYERS
+   * 
+   * @param playerNum the player number to check for
+   * @return true if this player is active
+   */
   private static boolean playerExists(int playerNum) {
     synchronized (clients) {
       for (ClientHandler ch : clients.values()) {
@@ -117,19 +143,33 @@ public abstract class Server {
     return false;
   }
   
-  public static final void removeClient(int id) {
+  /**
+  * Removes a client from the server
+  * 
+  * @param id the client's id
+  * @param message the reason for the client's removal
+  */
+  public static final void removeClient(int id, byte message) {
+    ClientHandler ch = null;
     synchronized (clients) {
       if (!clients.containsKey(id)) return;
-      try {
-        clients.remove(id).clientSock.close();
-      } catch (IOException e) {System.out.println("clientcls "+e);}
+      ch = clients.remove(id);
     }
+
+    try {
+      writeToClient(ch.clientSock.getOutputStream(), message);
+      ch.clientSock.close();
+      ch.interrupt();
+    } catch (IOException e) {System.out.println("serverrmv "+e);}
   }
   
+  /**
+  * Gives the number of active clients connected to the server
+  * 
+  * @return the number of active users
+  */
   public static final int numActiveUsers() {
-    synchronized (clients) {
-      return clients.size();
-    }
+    synchronized (clients) {return clients.size();}
   }
 }
 
@@ -138,7 +178,6 @@ class ClientHandler extends Thread {
   public final int id;
   public final Player player;
   
-  private PrintWriter out;
   private String username;
   
   public ClientHandler(Socket clientSock, int id, int playerNum) {
@@ -149,17 +188,21 @@ class ClientHandler extends Thread {
   
   public void send(int id, String msg, String user) {
     if (this.id == id) return;
-    out.println(user + "> " + msg);
+    byte[] res = IOHelp.toBytes(user + "> " + msg + "\n", 1);
+    res[0] = IOHelp.MSG;
+    try {
+      Server.writeToClient(clientSock.getOutputStream(), res);
+    } catch (IOException e) {System.out.println("clientmsg "+e);}
   }
+
+  /**
+   * @return This client's chosen username
+   */
+  public String getUserName() {return username;}
   
   public void run() {
     try {
       System.out.println("Client Connected");
-      clientSock.getOutputStream().write('P');
-      out = new PrintWriter(clientSock.getOutputStream(), true);
-      out.println("Welcome, new user!");
-      out.print("Username: ");
-      out.flush();
       BufferedReader in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
       
       username = in.readLine();
@@ -168,11 +211,11 @@ class ClientHandler extends Thread {
       while (true) {
         String msg = in.readLine();
         if (msg == null || msg.equals("exit")) break;
-        Server.broadcast(id, msg, username);
+        Server.broadcast(id, msg);
       }
       Server.broadcast("User " + username + " disconnected");
-      Server.removeClient(id);
-    } catch(IOException e){Server.broadcast("User " + username + " disconnected poorly: " + e); Server.removeClient(id);}
+      Server.removeClient(id, IOHelp.ERR_KICKED);
+    } catch(IOException e){Server.broadcast("User " + username + " disconnected poorly: " + e); Server.removeClient(id, IOHelp.ERR_KICKED);}
     System.out.println("number of active users: " + Server.numActiveUsers());
   }
 }

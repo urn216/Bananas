@@ -28,7 +28,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentAdapter;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -45,8 +44,7 @@ enum State {
 /**
 * Core class for the currently unnamed game
 */
-public class Core extends JPanel {
-  private static final long serialVersionUID = 1;
+public abstract class Core {
   
   public static final Vector2 DEFAULT_SCREEN_SIZE = new Vector2(1920, 1080);
   public static final String BLACKLISTED_CHARS = "/\\.?!*\n";
@@ -59,40 +57,39 @@ public class Core extends JPanel {
   
   public static final int DEFAULT_MAP_SIZE = 32;
   
-  private JFrame f;
-  private boolean maximized = true;
+  private static final JFrame FRAME = new JFrame("Bananas");
+  private static final CorePanel PANEL = new CorePanel();
+  private static boolean maximized = true;
   
-  private final Decal splash;
+  private static final Decal splash;
   
-  private boolean quit = false;
+  private static boolean quit = false;
   
-  private int toolBarLeft, toolBarRight, toolBarTop, toolBarBot;
+  private static int toolBarLeft, toolBarRight, toolBarTop, toolBarBot;
   
-  private boolean[] keyDown = new boolean[65536];
-  private boolean[] mouseDown = new boolean[4];
-  private Vector2 mousePos = new Vector2();
-  private Vector2 mousePre = new Vector2();
-  private Vector2 mouseBnd = new Vector2();
+  private static boolean[] keyDown = new boolean[65536];
+  private static boolean[] mouseDown = new boolean[4];
+  private static Vector2 mousePos = new Vector2();
+  private static Vector2 mousePre = new Vector2();
+  private static Vector2 mouseBnd = new Vector2();
   
-  private boolean bounding = false;
+  private static boolean bounding = false;
   
-  private final UIController uiCon;
+  private static Scene current;
   
-  private Scene current;
-  
-  private Camera cam;
-  private int screenSizeX;
-  private int screenSizeY;
-  private int smallScreenX;
-  private int smallScreenY;
+  private static Camera cam;
+  private static int screenSizeX;
+  private static int screenSizeY;
+  private static int smallScreenX;
+  private static int smallScreenY;
   
   // private long pFTime = System.currentTimeMillis();
   // private int fCount = 0;
   
   /** Current game state */
-  private State state = State.SPLASH;
+  private static State state = State.SPLASH;
   
-  public final Settings globalSettings;
+  public static final Settings globalSettings;
   
   /**
   * Main method. Called on execution. Performs basic startup
@@ -100,62 +97,55 @@ public class Core extends JPanel {
   * @param args Ignored for now
   */
   public static void main(String[] args) {
-    Core core = new Core();
-    core.playGame();
+    Core.playGame();
   }
-  
-  /**
-  * Performs initialisation of the program. Only to be run on startup
-  */
-  public Core() {
-    f = new JFrame("Bananas");
-    f.getContentPane().add(this);
-    f.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    f.setResizable(true);
+
+  static {
+    FRAME.getContentPane().add(PANEL);
+    FRAME.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    FRAME.setResizable(true);
     BufferedImage image = IOHelp.readImage("icon.png");
-    f.setIconImage(image);
-    f.setExtendedState(JFrame.MAXIMIZED_BOTH);
-    f.setUndecorated(true);
+    FRAME.setIconImage(image);
+    FRAME.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    FRAME.setUndecorated(true);
     
     GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     smallScreenX = gd.getDisplayMode().getWidth()/2;
     smallScreenY = gd.getDisplayMode().getHeight()/2;
     splash = new Decal(smallScreenX, smallScreenY, "splash.png", false);
-    f.setBackground(new Color(173, 173, 173));
+    FRAME.setBackground(new Color(173, 173, 173));
     
-    f.addWindowListener( new WindowAdapter() {
+    FRAME.addWindowListener( new WindowAdapter() {
       @Override
       public void windowClosing(WindowEvent e) {
         quit = true;
       }
     });
-    f.addComponentListener( new ComponentAdapter() {
+    FRAME.addComponentListener( new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        screenSizeX = f.getWidth() - toolBarLeft - toolBarRight;
-        screenSizeY = f.getHeight() - toolBarTop - toolBarBot;
+        screenSizeX = FRAME.getWidth() - toolBarLeft - toolBarRight;
+        screenSizeY = FRAME.getHeight() - toolBarTop - toolBarBot;
         if (cam != null) {cam.setScreenSize(screenSizeX, screenSizeY);}
         // System.out.println(screenSizeX + ", " + screenSizeY);
       }
     });
     
-    f.setVisible(true);
-    f.requestFocus();
+    FRAME.setVisible(true);
+    FRAME.requestFocus();
     globalSettings = new Settings();
-    screenSizeX = f.getWidth();
-    screenSizeY = f.getHeight();
+    screenSizeX = FRAME.getWidth();
+    screenSizeY = FRAME.getHeight();
     
-    uiCon = new UIController(globalSettings);
-    
-    uiCon.putPane("Main Menu", UICreator.createMain(this, uiCon));
-    uiCon.putPane("HUD"      , UICreator.createHUD (this, uiCon));
+    UIController.putPane("Main Menu", UICreator.createMain());
+    UIController.putPane("HUD"      , UICreator.createHUD ());
   }
   
   /**
   * A helper method that updates the window insets to match their current state
   */
-  private void updateInsets() {
-    Insets i = f.getInsets(); //Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration())
+  private static void updateInsets() {
+    Insets i = FRAME.getInsets(); //Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration())
     // System.out.println(i);
     toolBarLeft = i.left;
     toolBarRight = i.right;
@@ -166,40 +156,40 @@ public class Core extends JPanel {
   /**
   * A helper method that toggles fullscreen for the window
   */
-  public void doFull() {
-    f.removeNotify();
+  public static void doFull() {
+    FRAME.removeNotify();
     if (maximized) {
-      f.setExtendedState(JFrame.NORMAL);
-      f.setUndecorated(false);
-      f.addNotify();
+      FRAME.setExtendedState(JFrame.NORMAL);
+      FRAME.setUndecorated(false);
+      FRAME.addNotify();
       updateInsets();
-      f.setSize(smallScreenX + toolBarLeft + toolBarRight, smallScreenY + toolBarTop + toolBarBot);
+      FRAME.setSize(smallScreenX + toolBarLeft + toolBarRight, smallScreenY + toolBarTop + toolBarBot);
     }
     else {
       smallScreenX = screenSizeX;
       smallScreenY = screenSizeY;
-      f.setVisible(false);
-      f.setExtendedState(JFrame.MAXIMIZED_BOTH);
-      f.setUndecorated(true);
-      f.setVisible(true);
+      FRAME.setVisible(false);
+      FRAME.setExtendedState(JFrame.MAXIMIZED_BOTH);
+      FRAME.setUndecorated(true);
+      FRAME.setVisible(true);
       updateInsets();
-      f.addNotify();
+      FRAME.addNotify();
     }
-    f.requestFocus();
+    FRAME.requestFocus();
     maximized = !maximized;
   }
   
   /**
   * Switches the current scene to the main menu
   */
-  public void toMenu() {
+  public static void toMenu() {
     Client.disconnect();
     Server.shutdown();
     current = Menu.MENU;
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.MAINMENU;
-    uiCon.setCurrent("Main Menu");
+    UIController.setCurrent("Main Menu");
   }
   
   /**
@@ -207,7 +197,7 @@ public class Core extends JPanel {
    * 
    * @param port the port number to host the server through
    */
-  public void hostGame(int port) {
+  public static void hostGame(int port) {
     Client.disconnect();
     Server.shutdown();
     
@@ -219,7 +209,7 @@ public class Core extends JPanel {
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.HOST;
-    uiCon.setCurrent("HUD");
+    UIController.setCurrent("HUD");
   }
   
   /**
@@ -228,7 +218,7 @@ public class Core extends JPanel {
   * @param ip the ip address to connect to
   * @param port the port number to connect to
   */
-  public void joinGame(String ip, int port) {
+  public static void joinGame(String ip, int port) {
     Client.disconnect();
     Server.shutdown();
     
@@ -239,20 +229,20 @@ public class Core extends JPanel {
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.RUN;
-    uiCon.setCurrent("HUD");
+    UIController.setCurrent("HUD");
   }
   
   /**
   * Sets the flag to quit the game at the nearest convenience
   */
-  public void quitToDesk() {
+  public static void quitToDesk() {
     quit = true;
   }
   
   /**
   * Main loop. Should always be running. Runs the rest of the game engine
   */
-  private void playGame() {
+  private static void playGame() {
     while (true) {
       long tickTime = System.currentTimeMillis();
       
@@ -282,7 +272,7 @@ public class Core extends JPanel {
         Server.shutdown();
         System.exit(0);
       }
-      repaint();
+      PANEL.repaint();
       tickTime = System.currentTimeMillis() - tickTime;
       try {
         Thread.sleep(Math.max((long)(MILLISECONDS_PER_TICK - tickTime), 0));
@@ -290,8 +280,7 @@ public class Core extends JPanel {
     }
   }
   
-  @Override
-  public void paintComponent(Graphics gra) {
+  public static void paintComponent(Graphics gra) {
     Graphics2D g = (Graphics2D) gra.create();
     
     switch (state) {
@@ -303,7 +292,7 @@ public class Core extends JPanel {
       case RUN:
       current.draw(g, cam);
       if (mouseDown[1]) {
-        if (bounding) uiCon.drawBoundingBox(g, mouseBnd, mousePos);
+        if (bounding) UIController.drawBoundingBox(g, mouseBnd, mousePos);
         else {
           for (TileGrid p : current.getSelectedTiles()) {
             if (p.getTilePiece()!=null) p.getTilePiece().draw(g, mousePos, cam.getZoom(), false, false);
@@ -311,13 +300,13 @@ public class Core extends JPanel {
         }
       }
       // uiCon.draw(g, screenSizeX, screenSizeY, current.getStats());
-      uiCon.draw(g, screenSizeX, screenSizeY);
+      UIController.draw(g, screenSizeX, screenSizeY);
       break;
       
       case MAINMENU:
       case END:
       current.draw(g, cam);
-      uiCon.draw(g, screenSizeX, screenSizeY);
+      UIController.draw(g, screenSizeX, screenSizeY);
       break;
     }
     
@@ -327,16 +316,16 @@ public class Core extends JPanel {
   /**
   * Starts up all the listeners for the window. Only to be called once on startup.
   */
-  private void initialiseControls() {
+  private static void initialiseControls() {
     
     //Mouse Controls
-    f.addMouseMotionListener(new MouseAdapter() {
+    FRAME.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
         int x = e.getX() - toolBarLeft;
         int y = e.getY() - toolBarTop;
         mousePos = new Vector2(x, y);
-        uiCon.cursorMove(x, y);
+        UIController.cursorMove(x, y);
       }
       
       @Override
@@ -344,24 +333,24 @@ public class Core extends JPanel {
         int x = e.getX() - toolBarLeft;
         int y = e.getY() - toolBarTop;
         mousePos = new Vector2(x, y);
-        uiCon.cursorMove(x, y);
-        uiCon.useSlider(x);
+        UIController.cursorMove(x, y);
+        UIController.useSlider(x);
       }
     });
-    f.addMouseListener(new MouseAdapter() {
+    FRAME.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
         int x = e.getX() - toolBarLeft;
         int y = e.getY() - toolBarTop;
         mousePos = new Vector2(x, y);
         
-        if (uiCon.getHighlighted() == null) mouseDown[e.getButton()] = true;
+        if (UIController.getHighlighted() == null) mouseDown[e.getButton()] = true;
         mousePre = mousePos;
         
         //left click
         if (e.getButton() == 1) {
-          uiCon.cursorMove(x, y);
-          if (uiCon.press()) return;
+          UIController.cursorMove(x, y);
+          if (UIController.press()) return;
           Vector2I ind = current.convertToIndex(mousePos, cam);
           current.pressTile(ind);
           if (!current.isSelected(ind)) {
@@ -391,8 +380,8 @@ public class Core extends JPanel {
           Vector2I ind = current.convertToIndex(mousePos, cam);
           if (!current.selectTile(ind) && bounding) current.selectTiles(current.convertToIndex(mouseBnd, cam), ind);
           bounding = false;
-          uiCon.cursorMove(x, y);
-          uiCon.release();
+          UIController.cursorMove(x, y);
+          UIController.release();
           return;
         }
         
@@ -406,7 +395,7 @@ public class Core extends JPanel {
       }
     });
     
-    f.addMouseWheelListener(new MouseAdapter() {
+    FRAME.addMouseWheelListener(new MouseAdapter() {
       public void mouseWheelMoved(MouseWheelEvent e) {
         double z = e.getWheelRotation()<0 ? cam.getZoom()*1.1 : cam.getZoom()/1.1;
         cam.setZoom(z, mousePos.subtract(screenSizeX*0.5, screenSizeY*0.5));
@@ -414,12 +403,12 @@ public class Core extends JPanel {
     });
     
     //Keyboard Controls
-    f.addKeyListener(new KeyAdapter() {
+    FRAME.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
         
-        if (uiCon.getActiveTextfield() != null && !keyDown[KeyEvent.VK_CONTROL]) uiCon.typeKey(e);
+        if (UIController.getActiveTextfield() != null && !keyDown[KeyEvent.VK_CONTROL]) UIController.typeKey(e);
         
         if(keyDown[keyCode]) return; //Key already in
         keyDown[keyCode] = true;
@@ -430,11 +419,11 @@ public class Core extends JPanel {
           return;
         }
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          uiCon.back();
+          UIController.back(); //TODO check for changes
           return;
         }
         if (keyCode == KeyEvent.VK_ENTER) {
-          uiCon.press();
+          UIController.press();
           return;
         }
         if (keyCode == KeyEvent.VK_MINUS) {
@@ -458,7 +447,7 @@ public class Core extends JPanel {
           keyDown[keyCode] = false;
           
           if (keyCode == KeyEvent.VK_ENTER) {
-            uiCon.release();
+            UIController.release();
           }
         }
       });

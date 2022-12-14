@@ -18,11 +18,26 @@ public class UICreator {
   
   private static final double BUTTON_HEIGHT = 0.075;
   private static final double BUFFER_HEIGHT = 0.015;
+
+  private static final ElemConfirmation settingsChanged = new ElemConfirmation(
+    new Vector2(0.35, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2),
+    new Vector2(0.65, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
+    BUFFER_HEIGHT, 
+    new boolean[]{false, false, false, false}, 
+    () -> {Core.globalSettings.saveChanges();   UIController.back();},
+    () -> {Core.globalSettings.revertChanges(); UIController.back();},
+    "Save Changes?"
+  );
+
+  private static final UIAction checkSettings = () -> {
+    if (Core.globalSettings.hasChanged()) settingsChanged.transIn();
+    else UIController.back();
+  };
   
   /**
   * Creates the UI pane for the main menu.
   */
-  public static UIPane createMain(Core c, UIController ui) {
+  public static UIPane createMain() {
     UIPane mainMenu = new UIPane();
     
     UIElement title = new UIElement(
@@ -42,9 +57,9 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Play"           , () -> ui.setMode(UIState.NEW_GAME)),
-      new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS) ),
-      new UIButton("Quit to Desktop", c::quitToDesk                     ),
+      new UIButton("Play"           , () -> UIController.setMode(UIState.NEW_GAME)),
+      new UIButton("Options"        , () -> UIController.setMode(UIState.OPTIONS) ),
+      new UIButton("Quit to Desktop", Core::quitToDesk                            ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -55,9 +70,9 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Host Game"   , () -> ui.setMode(UIState.HOST_SETUP)  ),
-      new UIButton("Join Game"   , () -> ui.setMode(UIState.CLIENT_SETUP)),
-      new UIButton("Back"        , ui::back                              ),
+      new UIButton("Host Game"   , () -> UIController.setMode(UIState.HOST_SETUP)  ),
+      new UIButton("Join Game"   , () -> UIController.setMode(UIState.CLIENT_SETUP)),
+      new UIButton("Back"        , UIController::back                              ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -88,7 +103,7 @@ public class UICreator {
     "Please check details are correct"
     );
     
-    UITextfield hostport = new UITextfield("Port Number", 5, 1, null, ui){
+    UITextfield hostport = new UITextfield("Port Number", 5, 1, null){
       public boolean isValid() {
         try {return totind > 0 && Integer.parseInt(getText()) > 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
         catch (NumberFormatException e) {return false;}
@@ -104,7 +119,7 @@ public class UICreator {
       hostport,
       new UIButton("Host New Game", () -> {
         if (hostport.isValid()) {
-          c.hostGame(Integer.parseInt(hostport.getText()));
+          Core.hostGame(Integer.parseInt(hostport.getText()));
           connectErr.transIn();
         } else portErr.transIn();
       }),
@@ -112,9 +127,9 @@ public class UICreator {
     new boolean[]{false, false, true, false}
     );
     
-    UITextfield ipaddr = new UITextfield("Server Address", 15, 1, null, ui){public boolean isValid() {return totind > 0;}};
+    UITextfield ipaddr = new UITextfield("Server Address", 15, 1, null){public boolean isValid() {return totind > 0;}};
     
-    UITextfield joinport = new UITextfield("Port Number", 5, 1, null, ui){
+    UITextfield joinport = new UITextfield("Port Number", 5, 1, null){
       public boolean isValid() {
         try {return totind > 0 && Integer.parseInt(getText()) > 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
         catch (NumberFormatException e) {return false;}
@@ -132,7 +147,7 @@ public class UICreator {
       new UIButton("Connect!", () -> {
         if (ipaddr.isValid()) {
           if (joinport.isValid()) {
-            c.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
+            Core.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
             connectErr.transIn();
           } else portErr.transIn();
         } else ipErr.transIn();
@@ -147,10 +162,10 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
-      new UIButton("Audio"   , () -> ui.setMode(UIState.AUDIO)   ),
-      new UIButton("Gameplay", () -> ui.setMode(UIState.GAMEPLAY)),
-      new UIButton("Back"    , ui::back                          ),
+      new UIButton("Video"   , () -> UIController.setMode(UIState.VIDEO)   ),
+      new UIButton("Audio"   , () -> UIController.setMode(UIState.AUDIO)   ),
+      new UIButton("Gameplay", () -> UIController.setMode(UIState.GAMEPLAY)),
+      new UIButton("Back"    , checkSettings                               ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -175,10 +190,10 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> c.globalSettings.getSetting    ("soundFX")    , (v) -> c.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> c.globalSettings.getSetting    ("soundMusic") , (v) -> c.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
-      new UIToggle("Subtitles"    , () -> c.globalSettings.getBoolSetting("subtitles")  , (v) -> c.globalSettings.setBoolSetting("subtitles"  , v)),
+      new UISlider("Master: %d"   , () -> Core.globalSettings.getSetting    ("soundMaster"), (v) -> Core.globalSettings.setSetting    ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d" , () -> Core.globalSettings.getSetting    ("soundFX")    , (v) -> Core.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"    , () -> Core.globalSettings.getSetting    ("soundMusic") , (v) -> Core.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
+      new UIToggle("Subtitles"    , () -> Core.globalSettings.getBoolSetting("subtitles")  , (v) -> Core.globalSettings.setBoolSetting("subtitles"  , v)        ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -194,6 +209,7 @@ public class UICreator {
     mainMenu.addElement(portErr);
     mainMenu.addElement(ipErr);
     mainMenu.addElement(connectErr);
+    mainMenu.addElement(settingsChanged);
     mainMenu.addMode(UIState.DEFAULT, title);
     mainMenu.addMode(UIState.DEFAULT, outPanel);
     mainMenu.addMode(UIState.NEW_GAME, title, UIState.DEFAULT);
@@ -221,7 +237,7 @@ public class UICreator {
   /**
   * Creates the HUD for use during gameplay.
   */
-  public static UIPane createHUD(Core c, UIController ui) {
+  public static UIPane createHUD() {
     UIPane HUD = new UIPane();
     
     UIElement greyed = new UIElement(
@@ -239,10 +255,10 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Resume"         , ui::back                         ),
-      new UIButton("Options"        , () -> ui.setMode(UIState.OPTIONS)),
-      new UIButton("Quit to Title"  , c::toMenu                        ),
-      new UIButton("Quit to Desktop", c::quitToDesk                    ),
+      new UIButton("Resume"         , UIController::back                         ),
+      new UIButton("Options"        , () -> UIController.setMode(UIState.OPTIONS)),
+      new UIButton("Quit to Title"  , Core::toMenu                               ),
+      new UIButton("Quit to Desktop", Core::quitToDesk                           ),
     },
     new boolean[]{false, true, true, true}
     );
@@ -253,10 +269,10 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Video"   , () -> ui.setMode(UIState.VIDEO)   ),
-      new UIButton("Audio"   , () -> ui.setMode(UIState.AUDIO)   ),
-      new UIButton("Gameplay", () -> ui.setMode(UIState.GAMEPLAY)),
-      new UIButton("Back"    , ui::back                          ),
+      new UIButton("Video"   , () -> UIController.setMode(UIState.VIDEO)   ),
+      new UIButton("Audio"   , () -> UIController.setMode(UIState.AUDIO)   ),
+      new UIButton("Gameplay", () -> UIController.setMode(UIState.GAMEPLAY)),
+      new UIButton("Back"    , checkSettings                               ),
     },
     new boolean[]{false, true, true, true}
     );
@@ -267,10 +283,10 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("AH"          , null    ),
-      new UIButton("MAKE IT STOP", null    ),
-      new UIButton("PLEASE"      , null    ),
-      new UIButton("Back"        , ui::back),
+      new UIButton("AH"          , null         ),
+      new UIButton("MAKE IT STOP", null         ),
+      new UIButton("PLEASE"      , null         ),
+      new UIButton("Back"        , checkSettings),
     },
     new boolean[]{false, true, true, true}
     );
@@ -281,11 +297,11 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Master: %d"   , () -> c.globalSettings.getSetting    ("soundMaster"), (v) -> c.globalSettings.setSetting    ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> c.globalSettings.getSetting    ("soundFX")    , (v) -> c.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> c.globalSettings.getSetting    ("soundMusic") , (v) -> c.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
-      new UIToggle("Subtitles"    , () -> c.globalSettings.getBoolSetting("subtitles")  , (v) -> c.globalSettings.setBoolSetting("subtitles"  , v)),
-      new UIButton("Back"         , ui::back),
+      new UISlider("Master: %d"   , () -> Core.globalSettings.getSetting    ("soundMaster"), (v) -> Core.globalSettings.setSetting    ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d" , () -> Core.globalSettings.getSetting    ("soundFX")    , (v) -> Core.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"    , () -> Core.globalSettings.getSetting    ("soundMusic") , (v) -> Core.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
+      new UIToggle("Subtitles"    , () -> Core.globalSettings.getBoolSetting("subtitles")  , (v) -> Core.globalSettings.setBoolSetting("subtitles"  , v)        ),
+      new UIButton("Back"         , checkSettings                                                                                                               ),
     },
     new boolean[]{false, true, true, true}
     );
@@ -295,6 +311,7 @@ public class UICreator {
     HUD.addElement(options);
     HUD.addElement(optvid);
     HUD.addElement(optaud);
+    HUD.addElement(settingsChanged);
     // HUD.addMode(UIState.DEFAULT, health);
     HUD.setModeParent(UIState.DEFAULT, UIState.PAUSED);
     HUD.addMode(UIState.PAUSED, greyed, UIState.DEFAULT);

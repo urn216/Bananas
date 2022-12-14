@@ -31,14 +31,14 @@ public class UITextfield extends UIInteractable {
    * @param enter the destination for the text in this field when enter is pressed. Leave null for new line functionality.
    * @param ui the UIController for this field.
    */
-  public UITextfield(String defaultText, int maxLength, int numLines, UIActionSetter<String> enter, UIController ui) {
+  public UITextfield(String defaultText, int maxLength, int numLines, UIActionSetter<String> enter) {
     assert (numLines > 0);
     this.text = defaultText;
     this.textChars = new char[maxLength+1];
     this.numLines = numLines;
     this.ind = new int[numLines];
-    this.primeAction = () -> ui.setActiveTextfield(this);
-    this.clearAction = () -> ui.setActiveTextfield(null);
+    this.primeAction = () -> UIController.setActiveTextfield(this);
+    this.clearAction = () -> UIController.setActiveTextfield(null);
     this.enterAction = enter != null ? () -> enter.set(getText()) : this::newLine;
   }
 
