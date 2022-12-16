@@ -29,16 +29,18 @@ public abstract class Client {
       sock = new Socket(ip, port);
     } catch(IOException e){System.out.println("clientcon "+e);}
     
+    //Text output
     new Thread(){
       public void run() {
         try {
           while(true) {
-            System.in.transferTo(sock.getOutputStream());
+            handleTextOut(System.in.read());
           }
         } catch(IOException e){System.out.println("clientout "+e);}
       }
     }.start();
     
+    //Input
     new Thread() {
       public void run() {
         try {
@@ -49,28 +51,58 @@ public abstract class Client {
       }
     }.start();
   }
-
+  
   /**
-   * Checks to see if the client has a current connection to a server.
-   * 
-   * @return True if the client is connected
-   */
+  * Checks to see if the client has a current connection to a server.
+  * 
+  * @return true if the client is connected.
+  */
   public static boolean isConnected() {
     return !sock.isClosed() && sock.isConnected();
   }
-
+  
+  /**
+   * Handles input of data from the connected server.
+   * 
+   * @param header The first byte of a message, containing the type of data to process.
+   * @throws IOException if when reading the data from the server, the connection is interrupted.
+   */
   private static void handleInput(int header) throws IOException {
     if (header == IOHelp.MSG) {
       int c = sock.getInputStream().read();
       while(c!=IOHelp.END) {
-        System.out.write(c);
+        System.out.print((char)c);
         c = sock.getInputStream().read();
       }
       return;
     }
-    if(IOHelp.isError(header)) {
-      System.out.println("Ruh roh");
+    if (header == IOHelp.SET) {
+      //TODO sets
+    }
+    if (header == IOHelp.MVE) {
+      //TODO moves
+    }
+    if(IOHelp.isExitCondition(header)) {
+      System.out.println("Returning to Menu");
       Core.toMenu(); //TODO warning
     }
+  }
+  
+  /**
+   * Handles the outputting of text typed into the terminal by the client.
+   * Triggered by entering a newline character,
+   * and will read an entire line of input from the user
+   * 
+   * @param c The first char in the line to read.
+   * @throws IOException if when writing to the server, the connection is interrupted.
+   */
+  private static void handleTextOut(int c) throws IOException {
+    sock.getOutputStream().write(IOHelp.MSG);
+    while (c != '\n' && c != '\r') {
+      sock.getOutputStream().write(c);
+      c = System.in.read();
+    }
+    if (c == '\r') System.in.read();
+    sock.getOutputStream().write(IOHelp.END);
   }
 }

@@ -122,15 +122,16 @@ public abstract class IOHelp {
   public static final byte MVE = 0b0000010;
   public static final byte SET = 0b0000011;
 
-  public static final byte ERR = 0b1000000;
+  public static final byte EXIT = 0b1000000;
   
-  public static final byte ERR_LOBBY_FULL = 0b1000001;
-  public static final byte ERR_GAME_IN_PROGRESS = 0b1000010;
-  public static final byte ERR_SERVER_CLOSED = 0b1000011;
-  public static final byte ERR_KICKED = 0b1000100;
+  public static final byte EXIT_LOBBY_FULL = 0b1000001;
+  public static final byte EXIT_GAME_IN_PROGRESS = 0b1000010;
+  public static final byte EXIT_SERVER_CLOSED = 0b1000011;
+  public static final byte EXIT_KICKED = 0b1000100;
+  public static final byte EXIT_DISCONNECTED = 0b1000101;
 
-  public static final boolean isError(int b) {
-    return (b&ERR)==ERR;
+  public static final boolean isExitCondition(int b) {
+    return (b&EXIT)==EXIT;
   }
 
   /**
@@ -251,14 +252,13 @@ public abstract class IOHelp {
    * Converts a String into a byte array for use in transmitting data
    * 
    * @param s The string to convert
-   * @param offset The offset at which to input the string into a byte array
    * 
    * @return The converted byte array
    */
-  public static final byte[] toBytes(String s, int offset) {
+  public static final byte[] toBytes(String s) {
     char[] c = s.toCharArray();
-    byte[] b = new byte[c.length + offset];
-    for (int i = 0; i < c.length; i++) b[i + offset] = (byte)c[i];
+    byte[] b = new byte[c.length];
+    for (int i = 0; i < c.length; i++) b[i] = (byte)c[i];
     return b;
   }
 
