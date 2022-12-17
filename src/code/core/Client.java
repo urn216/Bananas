@@ -82,6 +82,17 @@ public abstract class Client {
     if (header == IOHelp.MVE) {
       //TODO moves
     }
+    if (header == IOHelp.BGN) {
+      Core.beginMatch();
+      if (sock.getInputStream().read() != IOHelp.END) System.out.println("oops");
+    }
+    if (header == IOHelp.USR_REQ) {
+      writeToServer(IOHelp.USR_SND, Core.globalSettings.getNickname().getBytes());
+      sock.getInputStream().read();
+    }
+    if (header == IOHelp.USR_SND) {
+      //TODO handle recieved player data
+    }
     if(IOHelp.isExitCondition(header)) {
       System.out.println("Returning to Menu");
       Core.toMenu(); //TODO warning
@@ -104,5 +115,20 @@ public abstract class Client {
     }
     if (c == '\r') System.in.read();
     sock.getOutputStream().write(IOHelp.END);
+  }
+
+  /**
+  * Writes a message out to a server.
+  * 
+  * @param header The first byte of the output, representing the type of data being written.
+  * @param msg The bytes of data to send over to the client.
+  * 
+  * @throws IOException if there's a problem holding the connection to the client during the writing process
+  */
+  private static void writeToServer(byte header, byte... msg) throws IOException {
+    sock.getOutputStream().write(header);
+    sock.getOutputStream().write(msg);
+    sock.getOutputStream().write(IOHelp.END);
+    sock.getOutputStream().flush();
   }
 }

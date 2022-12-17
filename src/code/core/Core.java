@@ -2,13 +2,13 @@ package code.core;
 
 import code.board.TileGrid;
 // import code.board.TilePiece;
+import code.error.ConnectionException;
 
 import java.awt.event.MouseWheelEvent;
 import code.math.IOHelp;
 import code.math.Vector2;
 import code.math.Vector2I;
 import code.ui.UIController;
-import code.ui.UICreator;
 import code.board.Camera;
 import code.board.Decal;
 import code.board.Server;
@@ -99,7 +99,7 @@ public abstract class Core {
   public static void main(String[] args) {
     Core.playGame();
   }
-
+  
   static {
     FRAME.getContentPane().add(PANEL);
     FRAME.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -193,23 +193,23 @@ public abstract class Core {
   }
   
   /**
-   * Creates a new server under a given port number and connects the client to it
-   * 
-   * @param port the port number to host the server through
-   */
-  public static void hostGame(int port) {
+  * Creates a new server under a given port number and connects the client to it
+  * 
+  * @param port the port number to host the server through
+  * 
+  * @return true if the connection was successfully established
+  */
+  public static void hostGame(int port) throws ConnectionException {
     Client.disconnect();
     Server.shutdown();
     
     Server.startup(port);
     Client.connect("localhost", port);
-    if (!Client.isConnected()) return;
+    if (Server.isRunning() && Client.isConnected()) return;
     
-    current = new LocalGame();
-    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
-    
-    state = State.HOST;
-    UIController.setCurrent("HUD");
+    Client.disconnect();
+    Server.shutdown();
+    throw new ConnectionException();
   }
   
   /**
@@ -217,18 +217,29 @@ public abstract class Core {
   * 
   * @param ip the ip address to connect to
   * @param port the port number to connect to
+  * 
+  * @return true if the connection was successfully established
   */
-  public static void joinGame(String ip, int port) {
+  public static void joinGame(String ip, int port) throws ConnectionException {
     Client.disconnect();
     Server.shutdown();
     
     Client.connect(ip, port);
-    if (!Client.isConnected()) return;
-
+    if (Client.isConnected()) return;
+    
+    Client.disconnect();
+    Server.shutdown();
+    throw new ConnectionException();
+  }
+  
+  /**
+  * Begins a match
+  */
+  public static void beginMatch() {
     current = new LocalGame();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
-    state = State.RUN;
+    state = Server.isRunning() ? State.HOST : State.RUN;
     UIController.setCurrent("HUD");
   }
   
@@ -255,6 +266,8 @@ public abstract class Core {
         break;
         
         case MAINMENU:
+        // if (profile == null) UICreator.profilePicker.transIn();
+        // else UICreator.profilePicker.transOut();
         break;
         
         case HOST:
@@ -419,7 +432,8 @@ public abstract class Core {
           return;
         }
         if (keyCode == KeyEvent.VK_ESCAPE) {
-          UIController.back(); //TODO check for changes
+          UIController.release();
+          UICreator.checkSettings.perform();
           return;
         }
         if (keyCode == KeyEvent.VK_ENTER) {

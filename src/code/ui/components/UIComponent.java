@@ -50,6 +50,11 @@ public abstract class UIComponent {
   }
 
   /**
+   * Triggers whenever this component is activated. Funtionless by default. Override to create functionality.
+   */
+  public void onTransIn() {}
+
+  /**
    * Draws this component to a Graphics2D object at a given position and size
    * 
    * @param g The Graphics2D object to draw to

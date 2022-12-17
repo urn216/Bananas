@@ -12,7 +12,7 @@ import java.net.Socket;
 
 public abstract class Server {
   
-  private static final int MAX_PLAYERS = 8;
+  public static final int MAX_PLAYERS = 8;
   
   private static volatile ServerSocket sock;
   private static volatile HashMap<Integer, ClientHandler> clients = new HashMap<Integer, ClientHandler>();
@@ -26,7 +26,14 @@ public abstract class Server {
   }
   
   /**
-  * Broadcasts a message to all players from the faceless server
+  * Checks to see if the server is currently running.
+  * 
+  * @return true if the server is bound and open
+  */
+  public static boolean isRunning() {return sock.isBound() && !sock.isClosed();}
+  
+  /**
+  * Broadcasts a message to all players from the faceless server.
   * 
   * @param msg The message to deliver
   */
@@ -35,7 +42,7 @@ public abstract class Server {
   }
   
   /**
-  * Broadcasts a message to all players from a given player id
+  * Broadcasts a message to all players from a given player id.
   * 
   * @param id The id of the player who sent the message
   * @param msg The message to deliver
@@ -46,7 +53,7 @@ public abstract class Server {
     // System.out.print(msg);
     synchronized (clients) {
       for (int i : clients.keySet()) {
-        clients.get(i).send(id, msg);
+        clients.get(i).sendText(id, msg);
       }
     }
   }
@@ -57,9 +64,10 @@ public abstract class Server {
   */
   public static void shutdown() {
     try {
-      for (int id : clients.keySet().toArray(new Integer[] {})) {removeClient(id, IOHelp.EXIT_SERVER_CLOSED);}
+      if (!clients.isEmpty()) for (int id : clients.keySet().toArray(new Integer[0])) {removeClient(id, IOHelp.EXIT_SERVER_CLOSED);}
       sock.close();
     } catch(IOException e){System.out.println("servercls "+e);}
+    synchronized (clients) {clients.clear();}
   }
   
   /**
@@ -74,6 +82,8 @@ public abstract class Server {
     } catch(IOException e){System.out.println("serveropn "+e);}
     System.out.println("\nCreating new Server!");
     
+    lobby = true;
+    
     //Lobby
     //
     //Attempts to add new players to the lobby until 
@@ -81,31 +91,55 @@ public abstract class Server {
     //Max of 8 players
     new Thread(){
       public void run() {
-        try {
-          for(int id = 0;; id++) {
-            Socket clientSock = sock.accept();
-            if (!lobby) {
-              writeToClient(clientSock.getOutputStream(), IOHelp.EXIT_GAME_IN_PROGRESS);
-              clientSock.close();
-              continue;
-            }
-            int playerNum = lowestFreePlayerNum();
-            if (playerNum < 0) {
-              writeToClient(clientSock.getOutputStream(), IOHelp.EXIT_LOBBY_FULL);
-              clientSock.close();
-              continue;
-            }
-            
-            ClientHandler newClient = new ClientHandler(clientSock, id, playerNum);
-            
-            synchronized (clients) {clients.put(id, newClient);}
-            newClient.start();
-            System.out.println("number of active users: " + numActiveUsers());
-          }
-        }
-        catch (IOException e) {System.out.println("serverlby "+e);}
+        lobby();
       }
     }.start();
+  }
+  
+  /**
+  * Runs a lobby, handling connections to the server while open, and denying entry while closed
+  */
+  private static void lobby() {
+    try {
+      for(int id = 0;; id++) {
+        Socket clientSock = sock.accept();
+        if (!lobby) {
+          writeToClient(clientSock.getOutputStream(), IOHelp.EXIT_GAME_IN_PROGRESS);
+          clientSock.close();
+          continue;
+        }
+        int playerNum = lowestFreePlayerNum();
+        if (playerNum < 0) {
+          writeToClient(clientSock.getOutputStream(), IOHelp.EXIT_LOBBY_FULL);
+          clientSock.close();
+          continue;
+        }
+
+        writeToClient(clientSock.getOutputStream(), IOHelp.USR_REQ);
+        
+        String username = readFromClient(clientSock, clientSock.getInputStream().read());
+        if (username.equals("")) username = "Player " + (playerNum+1);
+
+        ClientHandler newClient = new ClientHandler(clientSock, id, playerNum, username);
+        
+        synchronized (clients) {clients.put(id, newClient);}
+        newClient.start();
+        System.out.println("number of active users: " + numActiveUsers());
+      }
+    }
+    catch (IOException e) {System.out.println("serverlby "+e);}
+  }
+  
+  public static void beginMatch() {
+    lobby = false;
+    
+    synchronized (clients) {
+      for (int i : clients.keySet()) {
+        try {
+          writeToClient(clients.get(i).clientSock.getOutputStream(), IOHelp.BGN);
+        } catch (IOException e) {System.out.println("serverbgn "+e);}
+      }
+    }
   }
   
   /**
@@ -128,12 +162,23 @@ public abstract class Server {
   * @return true if this player is active
   */
   private static boolean playerExists(int playerNum) {
-    synchronized (clients) {
-      for (ClientHandler ch : clients.values()) {
-        if (ch.player.getPlayerNum()==playerNum) return true;
-      }
-    }
+    if (getPlayer(playerNum) != null) return true;
     return false;
+  }
+  
+  /**
+  * Retrieves player-x if they exist, where x is a number less than MAX_PLAYERS
+  * 
+  * @param playerNum the player number to check for
+  * @return the player of this position in the game, or null if they do not exist
+  */
+  public static final Player getPlayer(int playerNum) {
+    synchronized (clients) {
+      for (ClientHandler ch : clients.values()) 
+      if (ch.player.getPlayerNum()==playerNum) 
+      return ch.player;
+    }
+    return null;
   }
   
   /**
@@ -166,6 +211,15 @@ public abstract class Server {
     synchronized (clients) {return clients.size();}
   }
   
+  /**
+  * Writes a message out to a client.
+  * 
+  * @param clientOut The OutputStream belonging to the client.
+  * @param header The first byte of the output, representing the type of data being written.
+  * @param msg The bytes of data to send over to the client.
+  * 
+  * @throws IOException if there's a problem holding the connection to the client during the writing process
+  */
   public static void writeToClient(OutputStream clientOut, byte header, byte... msg) throws IOException {
     clientOut.write(header);
     clientOut.write(msg);
@@ -173,92 +227,129 @@ public abstract class Server {
     clientOut.flush();
   }
   
-  public static byte[] readFromClient(InputStream clientIn, int header) throws IOException {
-    if (header == -1) return new byte[] {'e','x','i','t'};
-    if (header == IOHelp.MSG) {
-      byte[] buffer = new byte[1024];
-      int c = clientIn.read();
-      int i;
-      for (i = 0; c != IOHelp.END; i++) {
-        buffer[i] = (byte)c;
-        c = clientIn.read();
-      }
-      byte[] msg = new byte[i];
-      for (i = 0; i < msg.length; i++) msg[i] = buffer[i];
-      return msg;
+  /**
+  * Reads bytes in from a client, and processes them accordingly
+  * 
+  * @param clientSock The Socket through which the client is connected
+  * @param header The first byte of the input, representing the type of data being read.
+  * 
+  * @return TBD
+  * @throws IOException if there's a problem holding the connection to the client during the reading process
+  */
+  public static String readFromClient(Socket clientSock, int header) throws IOException {
+    if (header == -1) return "exit";
+    if (header == IOHelp.MSG) return textInput(clientSock.getInputStream());
+    if (header == IOHelp.USR_SND) return textInput(clientSock.getInputStream());
+    if (header == IOHelp.USR_REQ) handleUserInfoRequest(clientSock);
+    return "";
+  }
+  
+  /**
+  * Reads bytes in from a client, and processes them as text.
+  * 
+  * @param clientIn The InputStream belonging to the client.
+  * 
+  * @return the String read in from the client
+  * @throws IOException if there's a problem holding the connection to the client during the reading process
+  */
+  private static String textInput(InputStream clientIn) throws IOException {
+    byte[] buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
+    int c = clientIn.read();
+    int i;
+    for (i = 0; c != IOHelp.END; i++) {
+      if (i < buffer.length) buffer[i] = (byte)c;
+      c = clientIn.read();
     }
-    return new byte[] {};
+    byte[] msg = new byte[i];
+    for (i = 0; i < msg.length; i++) msg[i] = buffer[i];
+    return new String(msg);
+  }
+
+  /**
+   * Processes a request by a client for information about another player.
+   * 
+   * @param clientSock The Socket through which the client which sent the request is connected
+   * @throws IOException if there's a problem holding the connection to the client during the reading/writing process
+   */
+  private static void handleUserInfoRequest(Socket clientSock) throws IOException {
+    int playerNum = clientSock.getInputStream().read();
+    clientSock.getInputStream().read();
+    Player player = getPlayer(playerNum);
+    byte[] username = player.getUsername().getBytes();
+    int ready = player.isReady() ? 1 : 0;
+
+    byte[] out = new byte[username.length+2];
+    out[0] = (byte)playerNum;
+    out[1] = (byte)ready;
+    for (int i = 0; i < username.length; i++) out[i+2] = username[i];
+    writeToClient(clientSock.getOutputStream(), IOHelp.USR_SND, out);
   }
 }
 
 //----------------------------------------------------------------
 
 /**
- * Handles reading from and writing to clients attatched to the server
- */
+* Handles reading from and writing to clients attatched to the server
+*/
 class ClientHandler extends Thread {
   /**
-   * The socket connection to the client
-   */
+  * The socket connection to the client
+  */
   public final Socket clientSock;
   /**
-   * The unique identifier for this client
-   */
+  * The unique identifier for this client
+  */
   public final int id;
   /**
-   * The player object associated with this client
-   */
+  * The player object associated with this client
+  */
   public final Player player;
   
-  private String username;
-  
   /**
-   * Constructs a client handler with corresponding client socket, unique id, and player number.
-   * 
-   * @param clientSock The socket holding the connection to the client.
-   * @param id This client's unique identifier.
-   * @param playerNum The number assigned to this player within the context of the game ('Player 1', for example)
-   */
-  public ClientHandler(Socket clientSock, int id, int playerNum) {
+  * Constructs a client handler with corresponding client socket, unique id, and player number.
+  * 
+  * @param clientSock The socket holding the connection to the client.
+  * @param id This client's unique identifier.
+  * @param playerNum The number assigned to this player within the context of the game ('Player 1', for example)
+  */
+  public ClientHandler(Socket clientSock, int id, int playerNum, String username) {
     this.clientSock = clientSock;
     this.id = id;
-    this.player = new Player(playerNum);
+    this.player = new Player(playerNum, username);
   }
   
   /**
-   * Delivers a message to the client held by this handler
-   * 
-   * @param id the id of the client which sent the message
-   * @param msg The message to send
-   */
-  public void send(int id, String msg) {
+  * Delivers a message to the client held by this handler
+  * 
+  * @param id the id of the client which sent the message
+  * @param msg The message to send
+  */
+  public void sendText(int id, String msg) {
     if (this.id == id) return;
     try {
-      Server.writeToClient(clientSock.getOutputStream(), IOHelp.MSG, IOHelp.toBytes(msg));
+      Server.writeToClient(clientSock.getOutputStream(), IOHelp.MSG, msg.getBytes());
     } catch (IOException e) {System.out.println("clientmsg "+e);}
   }
   
   /**
   * @return This client's chosen username
   */
-  public String getUserName() {return username;}
+  public String getUserName() {return player.getUsername();}
   
   @Override
   public void run() {
     try {
       System.out.println("Client Connected");
       
-      username = new String(Server.readFromClient(clientSock.getInputStream(), clientSock.getInputStream().read()));
-      
-      Server.broadcast("Welcome, " + username);
+      Server.broadcast("Welcome, " + player.getUsername());
       while (true) {
-        String msg = new String(Server.readFromClient(clientSock.getInputStream(), clientSock.getInputStream().read()));
+        String msg = new String(Server.readFromClient(clientSock, clientSock.getInputStream().read()));
         if (msg == null || msg.equals("exit")) break;
         Server.broadcast(id, msg);
       }
       Server.removeClient(id, IOHelp.EXIT_DISCONNECTED);
-      Server.broadcast("User " + username + " disconnected");
-    } catch(IOException e){Server.removeClient(id, IOHelp.EXIT_DISCONNECTED); Server.broadcast("User " + username + " disconnected poorly: " + e);}
+      Server.broadcast("User " + player.getUsername() + " disconnected");
+    } catch(IOException e){Server.removeClient(id, IOHelp.EXIT_DISCONNECTED); Server.broadcast("User " + player.getUsername() + " disconnected poorly: " + e);}
     System.out.println("number of active users: " + Server.numActiveUsers());
   }
 }

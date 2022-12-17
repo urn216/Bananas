@@ -172,7 +172,7 @@ public abstract class UIController {
   * @param interact The UIInteractable to activate
   */
   private static void selectInteractable(UIInteractable interact) {
-    activeTextfield = null;
+    if (activeTextfield != null) activeTextfield.clearAct();
     if (interact != null && interact.isIn()) {
       interact.primeAct();
       resetClickables();

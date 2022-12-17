@@ -2,6 +2,7 @@ package code.ui.components.interactables;
 
 import code.ui.UIActionSetter;
 import code.ui.UIAction;
+import code.ui.UIActionGetter;
 import code.ui.UIController;
 import code.ui.components.UIInteractable;
 
@@ -22,30 +23,76 @@ public class UITextfield extends UIInteractable {
 
   private final UIAction enterAction;
   private final UIAction clearAction;
+  private final UIActionGetter<String> textGetter;
 
   /**
-   * Constructor for Text Fields.
+   * Constructor for Text Fields. Pressing enter will enter a newline.
    * 
    * @param maxLength the maximum number of characters allowed in the field.
    * @param numLines the maximum number of lines this field may utilise. Must be at least 1.
-   * @param enter the destination for the text in this field when enter is pressed. Leave null for new line functionality.
-   * @param ui the UIController for this field.
+   */
+  public UITextfield(String defaultText, int maxLength, int numLines) {
+    this(defaultText, maxLength, numLines, null, null);
+  }
+
+  /**
+   * Constructor for Text Fields with an 'enter' action that isn't entering a newline.
+   * 
+   * @param maxLength the maximum number of characters allowed in the field.
+   * @param numLines the maximum number of lines this field may utilise. Must be at least 1.
+   * @param enter the destination for the text in this field when enter is pressed.
    */
   public UITextfield(String defaultText, int maxLength, int numLines, UIActionSetter<String> enter) {
+    this(defaultText, maxLength, numLines, enter, null);
+  }
+
+  /**
+   * Constructor for Text Fields with an 'enter' action that isn't entering a newline,
+   * as well as a textGetter for when the text within the field can be changed outside of user input.
+   * 
+   * @param maxLength the maximum number of characters allowed in the field.
+   * @param numLines the maximum number of lines this field may utilise. Must be at least 1.
+   * @param enter the destination for the text in this field when enter is pressed.
+   * @param textGetter where to retrieve the body text from.
+   */
+  public UITextfield(String defaultText, int maxLength, int numLines, UIActionSetter<String> enter, UIActionGetter<String> textGetter) {
     assert (numLines > 0);
     this.text = defaultText;
     this.textChars = new char[maxLength+1];
     this.numLines = numLines;
     this.ind = new int[numLines];
     this.primeAction = () -> UIController.setActiveTextfield(this);
-    this.clearAction = () -> UIController.setActiveTextfield(null);
-    this.enterAction = enter != null ? () -> enter.set(getText()) : this::newLine;
+
+    this.clearAction = enter == null ? 
+    () -> UIController.setActiveTextfield(null) :
+    () -> {UIController.setActiveTextfield(null); enterAct();};
+
+    this.enterAction = enter != null ? 
+    () -> enter.set(getText()) : 
+    this::newLine;
+
+    this.textGetter = textGetter;
   }
 
   /**
    * Performs the enter functionality.
    */
   public void enterAct() {enterAction.perform();}
+
+  /**
+   * Performs the clear functionality.
+   */
+  public void clearAct() {clearAction.perform();}
+
+  /**
+   * When this component is transitioned into view, it will update the text within the field, if there is a {@code textGetter} present.
+   */
+  public void onTransIn() {
+    if (textGetter != null) {
+      reset();
+      for (char c : textGetter.get().toCharArray()) print(c);
+    }
+  }
 
   public String getText() {
     return new String(textChars, 0, totind);

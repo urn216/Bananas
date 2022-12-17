@@ -1,18 +1,27 @@
 package code.board;
 
 public class Player {
-  private Board board = new Board();
-  private int playerNum = -1;
 
-  public Player(int playerNum) {
+  private final String username;
+  private final int playerNum;
+
+  private Board board = new Board();
+  private boolean ready = false;
+
+  public Player(int playerNum, String username) {
     this.playerNum = playerNum;
+    this.username = username;
   }
 
-  public int getPlayerNum() {return playerNum;}
+  public String getUsername() {return username;}
 
-  public void setPlayerNum(int playerNum) {this.playerNum = playerNum;}
+  public int getPlayerNum() {return playerNum;}
 
   public final Board getBoard() {return board;}
 
   public final void setBoard(Board board) {this.board = board;}
+
+  public boolean isReady() {return ready;}
+
+  public void setReady(boolean ready) {this.ready = ready;}
 }

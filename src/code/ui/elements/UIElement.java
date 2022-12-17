@@ -102,6 +102,7 @@ public abstract class UIElement {
   * Tells the element to transition in if it is not already doing so
   */
   public final void transIn() {
+    for (UIComponent c : components) c.onTransIn();
     if (!transIn) startTimeMillis = System.currentTimeMillis();
     transIn = !active;
   }
@@ -141,6 +142,11 @@ public abstract class UIElement {
       if (c instanceof UIInteractable) ((UIInteractable)c).setOut();
     }
   }
+
+  /**
+   * @return the components tied to this element
+   */
+  public UIComponent[] getComponents() {return components;}
   
   /**
   * draws the current element

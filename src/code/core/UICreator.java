@@ -1,8 +1,15 @@
-package code.ui;
+package code.core;
 
-import code.core.Core;
-
+import code.board.Player;
+import code.board.Server;
+import code.error.ConnectionException;
 import code.math.Vector2;
+import code.ui.UIAction;
+import code.ui.UIColours;
+import code.ui.UIController;
+import code.ui.UIHelp;
+import code.ui.UIPane;
+import code.ui.UIState;
 import code.ui.components.UIComponent;
 import code.ui.components.UIInteractable;
 import code.ui.components.UIText;
@@ -18,18 +25,18 @@ public class UICreator {
   
   private static final double BUTTON_HEIGHT = 0.075;
   private static final double BUFFER_HEIGHT = 0.015;
-
-  private static final ElemConfirmation settingsChanged = new ElemConfirmation(
-    new Vector2(0.35, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2),
-    new Vector2(0.65, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
-    BUFFER_HEIGHT, 
-    new boolean[]{false, false, false, false}, 
-    () -> {Core.globalSettings.saveChanges();   UIController.back();},
-    () -> {Core.globalSettings.revertChanges(); UIController.back();},
-    "Save Changes?"
+  
+  public static final ElemConfirmation settingsChanged = new ElemConfirmation(
+  new Vector2(0.35, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2),
+  new Vector2(0.65, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
+  BUFFER_HEIGHT, 
+  new boolean[]{false, false, false, false}, 
+  () -> {Core.globalSettings.saveChanges();   UIController.back();},
+  () -> {Core.globalSettings.revertChanges(); UIController.back();},
+  "Save Changes?"
   );
-
-  private static final UIAction checkSettings = () -> {
+  
+  public static final UIAction checkSettings = () -> {
     if (Core.globalSettings.hasChanged()) settingsChanged.transIn();
     else UIController.back();
   };
@@ -103,7 +110,7 @@ public class UICreator {
     "Please check details are correct"
     );
     
-    UITextfield hostport = new UITextfield("Port Number", 5, 1, null){
+    UITextfield hostport = new UITextfield("Port Number", 5, 1){
       public boolean isValid() {
         try {return totind > 0 && Integer.parseInt(getText()) > 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
         catch (NumberFormatException e) {return false;}
@@ -118,18 +125,20 @@ public class UICreator {
     new UIInteractable[]{
       hostport,
       new UIButton("Host New Game", () -> {
-        if (hostport.isValid()) {
+        if (!hostport.isValid()) { portErr.transIn(); return;}
+        
+        try {
           Core.hostGame(Integer.parseInt(hostport.getText()));
-          connectErr.transIn();
-        } else portErr.transIn();
+          UIController.setMode(UIState.LOBBY);
+        } catch (ConnectionException e) {connectErr.transIn();}
       }),
     },
     new boolean[]{false, false, true, false}
     );
     
-    UITextfield ipaddr = new UITextfield("Server Address", 15, 1, null){public boolean isValid() {return totind > 0;}};
+    UITextfield ipaddr = new UITextfield("Server Address", 15, 1){public boolean isValid() {return totind > 0;}};
     
-    UITextfield joinport = new UITextfield("Port Number", 5, 1, null){
+    UITextfield joinport = new UITextfield("Port Number", 5, 1){
       public boolean isValid() {
         try {return totind > 0 && Integer.parseInt(getText()) > 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
         catch (NumberFormatException e) {return false;}
@@ -145,12 +154,13 @@ public class UICreator {
       ipaddr,
       joinport,
       new UIButton("Connect!", () -> {
-        if (ipaddr.isValid()) {
-          if (joinport.isValid()) {
-            Core.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
-            connectErr.transIn();
-          } else portErr.transIn();
-        } else ipErr.transIn();
+        if (!ipaddr.isValid()) {ipErr.transIn(); return;}
+        if (!joinport.isValid()) {portErr.transIn(); return;}
+        
+        try {
+          Core.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
+          UIController.setMode(UIState.LOBBY);
+        } catch (ConnectionException e) {connectErr.transIn();}
       }),
     },
     new boolean[]{false, false, true, false}
@@ -162,24 +172,10 @@ public class UICreator {
     BUTTON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Video"   , () -> UIController.setMode(UIState.VIDEO)   ),
-      new UIButton("Audio"   , () -> UIController.setMode(UIState.AUDIO)   ),
-      new UIButton("Gameplay", () -> UIController.setMode(UIState.GAMEPLAY)),
-      new UIButton("Back"    , checkSettings                               ),
-    },
-    new boolean[]{false, false, true, false}
-    );
-    
-    UIElement optvid = new ElemList(
-    new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)),
-    BUTTON_HEIGHT,
-    BUFFER_HEIGHT,
-    new UIInteractable[]{
-      new UIButton("Test1", null),
-      new UIButton("Test2", null),
-      new UIButton("Test3", null),
-      new UIButton("Test4", null),
+      new UITextfield("Nickname", 16, 1, Core.globalSettings::setNickname, Core.globalSettings::getNickname),
+      new UIButton   ("Audio"   , () -> UIController.setMode(UIState.AUDIO)                                ),
+      new UIButton   ("Gameplay", () -> UIController.setMode(UIState.GAMEPLAY)                             ),
+      new UIButton   ("Back"    , checkSettings                                                            ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -198,18 +194,53 @@ public class UICreator {
     new boolean[]{false, false, true, false}
     );
     
-    mainMenu.addElement(title);
-    mainMenu.addElement(outPanel);
-    mainMenu.addElement(playModes);
-    mainMenu.addElement(hostSetup);
-    mainMenu.addElement(clientSetup);
-    mainMenu.addElement(options);
-    mainMenu.addElement(optvid);
-    mainMenu.addElement(optaud);
-    mainMenu.addElement(portErr);
-    mainMenu.addElement(ipErr);
-    mainMenu.addElement(connectErr);
-    mainMenu.addElement(settingsChanged);
+    UIComponent[] lobbyList = new UIComponent[Server.MAX_PLAYERS];
+    
+    for (int i = 0; i < lobbyList.length; i++) {
+      final int ind = i;
+      lobbyList[ind] = new UIComponent() {
+        //TODO redo from client
+        private Player player = null;
+        
+        private UIToggle toggle = new UIToggle(
+        "", 
+        () -> {return player == null ? false : player.isReady();}, 
+        b  -> {}
+        );
+        
+        protected void draw(Graphics2D g, Color... colours) {
+          player = Server.getPlayer(ind);
+          if (player == null) return;
+          toggle.setText(player.getUsername());
+          toggle.draw(g, x, y, width, height, colours);
+        }
+      };
+    }
+    
+    double lobbyListHeight = UIHelp.listHeight(0, UIHelp.componentHeights(BUTTON_HEIGHT, lobbyList));
+    
+    UIElement lobbyClientList = new ElemList(
+    new Vector2(0.38, 0.5-lobbyListHeight/2),
+    new Vector2(0.62, 0.5+lobbyListHeight/2),
+    BUTTON_HEIGHT,
+    0,
+    lobbyList,
+    new boolean[]{true, true, false, false}
+    );
+    
+    UIElement lobbyHostStart = new ElemList(
+    new Vector2(0.38, 1-UIHelp.listHeightDefault(1, BUFFER_HEIGHT, BUTTON_HEIGHT)),
+    new Vector2(0.62, 1),
+    BUTTON_HEIGHT,
+    BUFFER_HEIGHT,
+    new UIInteractable[]{
+      new UIButton("Start", Server::beginMatch)
+    },
+    new boolean[]{false, true, false, false}
+    );
+    
+    ((UIButton)(lobbyHostStart.getComponents()[0])).lock();
+    
     mainMenu.addMode(UIState.DEFAULT, title);
     mainMenu.addMode(UIState.DEFAULT, outPanel);
     mainMenu.addMode(UIState.NEW_GAME, title, UIState.DEFAULT);
@@ -222,12 +253,16 @@ public class UICreator {
     mainMenu.addMode(UIState.CLIENT_SETUP, clientSetup);
     mainMenu.addMode(UIState.OPTIONS, title, UIState.DEFAULT);
     mainMenu.addMode(UIState.OPTIONS, options);
-    mainMenu.addMode(UIState.VIDEO, title, UIState.OPTIONS);
-    mainMenu.addMode(UIState.VIDEO, options);
-    mainMenu.addMode(UIState.VIDEO, optvid);
     mainMenu.addMode(UIState.AUDIO, title, UIState.OPTIONS);
     mainMenu.addMode(UIState.AUDIO, options);
     mainMenu.addMode(UIState.AUDIO, optaud);
+    mainMenu.addMode(UIState.LOBBY, lobbyClientList, UIState.DEFAULT);
+    mainMenu.addMode(UIState.LOBBY, lobbyHostStart, UIState.DEFAULT);
+    
+    mainMenu.addElement(portErr);
+    mainMenu.addElement(ipErr);
+    mainMenu.addElement(connectErr);
+    mainMenu.addElement(settingsChanged);
     
     mainMenu.clear();
     
@@ -305,14 +340,6 @@ public class UICreator {
     },
     new boolean[]{false, true, true, true}
     );
-    // HUD.addElement(health);
-    HUD.addElement(greyed);
-    HUD.addElement(outPause);
-    HUD.addElement(options);
-    HUD.addElement(optvid);
-    HUD.addElement(optaud);
-    HUD.addElement(settingsChanged);
-    // HUD.addMode(UIState.DEFAULT, health);
     HUD.setModeParent(UIState.DEFAULT, UIState.PAUSED);
     HUD.addMode(UIState.PAUSED, greyed, UIState.DEFAULT);
     HUD.addMode(UIState.PAUSED, outPause);
@@ -322,6 +349,8 @@ public class UICreator {
     HUD.addMode(UIState.VIDEO, optvid);
     HUD.addMode(UIState.AUDIO, greyed, UIState.OPTIONS);
     HUD.addMode(UIState.AUDIO, optaud);
+    
+    HUD.addElement(settingsChanged);
     
     HUD.clear();
     
