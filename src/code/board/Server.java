@@ -365,9 +365,12 @@ class ClientHandler extends Thread {
   * @throws IOException if there's a problem holding the connection to the client during the reading process
   */
   private void handleInput(int header) throws IOException {
-    if (header == IOHelp.MSG) Server.broadcastText(id, textInput());
-    if (header == IOHelp.USR_REQ) handleUserInfoRequest();
-    if (header == IOHelp.RDY) handleReady();
+    if (header == IOHelp.MSG) {Server.broadcastText(id, textInput()); return;}
+    if (header == IOHelp.USR_REQ) {handleUserInfoRequest(); return;}
+    if (header == IOHelp.RDY) {handleReady(); clientSock.getInputStream().read(); return;}
+
+    //Command not recognised, clear the buffer
+    Server.readBytesFromClient(clientSock.getInputStream());
   }
   
   /**
