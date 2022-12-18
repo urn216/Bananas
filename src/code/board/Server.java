@@ -17,6 +17,8 @@ public abstract class Server {
   private static volatile ServerSocket sock;
   private static volatile HashMap<Integer, ClientHandler> clients = new HashMap<Integer, ClientHandler>();
   
+  private static volatile byte[] buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
+  
   private static volatile boolean lobby = true;
   
   static {
@@ -37,8 +39,8 @@ public abstract class Server {
   * 
   * @param msg The message to deliver
   */
-  public static void broadcast(String msg) {
-    broadcast(-1, msg);
+  public static void broadcastText(String msg) {
+    broadcastText(-1, msg);
   }
   
   /**
@@ -47,15 +49,33 @@ public abstract class Server {
   * @param id The id of the player who sent the message
   * @param msg The message to deliver
   */
-  public static void broadcast(int id, String msg) {
+  public static void broadcastText(int id, String msg) {
     ClientHandler sender = clients.get(id);
-    msg = (sender == null ? "SERVER" : sender.getUserName()) + "> " + msg + "\n";
-    // System.out.print(msg);
-    synchronized (clients) {
-      for (int i : clients.keySet()) {
-        clients.get(i).sendText(id, msg);
+    byte[] data = ((sender == null ? "SERVER" : sender.getUserName()) + "> " + msg + "\n").getBytes();
+    try {
+      synchronized (clients) {
+        for (ClientHandler ch : clients.values()) {
+          if (ch.id != id)
+          writeToClient(ch.clientSock.getOutputStream(), IOHelp.MSG, data);
+        }
       }
-    }
+    } catch (IOException e) {System.out.println("broadcast error: " + e);}
+  }
+  
+  /**
+   * Sends a message consisiting of bytes to every currently connected client.
+   * 
+   * @param header The header of the desired message, indicating what the topic of the message is
+   * @param msg The message to send
+   */
+  public static void broadcastBytes(byte header, byte[] msg) {
+    try {
+      synchronized (clients) {
+        for (ClientHandler ch : clients.values()) {
+          writeToClient(ch.clientSock.getOutputStream(), header, msg);
+        }
+      }
+    } catch (IOException e) {System.out.println("broadcast error: " + e);}
   }
   
   /**
@@ -114,17 +134,26 @@ public abstract class Server {
           clientSock.close();
           continue;
         }
-
-        writeToClient(clientSock.getOutputStream(), IOHelp.USR_REQ);
         
-        String username = readFromClient(clientSock, clientSock.getInputStream().read());
-        if (username.equals("")) username = "Player " + (playerNum+1);
+        writeToClient(clientSock.getOutputStream(), IOHelp.USR_REQ);
 
+        if (clientSock.getInputStream().read() != IOHelp.USR_SND) {
+          writeToClient(clientSock.getOutputStream(), IOHelp.EXIT_KICKED);
+          clientSock.close();
+          continue;
+        }
+
+        String username = new String(readBytesFromClient(clientSock.getInputStream()));
+        if (username.equals("")) username = "Player " + (playerNum+1);
+        
         ClientHandler newClient = new ClientHandler(clientSock, id, playerNum, username);
         
         synchronized (clients) {clients.put(id, newClient);}
         newClient.start();
         System.out.println("number of active users: " + numActiveUsers());
+
+        broadcastBytes(IOHelp.USR_SND, getUserInfo(playerNum));
+        for (int i = 0; i < Server.MAX_PLAYERS; i++) writeToClient(newClient.clientSock.getOutputStream(), IOHelp.USR_SND, getUserInfo(i));
       }
     }
     catch (IOException e) {System.out.println("serverlby "+e);}
@@ -220,7 +249,9 @@ public abstract class Server {
   * 
   * @throws IOException if there's a problem holding the connection to the client during the writing process
   */
-  public static void writeToClient(OutputStream clientOut, byte header, byte... msg) throws IOException {
+  public static synchronized void writeToClient(OutputStream clientOut, byte header, byte... msg) throws IOException {
+    // System.out.println("Sending message " + header);
+    
     clientOut.write(header);
     clientOut.write(msg);
     clientOut.write(IOHelp.END);
@@ -228,61 +259,62 @@ public abstract class Server {
   }
   
   /**
-  * Reads bytes in from a client, and processes them accordingly
-  * 
-  * @param clientSock The Socket through which the client is connected
-  * @param header The first byte of the input, representing the type of data being read.
-  * 
-  * @return TBD
-  * @throws IOException if there's a problem holding the connection to the client during the reading process
-  */
-  public static String readFromClient(Socket clientSock, int header) throws IOException {
-    if (header == -1) return "exit";
-    if (header == IOHelp.MSG) return textInput(clientSock.getInputStream());
-    if (header == IOHelp.USR_SND) return textInput(clientSock.getInputStream());
-    if (header == IOHelp.USR_REQ) handleUserInfoRequest(clientSock);
-    return "";
-  }
-  
-  /**
-  * Reads bytes in from a client, and processes them as text.
+  * Reads bytes in from a client into an array.
   * 
   * @param clientIn The InputStream belonging to the client.
   * 
-  * @return the String read in from the client
+  * @return the bytes read in from the client
   * @throws IOException if there's a problem holding the connection to the client during the reading process
   */
-  private static String textInput(InputStream clientIn) throws IOException {
-    byte[] buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
-    int c = clientIn.read();
+  public static synchronized byte[] readBytesFromClient(InputStream clientIn) throws IOException {
+    if (buffer == null) buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
+    int b = clientIn.read();
     int i;
-    for (i = 0; c != IOHelp.END; i++) {
-      if (i < buffer.length) buffer[i] = (byte)c;
-      c = clientIn.read();
+    for (i = 0; b != IOHelp.END; i++) {
+      if (i < buffer.length) buffer[i] = (byte)b;
+      b = clientIn.read();
     }
     byte[] msg = new byte[i];
     for (i = 0; i < msg.length; i++) msg[i] = buffer[i];
-    return new String(msg);
+    return msg;
   }
 
   /**
-   * Processes a request by a client for information about another player.
+   * Gathers information about a player and packages it into a byte array consiting of:
+   * {{@code int playerNum}, {@code boolean readyStatus}, {@code String username}}.
    * 
-   * @param clientSock The Socket through which the client which sent the request is connected
-   * @throws IOException if there's a problem holding the connection to the client during the reading/writing process
+   * @param playerNum The desired player to collect the info of
+   * 
+   * @return a byte array containing either the desired information or just playerNum if the player does not exist
    */
-  private static void handleUserInfoRequest(Socket clientSock) throws IOException {
-    int playerNum = clientSock.getInputStream().read();
-    clientSock.getInputStream().read();
+  public static byte[] getUserInfo(int playerNum) {
     Player player = getPlayer(playerNum);
-    byte[] username = player.getUsername().getBytes();
-    int ready = player.isReady() ? 1 : 0;
 
-    byte[] out = new byte[username.length+2];
-    out[0] = (byte)playerNum;
-    out[1] = (byte)ready;
-    for (int i = 0; i < username.length; i++) out[i+2] = username[i];
-    writeToClient(clientSock.getOutputStream(), IOHelp.USR_SND, out);
+    if (player==null) return new byte[]{(byte)(playerNum+48)};
+
+    return getUserInfo(player);
+  }
+
+  /**
+   * Gathers information about a player and packages it into a byte array consiting of:
+   * {{@code int playerNum}, {@code boolean readyStatus}, {@code String username}}.
+   * 
+   * @param player The desired player to collect the info of
+   * 
+   * @return a byte array containing the desired information
+   */
+  public static byte[] getUserInfo(Player player) {
+    int playerNum = player.getPlayerNum();
+
+    byte[] username = player.getUsername().getBytes();
+    int ready = player.isReady() ? 49 : 48;
+    
+    byte[] userInfo = new byte[username.length+2];
+    userInfo[0] = (byte)(playerNum+48);
+    userInfo[1] = (byte)ready;
+    for (int i = 0; i < username.length; i++) userInfo[i+2] = username[i];
+
+    return userInfo;
   }
 }
 
@@ -319,37 +351,70 @@ class ClientHandler extends Thread {
   }
   
   /**
-  * Delivers a message to the client held by this handler
-  * 
-  * @param id the id of the client which sent the message
-  * @param msg The message to send
-  */
-  public void sendText(int id, String msg) {
-    if (this.id == id) return;
-    try {
-      Server.writeToClient(clientSock.getOutputStream(), IOHelp.MSG, msg.getBytes());
-    } catch (IOException e) {System.out.println("clientmsg "+e);}
-  }
-  
-  /**
   * @return This client's chosen username
   */
   public String getUserName() {return player.getUsername();}
+  
+  /**
+  * Reads bytes in from a client, and processes them accordingly
+  * 
+  * @param clientSock The Socket through which the client is connected
+  * @param header The first byte of the input, representing the type of data being read.
+  * 
+  * @return TBD
+  * @throws IOException if there's a problem holding the connection to the client during the reading process
+  */
+  private void handleInput(int header) throws IOException {
+    if (header == IOHelp.MSG) Server.broadcastText(id, textInput());
+    if (header == IOHelp.USR_REQ) handleUserInfoRequest();
+    if (header == IOHelp.RDY) handleReady();
+  }
+  
+  /**
+  * Reads bytes in from a client, and processes them as text.
+  * 
+  * @return the String read in from the client
+  * @throws IOException if there's a problem holding the connection to the client during the reading process
+  */
+  private String textInput() throws IOException {
+    return new String(Server.readBytesFromClient(clientSock.getInputStream()));
+  }
+  
+  /**
+  * Processes a request by a client for information about another player.
+  * 
+  * @throws IOException if there's a problem holding the connection to the client during the reading/writing process
+  */
+  private void handleUserInfoRequest() throws IOException {
+    int playerNum = clientSock.getInputStream().read();
+    clientSock.getInputStream().read();
+    
+    Server.writeToClient(clientSock.getOutputStream(), IOHelp.USR_SND, Server.getUserInfo(playerNum));
+  }
+
+  private void handleReady() {
+    player.setReady(!player.isReady());
+    Server.broadcastBytes(IOHelp.USR_SND, Server.getUserInfo(player));
+  }
   
   @Override
   public void run() {
     try {
       System.out.println("Client Connected");
       
-      Server.broadcast("Welcome, " + player.getUsername());
+      Server.broadcastText("Welcome, " + player.getUsername());
       while (true) {
-        String msg = new String(Server.readFromClient(clientSock, clientSock.getInputStream().read()));
-        if (msg == null || msg.equals("exit")) break;
-        Server.broadcast(id, msg);
+        int header = clientSock.getInputStream().read();
+        if (header == -1) break;
+        handleInput(header);
       }
       Server.removeClient(id, IOHelp.EXIT_DISCONNECTED);
-      Server.broadcast("User " + player.getUsername() + " disconnected");
-    } catch(IOException e){Server.removeClient(id, IOHelp.EXIT_DISCONNECTED); Server.broadcast("User " + player.getUsername() + " disconnected poorly: " + e);}
+      Server.broadcastText("User " + player.getUsername() + " disconnected");
+    } catch(IOException e){
+      Server.removeClient(id, IOHelp.EXIT_DISCONNECTED); 
+      Server.broadcastText("User " + player.getUsername() + " disconnected poorly: " + e);
+    }
+    Server.broadcastBytes(IOHelp.USR_SND, Server.getUserInfo(player.getPlayerNum()));
     System.out.println("number of active users: " + Server.numActiveUsers());
   }
 }

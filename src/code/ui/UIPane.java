@@ -30,7 +30,7 @@ public class UIPane {
   public UIPane() {
     elements = new ArrayList<UIElement>();
     modes = new HashMap<UIState, Mode>();
-    modes.put(UIState.DEFAULT, new Mode());
+    modes.put(UIState.DEFAULT, new Mode(this::retMode));
   }
 
   public void reset() {
@@ -83,6 +83,10 @@ public class UIPane {
     return false;
   }
 
+  public void back() {
+    modes.get(current).back().perform();
+  }
+
   public void retMode() {
     setMode(modes.get(current).getParent());
   }
@@ -110,7 +114,11 @@ public class UIPane {
   }
 
   public void addMode(UIState name, UIElement e, UIState parent) {
-    if (!modes.containsKey(name)) {modes.put(name, new Mode(parent));}
+    addMode(name, e, parent, this::retMode);
+  }
+
+  public void addMode(UIState name, UIElement e, UIState parent, UIAction back) {
+    if (!modes.containsKey(name)) {modes.put(name, new Mode(parent, back));}
     if (!elements.contains(e)) elements.add(e);
     modes.get(name).add(e);
   }
@@ -155,15 +163,18 @@ public class UIPane {
 }
 
 class Mode {
-  private UIState parent;
   private final List<UIElement> elems = new ArrayList<UIElement>();
+  private UIState parent;
+  private final UIAction back;
 
-  public Mode() {
-    this(null);
+  public Mode(UIAction back) {
+    this(null, back);
   }
 
-  public Mode(UIState parent) {
+  public Mode(UIState parent, UIAction back) {
+    if (back == null) throw new RuntimeException();
     this.parent = parent;
+    this.back = back;
   }
 
   public void add(UIElement e) {
@@ -180,5 +191,9 @@ class Mode {
 
   public void setParent(UIState parent) {
     this.parent = parent;
+  }
+
+  public UIAction back() {
+    return back;
   }
 }

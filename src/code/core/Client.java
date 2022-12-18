@@ -3,10 +3,17 @@ package code.core;
 import java.io.IOException;
 import java.net.Socket;
 
+import code.board.Server;
 import code.math.IOHelp;
 
 public abstract class Client {
-  public static volatile Socket sock = new Socket();
+
+  private static volatile Socket sock = new Socket();
+
+  private static volatile byte[][] players = new byte[Server.MAX_PLAYERS][];
+  private static volatile int playerNum = -1;
+
+  private static volatile byte[] buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
   
   /**
   * Disconnects the client from a server if it is connected to one.
@@ -16,6 +23,7 @@ public abstract class Client {
     try {
       sock.close();
     } catch(IOException e){System.out.println("clientcls "+e);}
+    playerNum = -1;
   }
   
   /**
@@ -60,6 +68,38 @@ public abstract class Client {
   public static boolean isConnected() {
     return !sock.isClosed() && sock.isConnected();
   }
+
+  /**
+   * Retrieves this Client's understanding of another player on the server.
+   * 
+   * @param playerNum The player to retrieve the information of
+   * 
+   * @return a byte array consisting of:
+   * {{@code int playerNum}, {@code boolean readyStatus}, {@code String username}}.
+   */
+  public static byte[] getPlayer(int playerNum) {
+    return players[playerNum];
+  }
+
+  /**
+   * @return The Client's current player number
+   */
+  public static int getPlayerNum() {
+    return playerNum;
+  }
+
+  public static void sendReady(boolean ready) {
+    try {
+      writeToServer(IOHelp.RDY);
+    } catch (IOException e) {System.out.println("clientrdy " + e);}
+  }
+
+  public static boolean allReady() {
+    for (byte[] player : players) {
+      if (player != null && player[1] != 49) return false;
+    }
+    return true;
+  }
   
   /**
    * Handles input of data from the connected server.
@@ -68,6 +108,7 @@ public abstract class Client {
    * @throws IOException if when reading the data from the server, the connection is interrupted.
    */
   private static void handleInput(int header) throws IOException {
+    // System.out.println("Reading Message " + header);
     if (header == IOHelp.MSG) {
       int c = sock.getInputStream().read();
       while(c!=IOHelp.END) {
@@ -84,14 +125,16 @@ public abstract class Client {
     }
     if (header == IOHelp.BGN) {
       Core.beginMatch();
-      if (sock.getInputStream().read() != IOHelp.END) System.out.println("oops");
+      sock.getInputStream().read();
     }
     if (header == IOHelp.USR_REQ) {
       writeToServer(IOHelp.USR_SND, Core.globalSettings.getNickname().getBytes());
       sock.getInputStream().read();
     }
     if (header == IOHelp.USR_SND) {
-      //TODO handle recieved player data
+      byte[] player = readBytesFromServer();
+      if (playerNum == -1) playerNum = player[0]-48;
+      players[player[0]-48] = player.length == 1 ? null : player;
     }
     if(IOHelp.isExitCondition(header)) {
       System.out.println("Returning to Menu");
@@ -107,7 +150,7 @@ public abstract class Client {
    * @param c The first char in the line to read.
    * @throws IOException if when writing to the server, the connection is interrupted.
    */
-  private static void handleTextOut(int c) throws IOException {
+  private static synchronized void handleTextOut(int c) throws IOException {
     sock.getOutputStream().write(IOHelp.MSG);
     while (c != '\n' && c != '\r') {
       sock.getOutputStream().write(c);
@@ -123,12 +166,33 @@ public abstract class Client {
   * @param header The first byte of the output, representing the type of data being written.
   * @param msg The bytes of data to send over to the client.
   * 
-  * @throws IOException if there's a problem holding the connection to the client during the writing process
+  * @throws IOException if there's a problem holding the connection to the server during the writing process
   */
-  private static void writeToServer(byte header, byte... msg) throws IOException {
+  private static synchronized void writeToServer(byte header, byte... msg) throws IOException {
     sock.getOutputStream().write(header);
     sock.getOutputStream().write(msg);
     sock.getOutputStream().write(IOHelp.END);
     sock.getOutputStream().flush();
+  }
+
+  /**
+   * Reads an arbitrary number of bytes in from the server until an 'end of message' byte is read.
+   * These bytes are packaged into an array (excluding the EOM byte) and returned for processing
+   * 
+   * @return the bytes read from the server.
+   * 
+   * @throws IOException if there's a problem holding the connection to the server during the reading process
+   */
+  private static byte[] readBytesFromServer() throws IOException {
+    if (buffer == null) buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
+    int b = sock.getInputStream().read();
+    int i;
+    for (i = 0; b != IOHelp.END; i++) {
+      if (i < buffer.length) buffer[i] = (byte)b;
+      b = sock.getInputStream().read();
+    }
+    byte[] msg = new byte[i];
+    for (i = 0; i < msg.length; i++) msg[i] = buffer[i];
+    return msg;
   }
 }

@@ -9,6 +9,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Path2D;
 
 import code.ui.UIAction;
+import code.ui.UIActionGetter;
 
 /**
 * Class for making clickable items in a User Interface
@@ -16,6 +17,8 @@ import code.ui.UIAction;
 public abstract class UIInteractable extends UIComponent {
 
   protected UIAction primeAction;
+
+  protected UIActionGetter<Boolean> lockCheck = this::isLocked;
 
   protected boolean in = false;
   protected boolean locked = false;
@@ -31,6 +34,10 @@ public abstract class UIInteractable extends UIComponent {
 
   public void unlock() {locked = false;}
 
+  public void setLocked(boolean locked) {this.locked = locked;}
+
+  public void setLockCheck(UIActionGetter<Boolean> lockCheck) {this.lockCheck = lockCheck;}
+
   public boolean isIn() {return in;}
 
   public boolean isLocked() {return locked;}
@@ -39,7 +46,7 @@ public abstract class UIInteractable extends UIComponent {
 
   public void primeAct() {if (primeAction != null) primeAction.perform();}
 
-  public final void draw(Graphics2D g, Color... colours) {
+  public void draw(Graphics2D g, Color... colours) {
     if (colours.length != 5) throw new IllegalArgumentException("Must contain five colours (text, body, bodyIn, textIn, bodyLocked)");
     Font font = new Font("Copperplate", fontStyle, (int) Math.round((height/2)));
     metrics = g.getFontMetrics(font);
@@ -47,6 +54,8 @@ public abstract class UIInteractable extends UIComponent {
 
     Color high = colours[1].brighter();
     Color low = colours[1].darker();
+
+    setLocked(lockCheck.get());
 
     if (locked) {
       drawBody(g, 0, colours[4], high, low, colours[0]);

@@ -159,7 +159,7 @@ public abstract class IOHelp {
   /**
   * A single-byte message which indicates a username request
   */
-  public static final byte USR_REQ = 0b0000110;
+  public static final byte USR_REQ = 0b0000111;
   
   /**
   * A single-byte message which disconnects a client due to the lobby being full

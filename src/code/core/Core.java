@@ -433,7 +433,7 @@ public abstract class Core {
         }
         if (keyCode == KeyEvent.VK_ESCAPE) {
           UIController.release();
-          UICreator.checkSettings.perform();
+          UIController.back();
           return;
         }
         if (keyCode == KeyEvent.VK_ENTER) {

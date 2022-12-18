@@ -1,6 +1,5 @@
 package code.core;
 
-import code.board.Player;
 import code.board.Server;
 import code.error.ConnectionException;
 import code.math.Vector2;
@@ -23,22 +22,27 @@ import java.awt.Graphics2D;
 public class UICreator {
   // private static final UIElement VIRTUAL_KEYBOARD = new ElemKeyboard();
   
-  private static final double BUTTON_HEIGHT = 0.075;
+  private static final double COMPON_HEIGHT = 0.075;
   private static final double BUFFER_HEIGHT = 0.015;
   
-  public static final ElemConfirmation settingsChanged = new ElemConfirmation(
-  new Vector2(0.35, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2),
-  new Vector2(0.65, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
+  private static final ElemConfirmation settingsChanged = new ElemConfirmation(
+  new Vector2(0.35, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
+  new Vector2(0.65, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
   BUFFER_HEIGHT, 
   new boolean[]{false, false, false, false}, 
-  () -> {Core.globalSettings.saveChanges();   UIController.back();},
-  () -> {Core.globalSettings.revertChanges(); UIController.back();},
+  () -> {Core.globalSettings.saveChanges();   UIController.retMode();},
+  () -> {Core.globalSettings.revertChanges(); UIController.retMode();},
   "Save Changes?"
   );
   
+  /**
+   * A lambda function which, in place of transitioning back a step,
+   * checks if the global settings have been changed and if so, 
+   * brings up a confirmation dialogue to handle the changes before transitioning back.
+   */
   public static final UIAction checkSettings = () -> {
     if (Core.globalSettings.hasChanged()) settingsChanged.transIn();
-    else UIController.back();
+    else UIController.retMode();
   };
   
   /**
@@ -60,8 +64,8 @@ public class UICreator {
     
     UIElement outPanel = new ElemList(
     new Vector2(0   , 0.28),
-    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, BUTTON_HEIGHT)),
-    BUTTON_HEIGHT,
+    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Play"           , () -> UIController.setMode(UIState.NEW_GAME)),
@@ -73,20 +77,20 @@ public class UICreator {
     
     UIElement playModes = new ElemList(
     new Vector2(0   , 0.28),
-    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, BUTTON_HEIGHT)),
-    BUTTON_HEIGHT,
+    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Host Game"   , () -> UIController.setMode(UIState.HOST_SETUP)  ),
-      new UIButton("Join Game"   , () -> UIController.setMode(UIState.CLIENT_SETUP)),
+      new UIButton("Host Game"   , () -> UIController.setMode(UIState.SETUP_HOST)  ),
+      new UIButton("Join Game"   , () -> UIController.setMode(UIState.SETUP_CLIENT)),
       new UIButton("Back"        , UIController::back                              ),
     },
     new boolean[]{false, false, true, false}
     );
     
     ElemInfo portErr = new ElemInfo(
-    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
+    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Port must be a number",
@@ -94,16 +98,16 @@ public class UICreator {
     );
     
     ElemInfo ipErr = new ElemInfo(
-    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
+    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Address required"
     );
     
     ElemInfo connectErr = new ElemInfo(
-    new Vector2(0.34, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
-    new Vector2(0.66, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT/2, BUTTON_HEIGHT/2, BUTTON_HEIGHT)/2), 
+    new Vector2(0.34, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+    new Vector2(0.66, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Connection failed!",
@@ -119,8 +123,8 @@ public class UICreator {
     
     UIElement hostSetup = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(2, BUFFER_HEIGHT, BUTTON_HEIGHT)),
-    BUTTON_HEIGHT,
+    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(2, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       hostport,
@@ -129,7 +133,7 @@ public class UICreator {
         
         try {
           Core.hostGame(Integer.parseInt(hostport.getText()));
-          UIController.setMode(UIState.LOBBY);
+          UIController.setMode(UIState.LOBBY_HOST);
         } catch (ConnectionException e) {connectErr.transIn();}
       }),
     },
@@ -147,8 +151,8 @@ public class UICreator {
     
     UIElement clientSetup = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, BUTTON_HEIGHT)),
-    BUTTON_HEIGHT,
+    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       ipaddr,
@@ -168,8 +172,8 @@ public class UICreator {
     
     UIElement options = new ElemList(
     new Vector2(0   , 0.28),
-    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)),
-    BUTTON_HEIGHT,
+    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UITextfield("Nickname", 16, 1, Core.globalSettings::setNickname, Core.globalSettings::getNickname),
@@ -182,8 +186,8 @@ public class UICreator {
     
     UIElement optaud = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT)),
-    BUTTON_HEIGHT,
+    new Vector2(0.62, 0.28+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT)),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UISlider("Master: %d"   , () -> Core.globalSettings.getSetting    ("soundMaster"), (v) -> Core.globalSettings.setSetting    ("soundMaster", v), 0, 100),
@@ -198,40 +202,48 @@ public class UICreator {
     
     for (int i = 0; i < lobbyList.length; i++) {
       final int ind = i;
-      lobbyList[ind] = new UIComponent() {
-        //TODO redo from client
-        private Player player = null;
+      lobbyList[ind] = new UIInteractable() {
+        private byte[] player = null;
         
         private UIToggle toggle = new UIToggle(
         "", 
-        () -> {return player == null ? false : player.isReady();}, 
-        b  -> {}
+        () -> {return player == null ? false : player[1]==49;}, 
+        b  -> {if (player != null && Client.getPlayerNum() == player[0]-48) Client.sendReady(b);}
         );
+
+        public void setIn() {
+          in = true; 
+          if (player != null && Client.getPlayerNum() == player[0]-48) toggle.setIn();
+        }
+      
+        public void setOut() {in = false; toggle.setOut();}
+
+        public void primeAct() {toggle.primeAct();}
         
-        protected void draw(Graphics2D g, Color... colours) {
-          player = Server.getPlayer(ind);
+        public void draw(Graphics2D g, Color... colours) {
+          player = Client.getPlayer(ind);
           if (player == null) return;
-          toggle.setText(player.getUsername());
-          toggle.draw(g, x, y, width, height, colours);
+          toggle.setText(new String(player, 2, player.length-2));
+          toggle.draw(g, x, y, width, height, Client.getPlayerNum() == player[0]-48 ? colours[0] : colours[2], colours[1], colours[2], colours[3], colours[4]);
         }
       };
     }
     
-    double lobbyListHeight = UIHelp.listHeight(0, UIHelp.componentHeights(BUTTON_HEIGHT, lobbyList));
+    double lobbyListHeight = UIHelp.listHeight(0, UIHelp.componentHeights(COMPON_HEIGHT, lobbyList));
     
     UIElement lobbyClientList = new ElemList(
     new Vector2(0.38, 0.5-lobbyListHeight/2),
     new Vector2(0.62, 0.5+lobbyListHeight/2),
-    BUTTON_HEIGHT,
+    COMPON_HEIGHT,
     0,
     lobbyList,
     new boolean[]{true, true, false, false}
     );
     
     UIElement lobbyHostStart = new ElemList(
-    new Vector2(0.38, 1-UIHelp.listHeightDefault(1, BUFFER_HEIGHT, BUTTON_HEIGHT)),
+    new Vector2(0.38, 1-UIHelp.listHeightDefault(1, BUFFER_HEIGHT, COMPON_HEIGHT)),
     new Vector2(0.62, 1),
-    BUTTON_HEIGHT,
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Start", Server::beginMatch)
@@ -239,25 +251,26 @@ public class UICreator {
     new boolean[]{false, true, false, false}
     );
     
-    ((UIButton)(lobbyHostStart.getComponents()[0])).lock();
+    ((UIButton)(lobbyHostStart.getComponents()[0])).setLockCheck(() -> !Client.allReady());
     
     mainMenu.addMode(UIState.DEFAULT, title);
     mainMenu.addMode(UIState.DEFAULT, outPanel);
     mainMenu.addMode(UIState.NEW_GAME, title, UIState.DEFAULT);
     mainMenu.addMode(UIState.NEW_GAME, playModes);
-    mainMenu.addMode(UIState.HOST_SETUP, title, UIState.NEW_GAME);
-    mainMenu.addMode(UIState.HOST_SETUP, playModes);
-    mainMenu.addMode(UIState.HOST_SETUP, hostSetup);
-    mainMenu.addMode(UIState.CLIENT_SETUP, title, UIState.NEW_GAME);
-    mainMenu.addMode(UIState.CLIENT_SETUP, playModes);
-    mainMenu.addMode(UIState.CLIENT_SETUP, clientSetup);
-    mainMenu.addMode(UIState.OPTIONS, title, UIState.DEFAULT);
+    mainMenu.addMode(UIState.SETUP_HOST, title, UIState.NEW_GAME);
+    mainMenu.addMode(UIState.SETUP_HOST, playModes);
+    mainMenu.addMode(UIState.SETUP_HOST, hostSetup);
+    mainMenu.addMode(UIState.SETUP_CLIENT, title, UIState.NEW_GAME);
+    mainMenu.addMode(UIState.SETUP_CLIENT, playModes);
+    mainMenu.addMode(UIState.SETUP_CLIENT, clientSetup);
+    mainMenu.addMode(UIState.OPTIONS, title, UIState.DEFAULT, checkSettings);
     mainMenu.addMode(UIState.OPTIONS, options);
-    mainMenu.addMode(UIState.AUDIO, title, UIState.OPTIONS);
+    mainMenu.addMode(UIState.AUDIO, title, UIState.OPTIONS, checkSettings);
     mainMenu.addMode(UIState.AUDIO, options);
     mainMenu.addMode(UIState.AUDIO, optaud);
-    mainMenu.addMode(UIState.LOBBY, lobbyClientList, UIState.DEFAULT);
-    mainMenu.addMode(UIState.LOBBY, lobbyHostStart, UIState.DEFAULT);
+    mainMenu.addMode(UIState.LOBBY, lobbyClientList, UIState.DEFAULT, Core::toMenu);
+    mainMenu.addMode(UIState.LOBBY_HOST, lobbyClientList, UIState.DEFAULT, Core::toMenu);
+    mainMenu.addMode(UIState.LOBBY_HOST, lobbyHostStart);
     
     mainMenu.addElement(portErr);
     mainMenu.addElement(ipErr);
@@ -285,9 +298,9 @@ public class UICreator {
     };
     
     UIElement outPause = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
-    BUTTON_HEIGHT,
+    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Resume"         , UIController::back                         ),
@@ -299,9 +312,9 @@ public class UICreator {
     );
     
     UIElement options = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
-    BUTTON_HEIGHT,
+    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Video"   , () -> UIController.setMode(UIState.VIDEO)   ),
@@ -313,9 +326,9 @@ public class UICreator {
     );
     
     UIElement optvid = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, BUTTON_HEIGHT)/2),
-    BUTTON_HEIGHT,
+    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("AH"          , null         ),
@@ -327,9 +340,9 @@ public class UICreator {
     );
     
     UIElement optaud = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT, BUTTON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT*2, BUTTON_HEIGHT, BUTTON_HEIGHT)/2),
-    BUTTON_HEIGHT,
+    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT, COMPON_HEIGHT)/2),
+    COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UISlider("Master: %d"   , () -> Core.globalSettings.getSetting    ("soundMaster"), (v) -> Core.globalSettings.setSetting    ("soundMaster", v), 0, 100),

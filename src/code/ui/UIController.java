@@ -47,8 +47,12 @@ public abstract class UIController {
     return current.getMode();
   }
 
-  public static void back() {
+  public static void retMode() {
     current.retMode();
+  }
+
+  public static void back() {
+    current.back();
   }
 
   public static void transOut() {
