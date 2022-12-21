@@ -1,4 +1,4 @@
-package code.core;
+package code.core.scene;
 
 // import code.math.IOHelp;
 // import code.math.MathHelp;

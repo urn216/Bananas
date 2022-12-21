@@ -1,7 +1,6 @@
 package code.math;
 
 import code.core.Core;
-import code.core.Scene;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -83,7 +82,7 @@ public abstract class IOHelp {
     try {
       if (!inJar) return Files.readAllLines(Paths.get(filename));
 
-      BufferedReader file = new BufferedReader(new InputStreamReader(Scene.class.getResourceAsStream(filename)));
+      BufferedReader file = new BufferedReader(new InputStreamReader(IOHelp.class.getResourceAsStream(filename)));
       List<String> allLines = new ArrayList<String>();
       String line;
       while ((line = file.readLine()) != null) {
@@ -102,7 +101,7 @@ public abstract class IOHelp {
   */
   public static final BufferedImage readImage(String filename) {
     try {
-      return ImageIO.read(Core.class.getResourceAsStream("/data/textures/" + filename));
+      return ImageIO.read(IOHelp.class.getResourceAsStream("/data/textures/" + filename));
     }catch(IOException e){System.err.println("Failed to find Texture at " + filename);}
     return null;
   }

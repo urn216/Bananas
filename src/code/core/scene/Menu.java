@@ -1,4 +1,4 @@
-package code.core;
+package code.core.scene;
 
 import code.board.Decal;
 import code.board.TileGrid;

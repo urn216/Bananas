@@ -1,8 +1,9 @@
-package code.core;
+package code.core.scene;
 
 import code.board.Decal;
 import code.board.GenerateRandom;
 import code.board.TileGrid;
+import code.core.Core;
 
 public class LocalGame extends Scene {
   public LocalGame() {

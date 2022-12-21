@@ -1,6 +1,9 @@
 package code.core;
 
 import code.board.TileGrid;
+import code.core.scene.LocalGame;
+import code.core.scene.Menu;
+import code.core.scene.Scene;
 // import code.board.TilePiece;
 import code.error.ConnectionException;
 
