@@ -78,8 +78,8 @@ public abstract class Core {
   
   private static boolean bounding = false;
   
-  private static Scene current;
-  
+  private static Scene currentScene;
+
   private static Camera cam;
   private static int screenSizeX;
   private static int screenSizeY;
@@ -145,6 +145,13 @@ public abstract class Core {
   }
   
   /**
+   * @return the current scene
+   */
+  public static Scene getCurrentScene() {
+    return currentScene;
+  }
+  
+  /**
   * A helper method that updates the window insets to match their current state
   */
   private static void updateInsets() {
@@ -188,7 +195,7 @@ public abstract class Core {
   public static void toMenu() {
     Client.disconnect();
     Server.shutdown();
-    current = Menu.MENU;
+    currentScene = Menu.MENU;
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.MAINMENU;
@@ -239,7 +246,7 @@ public abstract class Core {
   * Begins a match
   */
   public static void beginMatch() {
-    current = new LocalGame();
+    currentScene = new LocalGame();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = Server.isRunning() ? State.HOST : State.RUN;
@@ -306,11 +313,11 @@ public abstract class Core {
       
       case HOST:
       case RUN:
-      current.draw(g, cam);
+      currentScene.draw(g, cam);
       if (mouseDown[1]) {
         if (bounding) UIController.drawBoundingBox(g, mouseBnd, mousePos);
         else {
-          for (TileGrid p : current.getSelectedTiles()) {
+          for (TileGrid p : currentScene.getSelectedTiles()) {
             if (p.getTilePiece()!=null) p.getTilePiece().draw(g, mousePos, cam.getZoom(), false, false);
           }
         }
@@ -321,7 +328,7 @@ public abstract class Core {
       
       case MAINMENU:
       case END:
-      current.draw(g, cam);
+      currentScene.draw(g, cam);
       UIController.draw(g, screenSizeX, screenSizeY);
       break;
     }
@@ -367,9 +374,9 @@ public abstract class Core {
         if (e.getButton() == 1) {
           UIController.cursorMove(x, y);
           if (UIController.press()) return;
-          Vector2I ind = current.convertToIndex(mousePos, cam);
-          current.pressTile(ind);
-          if (!current.isSelected(ind)) {
+          Vector2I ind = currentScene.convertToIndex(mousePos, cam);
+          currentScene.pressTile(ind);
+          if (!currentScene.isSelected(ind)) {
             mouseBnd = mousePos;
             bounding = true;
             return;
@@ -380,7 +387,7 @@ public abstract class Core {
         
         //right click
         if (e.getButton() == 3) {
-          current.pressTile(current.convertToIndex(mousePos, cam));
+          currentScene.pressTile(currentScene.convertToIndex(mousePos, cam));
           return;
         }
       }
@@ -393,8 +400,8 @@ public abstract class Core {
         
         //left click
         if (e.getButton() == 1) {
-          Vector2I ind = current.convertToIndex(mousePos, cam);
-          if (!current.selectTile(ind) && bounding) current.selectTiles(current.convertToIndex(mouseBnd, cam), ind);
+          Vector2I ind = currentScene.convertToIndex(mousePos, cam);
+          if (!currentScene.selectTile(ind) && bounding) currentScene.selectTiles(currentScene.convertToIndex(mouseBnd, cam), ind);
           bounding = false;
           UIController.cursorMove(x, y);
           UIController.release();
@@ -404,8 +411,8 @@ public abstract class Core {
         //right click
         if (e.getButton() == 3) {
           // current.removeTile(current.convertToIndex(mousePos, cam));
-          current.deselectTiles();
-          current.unsetIn();
+          currentScene.deselectTiles();
+          currentScene.unsetIn();
           return;
         }
       }

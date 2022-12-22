@@ -26,8 +26,8 @@ public class UICreator {
   private static final double BUFFER_HEIGHT = 0.015;
   
   private static final ElemConfirmation settingsChanged = new ElemConfirmation(
-  new Vector2(0.35, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
-  new Vector2(0.65, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+  new Vector2(0.35, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
+  new Vector2(0.65, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
   BUFFER_HEIGHT, 
   new boolean[]{false, false, false, false}, 
   () -> {Core.globalSettings.saveChanges();   UIController.retMode();},
@@ -64,7 +64,7 @@ public class UICreator {
     
     UIElement outPanel = new ElemList(
     new Vector2(0   , 0.28),
-    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    new Vector2(0.24, 0.28+UIHelp.calculateListHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -77,7 +77,7 @@ public class UICreator {
     
     UIElement playModes = new ElemList(
     new Vector2(0   , 0.28),
-    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    new Vector2(0.24, 0.28+UIHelp.calculateListHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -89,8 +89,8 @@ public class UICreator {
     );
     
     ElemInfo portErr = new ElemInfo(
-    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+    new Vector2(0.38, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Port must be a number",
@@ -98,16 +98,16 @@ public class UICreator {
     );
     
     ElemInfo ipErr = new ElemInfo(
-    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+    new Vector2(0.38, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Address required"
     );
     
     ElemInfo connectErr = new ElemInfo(
-    new Vector2(0.34, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
-    new Vector2(0.66, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+    new Vector2(0.34, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+    new Vector2(0.66, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Connection failed!",
@@ -123,7 +123,7 @@ public class UICreator {
     
     UIElement hostSetup = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(2, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    new Vector2(0.62, 0.28+UIHelp.calculateListHeightDefault(2, BUFFER_HEIGHT, COMPON_HEIGHT)),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -151,7 +151,7 @@ public class UICreator {
     
     UIElement clientSetup = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.listHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    new Vector2(0.62, 0.28+UIHelp.calculateListHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -172,7 +172,7 @@ public class UICreator {
     
     UIElement options = new ElemList(
     new Vector2(0   , 0.28),
-    new Vector2(0.24, 0.28+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    new Vector2(0.24, 0.28+UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -186,7 +186,7 @@ public class UICreator {
     
     UIElement optaud = new ElemList(
     new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT)),
+    new Vector2(0.62, 0.28+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT)),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -229,7 +229,7 @@ public class UICreator {
       };
     }
     
-    double lobbyListHeight = UIHelp.listHeight(0, UIHelp.componentHeights(COMPON_HEIGHT, lobbyList));
+    double lobbyListHeight = UIHelp.calculateListHeight(0, UIHelp.calculateComponentHeights(COMPON_HEIGHT, lobbyList));
     
     UIElement lobbyClientList = new ElemList(
     new Vector2(0.38, 0.5-lobbyListHeight/2),
@@ -241,7 +241,7 @@ public class UICreator {
     );
     
     UIElement lobbyHostStart = new ElemList(
-    new Vector2(0.38, 1-UIHelp.listHeightDefault(1, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    new Vector2(0.38, 1-UIHelp.calculateListHeightDefault(1, BUFFER_HEIGHT, COMPON_HEIGHT)),
     new Vector2(0.62, 1),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
@@ -298,8 +298,8 @@ public class UICreator {
     };
     
     UIElement outPause = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.38, 0.5-UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -312,8 +312,8 @@ public class UICreator {
     );
     
     UIElement options = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.38, 0.5-UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -326,8 +326,8 @@ public class UICreator {
     );
     
     UIElement optvid = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.38, 0.5-UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
@@ -340,8 +340,8 @@ public class UICreator {
     );
     
     UIElement optaud = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.listHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.38, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT*2, COMPON_HEIGHT, COMPON_HEIGHT)/2),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{

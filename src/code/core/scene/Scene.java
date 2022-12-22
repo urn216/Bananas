@@ -95,6 +95,10 @@ public abstract class Scene
   public void deselectTiles() {
     selectedTiles.clear();
   }
+
+  public boolean placeTile(Vector2I p, TilePiece piece, boolean pile) {
+    return placeTile(pile ? p : p.add(0, mapSY), piece);
+  }
   
   public boolean placeTile(Vector2I p, TilePiece piece) {
     if (validate(p)) {

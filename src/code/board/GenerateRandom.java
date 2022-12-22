@@ -8,7 +8,7 @@ import code.math.MathHelp;
 /**
 * class for generating a random pile of tiles
 */
-public class GenerateRandom {
+public abstract class GenerateRandom { //TODO rename?
   private static final double mu = Core.DEFAULT_MAP_SIZE/2.0;
   private static final double sigma = 3;
 
@@ -17,7 +17,7 @@ public class GenerateRandom {
     return generate(seed, Core.DEFAULT_MAP_SIZE, Core.DEFAULT_MAP_SIZE);
   }
   
-  public static TileGrid[][] generate(long seed, int width, int height) {
+  public static TileGrid[][] generate(long seed, int width, int height) { //TODO return a board
     Random rand = new Random(seed);
     TileGrid[][] pile = new TileGrid[width][height];
     for (int x = 0; x < width; x++) {

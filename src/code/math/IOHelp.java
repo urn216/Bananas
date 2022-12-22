@@ -193,6 +193,22 @@ public abstract class IOHelp {
   public static final boolean isExitCondition(int b) {
     return (b&EXIT_MASK)==EXIT_MASK;
   }
+
+  /**
+   * Decodes an exit condition into readable text
+   * 
+   * @param exitCondition the exit condition to decypher
+   * 
+   * @return legible text explaining the exit condition
+   */
+  public static final String decodeExitCondition(int exitCondition) {
+    if (exitCondition == EXIT_DISCONNECTED) return "Client disconnected.";
+    if (exitCondition == EXIT_GAME_IN_PROGRESS) return "Game currently in progress.";
+    if (exitCondition == EXIT_KICKED) return "You were kicked from the server.";
+    if (exitCondition == EXIT_LOBBY_FULL) return "The lobby is currently full.";
+    if (exitCondition == EXIT_SERVER_CLOSED) return "Server closed.";
+    return "Unexpected disconnection.";
+  }
   
   /**
   * Encodes a move representing the swapping of two tiles in a pair of grids

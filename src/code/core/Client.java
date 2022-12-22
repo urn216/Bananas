@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.net.Socket;
 
 import code.board.Server;
+import code.board.TilePiece;
 import code.math.IOHelp;
+import code.ui.UIController;
 
 public abstract class Client {
 
@@ -118,9 +120,14 @@ public abstract class Client {
       return;
     }
     if (header == IOHelp.SET) {
-      //TODO sets
+      int setData = IOHelp.decodeTilePos(readBytesFromServer(), 0);
+      boolean pile = IOHelp.extractPile(setData);
+      Core.getCurrentScene().placeTile(IOHelp.extractPos(setData), new TilePiece(IOHelp.extractLetter(setData), pile), pile);
     }
     if (header == IOHelp.MVE) {
+      byte[] bytes = readBytesFromServer();
+      int fromData = IOHelp.decodeTilePos(bytes, 0);
+      int toData = IOHelp.decodeTilePos(bytes, 2);
       //TODO moves
     }
     if (header == IOHelp.BGN) {
@@ -138,7 +145,8 @@ public abstract class Client {
     }
     if(IOHelp.isExitCondition(header)) {
       System.out.println("Returning to Menu");
-      Core.toMenu(); //TODO warning
+      Core.toMenu();
+      UIController.displayWarning(0.015, 0.075, "Returning to menu...", IOHelp.decodeExitCondition(header));
     }
   }
   

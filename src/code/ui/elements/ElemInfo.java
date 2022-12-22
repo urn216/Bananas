@@ -28,9 +28,9 @@ public class ElemInfo extends ElemList {
   *
   * @param tL The percent inwards from the top left corner of the screen for the top left corner of this element
   * @param bR The percent inwards from the top left corner of the screen for the bottom right corner of this element
-  * @param buff The amount of buffer space between buttons
-  * @param info The text that should appear on this element
+  * @param buffer The amount of buffer space between buttons
   * @param ties Determines which directions should be faded from/towards in transitions
+  * @param info The text that should appear on this element, separated by lines
   */
   public ElemInfo(Vector2 tL, Vector2 bR, double buffer, boolean[] ties, String... info) {
     super(

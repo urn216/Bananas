@@ -22,6 +22,7 @@ public class TilePiece implements Comparable<TilePiece> {
   * Constructs a piece used in the game
   * 
   * @param letter the letter representing this piece
+  * @param hidden whether to hide the letter on this piece
   */
   public TilePiece(char letter, boolean hidden) {
     this.letter = letter;
