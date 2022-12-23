@@ -1,20 +1,23 @@
 package code.core;
 
-import code.board.TileGrid;
 import code.core.scene.LocalGame;
 import code.core.scene.Menu;
 import code.core.scene.Scene;
-// import code.board.TilePiece;
+import code.core.scene.elements.Camera;
+import code.core.scene.elements.Decal;
+import code.core.scene.elements.TileGrid;
+
 import code.error.ConnectionException;
 
 import java.awt.event.MouseWheelEvent;
+
 import code.math.IOHelp;
 import code.math.Vector2;
 import code.math.Vector2I;
+
+import code.server.Server;
+
 import code.ui.UIController;
-import code.board.Camera;
-import code.board.Decal;
-import code.board.Server;
 
 import java.awt.image.BufferedImage;
 import java.awt.Insets;
@@ -76,7 +79,7 @@ public abstract class Core {
   private static Vector2 mousePre = new Vector2();
   private static Vector2 mouseBnd = new Vector2();
   
-  private static boolean bounding = false;
+  private static boolean boundingBox = false;
   
   private static Scene currentScene;
 
@@ -315,7 +318,7 @@ public abstract class Core {
       case RUN:
       currentScene.draw(g, cam);
       if (mouseDown[1]) {
-        if (bounding) UIController.drawBoundingBox(g, mouseBnd, mousePos);
+        if (boundingBox) UIController.drawBoundingBox(g, mouseBnd, mousePos);
         else {
           for (TileGrid p : currentScene.getSelectedTiles()) {
             if (p.getTilePiece()!=null) p.getTilePiece().draw(g, mousePos, cam.getZoom(), false, false);
@@ -376,12 +379,12 @@ public abstract class Core {
           if (UIController.press()) return;
           Vector2I ind = currentScene.convertToIndex(mousePos, cam);
           currentScene.pressTile(ind);
-          if (!currentScene.isSelected(ind)) {
+          if (!currentScene.isSelected(ind) || keyDown[KeyEvent.VK_SHIFT]) {
             mouseBnd = mousePos;
-            bounding = true;
+            boundingBox = true;
             return;
           }
-          bounding = false;
+          boundingBox = false;
           return;
         }
         
@@ -401,8 +404,8 @@ public abstract class Core {
         //left click
         if (e.getButton() == 1) {
           Vector2I ind = currentScene.convertToIndex(mousePos, cam);
-          if (!currentScene.selectTile(ind) && bounding) currentScene.selectTiles(currentScene.convertToIndex(mouseBnd, cam), ind);
-          bounding = false;
+          if (!currentScene.selectTile(ind) && boundingBox) currentScene.selectTiles(currentScene.convertToIndex(mouseBnd, cam), ind);
+          boundingBox = false;
           UIController.cursorMove(x, y);
           UIController.release();
           return;

@@ -1,4 +1,4 @@
-package code.board;
+package code.core.scene.elements;
 
 import code.math.IOHelp;
 

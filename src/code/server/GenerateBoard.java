@@ -1,41 +1,60 @@
-package code.board;
+package code.server;
 
 import java.util.Random;
 
 import code.core.Core;
+
 import code.math.MathHelp;
 
 /**
 * class for generating a random pile of tiles
 */
-public abstract class GenerateRandom { //TODO rename?
+public abstract class GenerateBoard extends Board {
+
+  protected GenerateBoard(char[][] map) {
+    super(map);
+  }
+
   private static final double mu = Core.DEFAULT_MAP_SIZE/2.0;
   private static final double sigma = 3;
 
-  public static TileGrid[][] generate() {
+  public static Board random() {
     long seed = System.nanoTime();
-    return generate(seed, Core.DEFAULT_MAP_SIZE, Core.DEFAULT_MAP_SIZE);
+    return random(seed, Core.DEFAULT_MAP_SIZE, Core.DEFAULT_MAP_SIZE);
   }
   
-  public static TileGrid[][] generate(long seed, int width, int height) { //TODO return a board
+  private static Board random(long seed, int width, int height) {
     Random rand = new Random(seed);
-    TileGrid[][] pile = new TileGrid[width][height];
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        pile[x][y] = new TileGrid();
-      }
-    }
+    char[][] pile = emptyChars(width, height);
+
     for (int i = 0; i < LETTERS.length; i++) {
-      TileGrid t = pile
-      [(int)MathHelp.clamp(rand.nextGaussian(mu, sigma), 0, width-1)]
-      [(int)MathHelp.clamp(rand.nextGaussian(mu, sigma), 0, height-1)];
-      if (t.isPlaced()) {
+      int x = (int)MathHelp.clamp(rand.nextGaussian(mu, sigma), 0, width-1);
+      int y = (int)MathHelp.clamp(rand.nextGaussian(mu, sigma), 0, height-1);
+      if (pile[x][y] != '[') {
         i--;
         continue;
       }
-      t.place(new TilePiece(LETTERS[i], true));
+      pile[x][y] = LETTERS[i];
     }
-    return pile;
+    return new Board(pile);
+  }
+
+  public static Board empty() {
+    return empty(Core.DEFAULT_MAP_SIZE, Core.DEFAULT_MAP_SIZE);
+  }
+
+  private static Board empty(int width, int height) {
+    return new Board(emptyChars(width, height));
+  }
+
+  private static char[][] emptyChars(int width, int height) {
+    char[][] map = new char[width][height];
+    for (int x = 0; x < width; x++) {
+      for (int y = 0; y < height; y++) {
+        map[x][y] = '[';
+      }
+    }
+    return map;
   }
   
   /**

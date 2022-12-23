@@ -1,9 +1,8 @@
 package code.core.scene;
 
-import code.board.Decal;
-import code.board.GenerateRandom;
-import code.board.TileGrid;
 import code.core.Core;
+import code.core.scene.elements.Decal;
+import code.core.scene.elements.TileGrid;
 
 public class LocalGame extends Scene {
   public LocalGame() {
@@ -12,17 +11,22 @@ public class LocalGame extends Scene {
   }
   
   private void gameSetup() {
-    map = new TileGrid[Core.DEFAULT_MAP_SIZE][Core.DEFAULT_MAP_SIZE];
-    for (int x = 0; x < Core.DEFAULT_MAP_SIZE; x++) {
-      for (int y = 0; y < Core.DEFAULT_MAP_SIZE; y++) {
-        map[x][y] = new TileGrid();
-      }
-    }
-    pile = GenerateRandom.generate();
+    map = emptyMap();
+    pile = emptyMap();
     mapSX = mapSY = map.length;
   }
 
   public void reset() {
     gameSetup();
+  }
+
+  private static TileGrid[][] emptyMap() {
+    TileGrid[][] map = new TileGrid[Core.DEFAULT_MAP_SIZE][Core.DEFAULT_MAP_SIZE];
+    for (int x = 0; x < map.length; x++) {
+      for (int y = 0; y < map[x].length; y++) {
+        map[x][y] = new TileGrid();
+      }
+    }
+    return map;
   }
 }

@@ -1,11 +1,11 @@
-package code.board;
+package code.server;
 
 public class Player {
 
   private final String username;
   private final int playerNum;
 
-  private Board board = new Board();
+  private Board board = GenerateBoard.empty();
   private boolean ready = false;
 
   public Player(int playerNum, String username) {

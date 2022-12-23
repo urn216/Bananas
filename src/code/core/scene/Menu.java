@@ -1,7 +1,7 @@
 package code.core.scene;
 
-import code.board.Decal;
-import code.board.TileGrid;
+import code.core.scene.elements.Decal;
+import code.core.scene.elements.TileGrid;
 
 public class Menu extends Scene {
   public static final Menu MENU = new Menu();

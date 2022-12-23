@@ -1,14 +1,13 @@
 package code.core.scene;
 
+import code.core.scene.elements.Camera;
+import code.core.scene.elements.Decal;
+import code.core.scene.elements.TileGrid;
+import code.core.scene.elements.TilePiece;
 // import code.math.IOHelp;
 // import code.math.MathHelp;
 import code.math.Vector2;
 import code.math.Vector2I;
-
-import code.board.Camera;
-import code.board.Decal;
-import code.board.TileGrid;
-import code.board.TilePiece;
 
 // import java.util.*;
 import java.awt.Graphics2D;
@@ -79,14 +78,12 @@ public abstract class Scene
   
   public void selectTiles(Vector2I a, Vector2I b) {
     deselectTiles();
-    if (validate(a) && validate(b)) {
-      Vector2I tL = new Vector2I(Math.min(a.x, b.x), Math.min(a.y, b.y));
-      Vector2I bR = new Vector2I(Math.max(a.x, b.x), Math.max(a.y, b.y));
-      for (int y = tL.y; y <= bR.y; y++) {
-        for (int x = tL.x; x <= bR.x; x++) {
-          TileGrid t = getTile(new Vector2I(x, y));
-          if (t.isPlaced()) selectedTiles.add(t);
-        }
+    Vector2I tL = new Vector2I(Math.min(a.x, b.x), Math.min(a.y, b.y));
+    Vector2I bR = new Vector2I(Math.max(a.x, b.x), Math.max(a.y, b.y));
+    for (int y = Math.max(0, tL.y); y <= bR.y && y < mapSY*2; y++) {
+      for (int x = Math.max(0, tL.x); x <= bR.x && x < mapSX; x++) {
+        TileGrid t = getTile(new Vector2I(x, y));
+        if (t.isPlaced()) selectedTiles.add(t);
       }
     }
     unsetIn();
@@ -95,31 +92,17 @@ public abstract class Scene
   public void deselectTiles() {
     selectedTiles.clear();
   }
-
-  public boolean placeTile(Vector2I p, TilePiece piece, boolean pile) {
-    return placeTile(pile ? p : p.add(0, mapSY), piece);
+  
+  public void placeTile(Vector2I p, TilePiece piece, boolean pile) {
+    placeTile(pile ? p : p.add(0, mapSY), piece);
   }
   
-  public boolean placeTile(Vector2I p, TilePiece piece) {
-    if (validate(p)) {
-      TileGrid t = getTile(p);
-      if (t.isIn()) {
-        t.place(piece);
-      }
-    }
-    unsetIn();
-    return true;
+  public void placeTile(Vector2I p, TilePiece piece) {
+    if (validate(p)) getTile(p).place(piece);
   }
   
-  public boolean removeTile(Vector2I p) {
-    if (validate(p)) {
-      TileGrid t = getTile(p);
-      if (t.isIn() && selectedTiles.contains(t)) {
-        t.unPlace();
-      }
-    }
-    unsetIn();
-    return true;
+  public void removeTile(Vector2I p) {
+    if (validate(p)) getTile(p).unPlace();
   }
   
   public void unsetIn() {
@@ -139,7 +122,7 @@ public abstract class Scene
   
   public void draw(Graphics2D g, Camera cam) {
     bg.draw(g);
-
+    
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
         TileGrid t = pile[i][j];

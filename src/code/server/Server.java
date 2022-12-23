@@ -1,8 +1,9 @@
-package code.board;
+package code.server;
 
 import java.util.HashMap;
 
 import code.math.IOHelp;
+import code.math.Vector2I;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +17,8 @@ public abstract class Server {
   
   private static volatile ServerSocket sock;
   private static volatile HashMap<Integer, ClientHandler> clients = new HashMap<Integer, ClientHandler>();
+  
+  private static volatile Board pile = GenerateBoard.empty();
   
   private static volatile byte[] buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
   
@@ -33,6 +36,8 @@ public abstract class Server {
   * @return true if the server is bound and open
   */
   public static boolean isRunning() {return sock.isBound() && !sock.isClosed();}
+  
+  public static Board getPile() {return pile;}
   
   /**
   * Broadcasts a message to all players from the faceless server.
@@ -63,11 +68,11 @@ public abstract class Server {
   }
   
   /**
-   * Sends a message consisiting of bytes to every currently connected client.
-   * 
-   * @param header The header of the desired message, indicating what the topic of the message is
-   * @param msg The message to send
-   */
+  * Sends a message consisiting of bytes to every currently connected client.
+  * 
+  * @param header The header of the desired message, indicating what the topic of the message is
+  * @param msg The message to send
+  */
   public static void broadcastBytes(byte header, byte[] msg) {
     try {
       synchronized (clients) {
@@ -136,14 +141,14 @@ public abstract class Server {
         }
         
         writeToClient(clientSock.getOutputStream(), IOHelp.USR_REQ);
-
+        
         if (clientSock.getInputStream().read() != IOHelp.USR_SND) {
           writeToClient(clientSock.getOutputStream(), IOHelp.EXIT_KICKED);
           clientSock.close();
           continue;
         }
-
-        String username = new String(readBytesFromClient(clientSock.getInputStream()));
+        
+        String username = new String(readBytesFromClient(clientSock.getInputStream(), 0));
         if (username.equals("")) username = "Player " + (playerNum+1);
         
         ClientHandler newClient = new ClientHandler(clientSock, id, playerNum, username);
@@ -151,7 +156,7 @@ public abstract class Server {
         synchronized (clients) {clients.put(id, newClient);}
         newClient.start();
         System.out.println("number of active users: " + numActiveUsers());
-
+        
         broadcastBytes(IOHelp.USR_SND, getUserInfo(playerNum));
         for (int i = 0; i < Server.MAX_PLAYERS; i++) writeToClient(newClient.clientSock.getOutputStream(), IOHelp.USR_SND, getUserInfo(i));
       }
@@ -162,10 +167,14 @@ public abstract class Server {
   public static void beginMatch() {
     lobby = false;
     
+    pile = GenerateBoard.random();
+    
     synchronized (clients) {
       for (int i : clients.keySet()) {
+        ClientHandler ch = clients.get(i);
         try {
-          writeToClient(clients.get(i).clientSock.getOutputStream(), IOHelp.BGN);
+          writeToClient(ch.clientSock.getOutputStream(), IOHelp.BGN);
+          ch.handleRefreshBoard(-1);
         } catch (IOException e) {System.out.println("serverbgn "+e);}
       }
     }
@@ -240,6 +249,13 @@ public abstract class Server {
     synchronized (clients) {return clients.size();}
   }
   
+  public static boolean allReady() {
+    for (ClientHandler ch : clients.values()) {
+      if (!ch.player.isReady()) return false;
+    }
+    return true;
+  }
+  
   /**
   * Writes a message out to a client.
   * 
@@ -250,7 +266,7 @@ public abstract class Server {
   * @throws IOException if there's a problem holding the connection to the client during the writing process
   */
   public static synchronized void writeToClient(OutputStream clientOut, byte header, byte... msg) throws IOException {
-    // System.out.println("Sending message " + header);
+    // System.out.println("Sending message " + header + " with " + msg.length + " bytes");
     
     clientOut.write(header);
     clientOut.write(msg);
@@ -262,15 +278,16 @@ public abstract class Server {
   * Reads bytes in from a client into an array.
   * 
   * @param clientIn The InputStream belonging to the client.
+  * @param required Establishes a required number of bytes to read, regardless of whether or not EOM is detected.
   * 
   * @return the bytes read in from the client
   * @throws IOException if there's a problem holding the connection to the client during the reading process
   */
-  public static synchronized byte[] readBytesFromClient(InputStream clientIn) throws IOException {
+  public static synchronized byte[] readBytesFromClient(InputStream clientIn, int required) throws IOException {
     if (buffer == null) buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
     int b = clientIn.read();
     int i;
-    for (i = 0; b != IOHelp.END; i++) {
+    for (i = 0; b != IOHelp.END || i < required; i++) {
       if (i < buffer.length) buffer[i] = (byte)b;
       b = clientIn.read();
     }
@@ -278,34 +295,34 @@ public abstract class Server {
     for (i = 0; i < msg.length; i++) msg[i] = buffer[i];
     return msg;
   }
-
+  
   /**
-   * Gathers information about a player and packages it into a byte array consiting of:
-   * {{@code int playerNum}, {@code boolean readyStatus}, {@code String username}}.
-   * 
-   * @param playerNum The desired player to collect the info of
-   * 
-   * @return a byte array containing either the desired information or just playerNum if the player does not exist
-   */
+  * Gathers information about a player and packages it into a byte array consiting of:
+  * {{@code int playerNum}, {@code boolean readyStatus}, {@code String username}}.
+  * 
+  * @param playerNum The desired player to collect the info of
+  * 
+  * @return a byte array containing either the desired information or just playerNum if the player does not exist
+  */
   public static byte[] getUserInfo(int playerNum) {
     Player player = getPlayer(playerNum);
-
+    
     if (player==null) return new byte[]{(byte)(playerNum+48)};
-
+    
     return getUserInfo(player);
   }
-
+  
   /**
-   * Gathers information about a player and packages it into a byte array consiting of:
-   * {{@code int playerNum}, {@code boolean readyStatus}, {@code String username}}.
-   * 
-   * @param player The desired player to collect the info of
-   * 
-   * @return a byte array containing the desired information
-   */
+  * Gathers information about a player and packages it into a byte array consiting of:
+  * {{@code int playerNum}, {@code boolean readyStatus}, {@code String username}}.
+  * 
+  * @param player The desired player to collect the info of
+  * 
+  * @return a byte array containing the desired information
+  */
   public static byte[] getUserInfo(Player player) {
     int playerNum = player.getPlayerNum();
-
+    
     byte[] username = player.getUsername().getBytes();
     int ready = player.isReady() ? 49 : 48;
     
@@ -313,7 +330,7 @@ public abstract class Server {
     userInfo[0] = (byte)(playerNum+48);
     userInfo[1] = (byte)ready;
     for (int i = 0; i < username.length; i++) userInfo[i+2] = username[i];
-
+    
     return userInfo;
   }
 }
@@ -365,12 +382,14 @@ class ClientHandler extends Thread {
   * @throws IOException if there's a problem holding the connection to the client during the reading process
   */
   private void handleInput(int header) throws IOException {
-    if (header == IOHelp.MSG) {Server.broadcastText(id, textInput()); return;}
-    if (header == IOHelp.USR_REQ) {handleUserInfoRequest(); return;}
-    if (header == IOHelp.RDY) {handleReady(); clientSock.getInputStream().read(); return;}
-
+    if (header == IOHelp.MSG    ) {Server.broadcastText(id, textInput()); return;}
+    if (header == IOHelp.RDY    ) {handleReady(); readByte(); return;}
+    if (header == IOHelp.USR_REQ) {handleUserInfoRequest(readByte()); readByte(); return;}
+    if (header == IOHelp.SET    ) {handleRefreshBoard(readByte()); readByte(); return;}
+    if (header == IOHelp.MVE    ) {handleMove(); return;}
+    
     //Command not recognised, clear the buffer
-    Server.readBytesFromClient(clientSock.getInputStream());
+    Server.readBytesFromClient(clientSock.getInputStream(), 0);
   }
   
   /**
@@ -380,24 +399,87 @@ class ClientHandler extends Thread {
   * @throws IOException if there's a problem holding the connection to the client during the reading process
   */
   private String textInput() throws IOException {
-    return new String(Server.readBytesFromClient(clientSock.getInputStream()));
+    return new String(Server.readBytesFromClient(clientSock.getInputStream(), 0));
+  }
+  
+  private int readByte() throws IOException {
+    return clientSock.getInputStream().read();
+  }
+  
+  private void handleReady() {
+    player.setReady(!player.isReady());
+    Server.broadcastBytes(IOHelp.USR_SND, Server.getUserInfo(player));
   }
   
   /**
   * Processes a request by a client for information about another player.
   * 
-  * @throws IOException if there's a problem holding the connection to the client during the reading/writing process
+  * @throws IOException if there's a problem holding the connection to the client during the writing process
   */
-  private void handleUserInfoRequest() throws IOException {
-    int playerNum = clientSock.getInputStream().read();
-    clientSock.getInputStream().read();
-    
+  private void handleUserInfoRequest(int playerNum) throws IOException {
     Server.writeToClient(clientSock.getOutputStream(), IOHelp.USR_SND, Server.getUserInfo(playerNum));
   }
+  
+  /**
+  * Gathers up-to-date information about the desired player's board, and sends it to this client.
+  * 
+  * @param playerNum The player to gather board info from. If this is not a valid player, central pile info will be retrieved.
+  * 
+  * @throws IOException if there's a problem holding the connection to the client during the writing process
+  */
+  public void handleRefreshBoard(int playerNum) throws IOException {
+    refreshBoard(Server.getPlayer(playerNum));
+  }
 
-  private void handleReady() {
-    player.setReady(!player.isReady());
-    Server.broadcastBytes(IOHelp.USR_SND, Server.getUserInfo(player));
+  /**
+  * Gathers up-to-date information about the desired player's board, and sends it to this client.
+  * 
+  * @param player The player to gather board info from. If this is not a valid player, central pile info will be retrieved.
+  * 
+  * @throws IOException if there's a problem holding the connection to the client during the writing process
+  */
+  private void refreshBoard(Player player) throws IOException {
+    Board board = player == null ? Server.getPile() : player.getBoard();
+
+    for (int x = 0; x < board.getMap().length; x++) {
+      for (int y = 0; y < board.getMap()[x].length; y++) {
+        char c = board.getMap()[x][y];
+        Server.writeToClient(clientSock.getOutputStream(), IOHelp.SET, IOHelp.encodeTilePos(x, y, c, player==null));
+      }
+    }
+  }
+  
+  /**
+  * Reads in and processes a move order, swapping two tiles on the board.
+  * First ensures the client has correct information, if not, update it.
+  * Then echoes the move to the client, assuming everything went fine.
+  * 
+  * @throws IOException if there's an issue holding a connection to the server during the reading/writing process
+  */
+  private void handleMove() throws IOException {
+    byte[] bytes = Server.readBytesFromClient(clientSock.getInputStream(), 4);
+    int fromData = IOHelp.decodeTilePos(bytes, 0);
+    int toData = IOHelp.decodeTilePos(bytes, 2);
+    
+    Vector2I fromPos = IOHelp.extractPos(fromData);
+    Vector2I toPos   = IOHelp.extractPos(toData  );
+    boolean fromPile = IOHelp.extractPile(fromData);
+    boolean toPile   = IOHelp.extractPile(toData  );
+    char fromLetter = IOHelp.extractLetter(fromData);
+    char toLetter   = IOHelp.extractLetter(toData  );
+    
+    Board fromBoard = fromPile ? Server.getPile() : player.getBoard();
+    Board toBoard   = toPile   ? Server.getPile() : player.getBoard();
+    
+    if (!fromBoard.validate(fromPos, fromLetter) || !toBoard.validate(toPos, toLetter)) {
+      refreshBoard(player);
+      refreshBoard(null);
+      return;
+    }
+
+    fromBoard.setPiece(fromPos, toLetter);
+    toBoard.setPiece  (toPos, fromLetter);
+    Server.writeToClient(clientSock.getOutputStream(), IOHelp.MVE, bytes);
   }
   
   @Override
@@ -407,7 +489,7 @@ class ClientHandler extends Thread {
       
       Server.broadcastText("Welcome, " + player.getUsername());
       while (true) {
-        int header = clientSock.getInputStream().read();
+        int header = readByte();
         if (header == -1) break;
         handleInput(header);
       }

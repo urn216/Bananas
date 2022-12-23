@@ -1,4 +1,4 @@
-package code.board;
+package code.core.scene.elements;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;

@@ -1,8 +1,11 @@
 package code.core;
 
-import code.board.Server;
 import code.error.ConnectionException;
+
 import code.math.Vector2;
+
+import code.server.Server;
+
 import code.ui.UIAction;
 import code.ui.UIColours;
 import code.ui.UIController;
@@ -208,7 +211,7 @@ public class UICreator {
         private UIToggle toggle = new UIToggle(
         "", 
         () -> {return player == null ? false : player[1]==49;}, 
-        b  -> {if (player != null && Client.getPlayerNum() == player[0]-48) Client.sendReady(b);}
+        b  -> {if (player != null && Client.getPlayerNum() == player[0]-48) Client.sendReadyToggle();}
         );
 
         public void setIn() {
@@ -251,7 +254,7 @@ public class UICreator {
     new boolean[]{false, true, false, false}
     );
     
-    ((UIButton)(lobbyHostStart.getComponents()[0])).setLockCheck(() -> !Client.allReady());
+    ((UIButton)(lobbyHostStart.getComponents()[0])).setLockCheck(() -> !Server.allReady());
     
     mainMenu.addMode(UIState.DEFAULT, title);
     mainMenu.addMode(UIState.DEFAULT, outPanel);
