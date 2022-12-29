@@ -9,16 +9,22 @@ public class Vector2I extends Vector2  // implements Comparable<Vector2>
   public final int y;
 
   public Vector2I(int x, int y) {
+    super(x, y);
+    
     this.x = x;
     this.y = y;
   }
 
   public Vector2I(Vector2I old) {
+    super(old);
+    
     this.x = old.x;
     this.y = old.y;
   }
 
   public Vector2I() {
+    super();
+    
     this.x = 0;
     this.y = 0;
   }

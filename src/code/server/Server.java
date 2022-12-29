@@ -382,14 +382,17 @@ class ClientHandler extends Thread {
   * @throws IOException if there's a problem holding the connection to the client during the reading process
   */
   private void handleInput(int header) throws IOException {
-    if (header == IOHelp.MSG    ) {Server.broadcastText(id, textInput()); return;}
-    if (header == IOHelp.RDY    ) {handleReady(); readByte(); return;}
-    if (header == IOHelp.USR_REQ) {handleUserInfoRequest(readByte()); readByte(); return;}
-    if (header == IOHelp.SET    ) {handleRefreshBoard(readByte()); readByte(); return;}
-    if (header == IOHelp.MVE    ) {handleMove(); return;}
-    
-    //Command not recognised, clear the buffer
-    Server.readBytesFromClient(clientSock.getInputStream(), 0);
+    switch(header) {
+      case IOHelp.MSG: Server.broadcastText(id, textInput()); return;
+      case IOHelp.RDY: handleReady(); readByte(); return;
+      case IOHelp.USR_REQ: handleUserInfoRequest(readByte()); readByte(); return;
+      case IOHelp.SET: handleRefreshBoard(readByte()); readByte(); return;
+      case IOHelp.MVE: handleMoveCommand(); return;
+      
+      default: 
+      //Command not recognised, clear the buffer
+      Server.readBytesFromClient(clientSock.getInputStream(), 0);
+    }
   }
   
   /**
@@ -430,7 +433,7 @@ class ClientHandler extends Thread {
   public void handleRefreshBoard(int playerNum) throws IOException {
     refreshBoard(Server.getPlayer(playerNum));
   }
-
+  
   /**
   * Gathers up-to-date information about the desired player's board, and sends it to this client.
   * 
@@ -440,7 +443,7 @@ class ClientHandler extends Thread {
   */
   private void refreshBoard(Player player) throws IOException {
     Board board = player == null ? Server.getPile() : player.getBoard();
-
+    
     for (int x = 0; x < board.getMap().length; x++) {
       for (int y = 0; y < board.getMap()[x].length; y++) {
         char c = board.getMap()[x][y];
@@ -456,7 +459,7 @@ class ClientHandler extends Thread {
   * 
   * @throws IOException if there's an issue holding a connection to the server during the reading/writing process
   */
-  private void handleMove() throws IOException {
+  private void handleMoveCommand() throws IOException {
     byte[] bytes = Server.readBytesFromClient(clientSock.getInputStream(), 4);
     int fromData = IOHelp.decodeTilePos(bytes, 0);
     int toData = IOHelp.decodeTilePos(bytes, 2);
@@ -476,7 +479,7 @@ class ClientHandler extends Thread {
       refreshBoard(null);
       return;
     }
-
+    
     fromBoard.setPiece(fromPos, toLetter);
     toBoard.setPiece  (toPos, fromLetter);
     Server.writeToClient(clientSock.getOutputStream(), IOHelp.MVE, bytes);

@@ -1,6 +1,8 @@
 package code.ui;
 
 import code.math.Vector2;
+import code.math.Vector2I;
+
 import code.ui.components.UIComponent;
 import code.ui.components.UIInteractable;
 import code.ui.components.interactables.UISlider;
@@ -119,10 +121,16 @@ public abstract class UIController {
   * @return The UITextfield currently active
   */
   public static UITextfield getActiveTextfield() {return UIController.activeTextfield;}
+
+  public static void cursorMove(Vector2I pos) {
+    cursorMove(pos.x, pos.y);
+  }
   
   public static void cursorMove(int x, int y) {
     UIComponent comp = getComponent(x, y);
     setHighlighted(comp instanceof UIInteractable ? (UIInteractable) comp : null);
+
+    useSlider(x);
   }
   
   public static boolean press() {
@@ -183,7 +191,7 @@ public abstract class UIController {
   *
   * @param x The x coordinate of the cursor
   */
-  public static void useSlider(int x) {
+  private static void useSlider(int x) {
     if (activeSlider != null) activeSlider.moveNode(x);
   }
   

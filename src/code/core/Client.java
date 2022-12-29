@@ -94,17 +94,17 @@ public abstract class Client {
   }
   
   /**
-   * Toggles this player's ready status for the lobby.
-   */
+  * Toggles this player's ready status for the lobby.
+  */
   public static void sendReadyToggle() {
     try {
       writeToServer(IOHelp.RDY);
     } catch (IOException e) {System.out.println("clientrdy " + e);}
   }
-
+  
   public static void doMove(Vector2I pos1, char c1, boolean pile1, Vector2I pos2, char c2, boolean pile2) {
     byte[] move = IOHelp.encodeFromTo(pos1, c1, pile1, pos2, c2, pile2);
-
+    
     try {
       writeToServer(IOHelp.MVE, move);
     } catch (IOException e) {System.out.println("clientmve " + e);}
@@ -118,25 +118,28 @@ public abstract class Client {
   */
   private static void handleInput(int header) throws IOException {
     // System.out.println("Reading Message " + header);
-    if (header == IOHelp.MSG) {
+    switch(header) {
+      
+      case IOHelp.MSG:
       int c = sock.getInputStream().read();
       while(c!=IOHelp.END) {
         System.out.print((char)c);
         c = sock.getInputStream().read();
       }
       return;
-    }
-    
-    if (header == IOHelp.SET    ) {handleSet(); return;}
-    if (header == IOHelp.MVE    ) {handleMove(); return;}
-    if (header == IOHelp.BGN    ) {Core.beginMatch(); sock.getInputStream().read(); return;}
-    if (header == IOHelp.USR_REQ) {handleUserDataRequest(); sock.getInputStream().read(); return;}
-    if (header == IOHelp.USR_SND) {handleUserDataInput(); return;}
+      
+      case IOHelp.SET:     handleSetCommand(); return;
+      case IOHelp.MVE:     handleMoveCommand(); return;
+      case IOHelp.BGN:     Core.beginMatch(); sock.getInputStream().read(); return;
+      case IOHelp.USR_REQ: handleUserDataRequest(); sock.getInputStream().read(); return;
+      case IOHelp.USR_SND: handleUserDataInput(); return;
 
-    if(IOHelp.isExitCondition(header)) {
-      System.out.println("Returning to Menu");
-      Core.toMenu();
-      UIController.displayWarning(0.015, 0.075, "Returning to menu...", IOHelp.decodeExitCondition(header));
+      default:
+      if(IOHelp.isExitCondition(header)) {
+        System.out.println("Returning to Menu");
+        Core.toMenu();
+        UIController.displayWarning(0.015, 0.075, "Returning to menu...", IOHelp.decodeExitCondition(header));
+      }
     }
   }
   
@@ -159,11 +162,11 @@ public abstract class Client {
   }
   
   /**
-   * Reads in and processes a set order, placing a tile on the board.
-   * 
-   * @throws IOException if there's an issue holding a connection to the server during the reading process
-   */
-  private static void handleSet() throws IOException {
+  * Reads in and processes a set order, placing a tile on the board.
+  * 
+  * @throws IOException if there's an issue holding a connection to the server during the reading process
+  */
+  private static void handleSetCommand() throws IOException {
     int setData = IOHelp.decodeTilePos(readBytesFromServer(2), 0);
     
     boolean pile = IOHelp.extractPile(setData);
@@ -173,11 +176,11 @@ public abstract class Client {
   }
   
   /**
-   * Reads in and processes a move order, swapping two tiles on the board.
-   * 
-   * @throws IOException if there's an issue holding a connection to the server during the reading process
-   */
-  private static void handleMove() throws IOException {
+  * Reads in and processes a move order, swapping two tiles on the board.
+  * 
+  * @throws IOException if there's an issue holding a connection to the server during the reading process
+  */
+  private static void handleMoveCommand() throws IOException {
     byte[] bytes = readBytesFromServer(4);
     int fromData = IOHelp.decodeTilePos(bytes, 0);
     int toData = IOHelp.decodeTilePos(bytes, 2);
@@ -192,19 +195,19 @@ public abstract class Client {
   }
   
   /**
-   * Delivers the client's username to the server.
-   * 
-   * @throws IOException if there's an issue holding a connection to the server during the writing process
-   */
+  * Delivers the client's username to the server.
+  * 
+  * @throws IOException if there's an issue holding a connection to the server during the writing process
+  */
   private static void handleUserDataRequest() throws IOException {
     writeToServer(IOHelp.USR_SND, Core.globalSettings.getNickname().getBytes());
   }
   
   /**
-   * Reads in and processes data sent by the server about a player.
-   * 
-   * @throws IOException if there's an issue holding a connection to the server during the reading process
-   */
+  * Reads in and processes data sent by the server about a player.
+  * 
+  * @throws IOException if there's an issue holding a connection to the server during the reading process
+  */
   private static void handleUserDataInput() throws IOException {
     byte[] player = readBytesFromServer(0);
     if (playerNum == -1) playerNum = player[0]-48;

@@ -75,14 +75,14 @@ public abstract class Core {
   
   private static boolean[] keyDown = new boolean[65536];
   private static boolean[] mouseDown = new boolean[4];
-  private static Vector2 mousePos = new Vector2();
-  private static Vector2 mousePre = new Vector2();
-  private static Vector2 mouseBnd = new Vector2();
+  private static Vector2I mousePos = new Vector2I();
+  private static Vector2I mousePre = new Vector2I();
+  private static Vector2I mouseBnd = new Vector2I();
   
   private static boolean boundingBox = false;
   
   private static Scene currentScene;
-
+  
   private static Camera cam;
   private static int screenSizeX;
   private static int screenSizeY;
@@ -148,8 +148,8 @@ public abstract class Core {
   }
   
   /**
-   * @return the current scene
-   */
+  * @return the current scene
+  */
   public static Scene getCurrentScene() {
     return currentScene;
   }
@@ -279,8 +279,6 @@ public abstract class Core {
         break;
         
         case MAINMENU:
-        // if (profile == null) UICreator.profilePicker.transIn();
-        // else UICreator.profilePicker.transOut();
         break;
         
         case HOST:
@@ -325,7 +323,6 @@ public abstract class Core {
           }
         }
       }
-      // uiCon.draw(g, screenSizeX, screenSizeY, current.getStats());
       UIController.draw(g, screenSizeX, screenSizeY);
       break;
       
@@ -348,43 +345,30 @@ public abstract class Core {
     FRAME.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        int x = e.getX() - toolBarLeft;
-        int y = e.getY() - toolBarTop;
-        mousePos = new Vector2(x, y);
-        UIController.cursorMove(x, y);
+        updateMousePos(e);
       }
       
       @Override
       public void mouseDragged(MouseEvent e) {
-        int x = e.getX() - toolBarLeft;
-        int y = e.getY() - toolBarTop;
-        mousePos = new Vector2(x, y);
-        UIController.cursorMove(x, y);
-        UIController.useSlider(x);
+        updateMousePos(e);
       }
     });
     FRAME.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        int x = e.getX() - toolBarLeft;
-        int y = e.getY() - toolBarTop;
-        mousePos = new Vector2(x, y);
+        updateMousePos(e);
         
         if (UIController.getHighlighted() == null) mouseDown[e.getButton()] = true;
         mousePre = mousePos;
         
         //left click
         if (e.getButton() == 1) {
-          UIController.cursorMove(x, y);
           if (UIController.press()) return;
+          
           Vector2I ind = currentScene.convertToIndex(mousePos, cam);
           currentScene.pressTile(ind);
-          if (!currentScene.isSelected(ind) || keyDown[KeyEvent.VK_SHIFT]) {
-            mouseBnd = mousePos;
-            boundingBox = true;
-            return;
-          }
-          boundingBox = false;
+          boundingBox = (!currentScene.isSelected(ind) || keyDown[KeyEvent.VK_SHIFT]);
+          mouseBnd = mousePos;
           return;
         }
         
@@ -397,23 +381,22 @@ public abstract class Core {
       
       @Override
       public void mouseReleased(MouseEvent e) {
-        int x = e.getX() - toolBarLeft;
-        int y = e.getY() - toolBarTop;
+        updateMousePos(e);
+        
         mouseDown[e.getButton()] = false;
         
         //left click
         if (e.getButton() == 1) {
+          UIController.release();
+          
           Vector2I ind = currentScene.convertToIndex(mousePos, cam);
           if (!currentScene.selectTile(ind) && boundingBox) currentScene.selectTiles(currentScene.convertToIndex(mouseBnd, cam), ind);
           boundingBox = false;
-          UIController.cursorMove(x, y);
-          UIController.release();
           return;
         }
         
         //right click
         if (e.getButton() == 3) {
-          // current.removeTile(current.convertToIndex(mousePos, cam));
           currentScene.deselectTiles();
           currentScene.unsetIn();
           return;
@@ -478,6 +461,14 @@ public abstract class Core {
           }
         }
       });
+    }
+    
+    private static void updateMousePos(MouseEvent e) {
+      int x = e.getX() - toolBarLeft;
+      int y = e.getY() - toolBarTop;
+      mousePos = new Vector2I(x, y);
+      
+      UIController.cursorMove(mousePos);
     }
   }
   
