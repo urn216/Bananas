@@ -11,7 +11,7 @@ import code.server.Server;
 
 import code.ui.UIController;
 
-public abstract class Client {
+abstract class Client {
   
   private static volatile Socket sock = new Socket();
   

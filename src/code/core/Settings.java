@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class Settings {
+class Settings {
   private static final String LOCATION = "../settings.txt";
 
   private final SortedMap<String, Integer> settings = new TreeMap<String, Integer>();

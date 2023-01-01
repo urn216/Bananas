@@ -9,7 +9,7 @@ import code.math.MathHelp;
 /**
 * class for generating a random pile of tiles
 */
-public abstract class GenerateBoard extends Board {
+abstract class GenerateBoard extends Board {
 
   protected GenerateBoard(char[][] map) {
     super(map);

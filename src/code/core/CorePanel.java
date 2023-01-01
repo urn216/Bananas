@@ -4,7 +4,7 @@ import javax.swing.JPanel;
 
 import java.awt.Graphics;
 
-public class CorePanel extends JPanel {
+class CorePanel extends JPanel {
   private static final long serialVersionUID = 1;
   
   public void paintComponent(Graphics gra) {

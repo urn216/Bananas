@@ -1,6 +1,6 @@
 package code.server;
 
-public class Player {
+class Player {
 
   private final String username;
   private final int playerNum;

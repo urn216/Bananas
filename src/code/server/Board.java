@@ -2,7 +2,7 @@ package code.server;
 
 import code.math.Vector2I;
 
-public class Board {
+class Board {
   private final char[][] map;
 
   protected Board(char[][] map) {

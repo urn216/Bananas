@@ -22,7 +22,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 
-public class UICreator {
+class UICreator {
   // private static final UIElement VIRTUAL_KEYBOARD = new ElemKeyboard();
   
   private static final double COMPON_HEIGHT = 0.075;
