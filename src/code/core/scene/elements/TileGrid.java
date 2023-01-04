@@ -17,45 +17,83 @@ public class TileGrid
   
   TilePiece piece = null;
   
-  private boolean isIn;
+  private boolean isIn = false;
   
-  private TileGrid[][] nb;
-  
-  public boolean onScreen(Camera cam, int x, int y) {
-    double z = cam.getZoom();
-    double conX = cam.conX();
-    double conY = cam.conY();
-    Vector2I screenSize = cam.getScreenSize();
-    
-    if((x    *TILE_SIZE)*z-conX < screenSize.x
-    && (y    *TILE_SIZE)*z-conY < screenSize.y
-    && ((x+1)*TILE_SIZE)*z-conX >= 0
-    && ((y+1)*TILE_SIZE)*z-conY >= 0) {return true;}
-    return false;
+  private final TileGrid[][] neighbouringTiles; //TODO spellchecker
+
+  private TileGrid(boolean b) {
+    neighbouringTiles = null;
+  }
+
+  public TileGrid() {
+    neighbouringTiles = new TileGrid[][] {{new TileGrid(true), new TileGrid(true)}, {new TileGrid(true), new TileGrid(true)}};
+  }
+
+  /**
+   * @return the piece placed in this grid element, or null if one is not present
+   */
+  public TilePiece getTilePiece() {
+    return this.piece;
   }
   
-  public void place(TilePiece piece) {this.piece = piece;}
-
-  public TilePiece getTilePiece() {return this.piece;}
+  /**
+   * places a given {@code TilePiece} into this grid element
+   * 
+   * @param piece the {@code TilePiece} to add to this spot in the grid
+   */
+  public void place(TilePiece piece) {
+    this.piece = piece;
+  }
   
-  public TilePiece unPlace() {TilePiece p = piece; piece = null; return p;}
+  /**
+   * sets the placed {@code TilePiece} to null
+   * 
+   * @return the removed {@code TilePiece}, or null if one was not present to begin with
+   */
+  public TilePiece unPlace() {
+    TilePiece p = piece; piece = null; return p;
+  }
   
-  public boolean isPlaced() {return piece != null;}
+  /**
+   * @return true if this grid element currently has a tile placed within it
+   */
+  public boolean isPlaced() {
+    return piece != null;
+  }
   
-  public void setIn() {isIn = true;}
+  /**
+   * sets the pressed state of this grid element to the 'in' state
+   */
+  public void setIn() {
+    isIn = true;
+  }
   
+  /**
+   * resets the pressed state of this grid element to the 'out' state
+   */
   public void unsetIn() {isIn = false;}
   
+  /**
+   * @return true if this grid element is currently pressed in
+   */
   public boolean isIn() {return isIn;}
+
+  /**
+   * Finds the neighbouring nodes to this tile,
+   * assuming it is located at the given {@code x} and {@code y} coordinates.
+   * 
+   * @param map the total map of tiles this node is located in
+   * @param x the x coordinate of this node
+   * @param y the y coordinate of this node
+   */
+  public void findNeighbours(TileGrid[][] map, int x, int y) {
+    if (x != 0)               neighbouringTiles[0][0] = map[x-1][y];
+    if (x != map.length-1)    neighbouringTiles[0][1] = map[x+1][y];
+    if (y != 0)               neighbouringTiles[1][0] = map[x][y-1];
+    if (y != map[0].length-1) neighbouringTiles[1][1] = map[x][y+1];
+  } 
   
-  public void getNeighbours(TileGrid[][] map, int x, int y, int mapSX, int mapSY) {
-    nb = new TileGrid[2][2];
-    if (x != 0) nb[0][0] = map[x-1][y];
-    if (x != mapSX-1) nb[0][1] = map[x+1][y];
-    if (y != 0) nb[1][0] = map[x][y-1];
-    if (y != mapSY-1) nb[1][1] = map[x][y+1];
-  }
-  
+  @Override
   public boolean equals(Object other) {
     return this==other;
   }
@@ -86,6 +124,28 @@ public class TileGrid
     if (isIn)     {g.setColor(TileTheme.squaHigh); g.fill(s);}
     g.setColor(TileTheme.squaOutl);
     g.draw(s);
+  }
+
+  /**
+   * Checks to see if a grid element is currently visible within the bounds of a camera
+   * 
+   * @param cam the camera to try to view the grid element through
+   * @param x the x coordinate of the element to view
+   * @param y the y coordinate of the element to view
+   * 
+   * @return true if the chosen grid element is visible to the camera
+   */
+  public static boolean onScreen(Camera cam, int x, int y) {
+    double z = cam.getZoom();
+    double conX = cam.conX();
+    double conY = cam.conY();
+    Vector2I screenSize = cam.getScreenSize();
+    
+    if((x    *TILE_SIZE)*z-conX < screenSize.x
+    && (y    *TILE_SIZE)*z-conY < screenSize.y
+    && ((x+1)*TILE_SIZE)*z-conX >= 0
+    && ((y+1)*TILE_SIZE)*z-conY >= 0) {return true;}
+    return false;
   }
 }
 

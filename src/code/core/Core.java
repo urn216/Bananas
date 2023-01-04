@@ -1,7 +1,5 @@
 package code.core;
 
-import code.core.scene.LocalGame;
-import code.core.scene.Menu;
 import code.core.scene.Scene;
 import code.core.scene.elements.Camera;
 import code.core.scene.elements.Decal;
@@ -148,7 +146,7 @@ public abstract class Core {
   }
   
   /**
-  * @return the current scene
+  * @return the currently active scene
   */
   public static Scene getCurrentScene() {
     return currentScene;
@@ -198,7 +196,7 @@ public abstract class Core {
   public static void toMenu() {
     Client.disconnect();
     Server.shutdown();
-    currentScene = Menu.MENU;
+    currentScene = Scene.mainMenu();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = State.MAINMENU;
@@ -246,10 +244,10 @@ public abstract class Core {
   }
   
   /**
-  * Begins a match
+  * Begins a new match
   */
   public static void beginMatch() {
-    currentScene = new LocalGame();
+    currentScene = Scene.localGame();
     cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
     
     state = Server.isRunning() ? State.HOST : State.RUN;
@@ -257,7 +255,7 @@ public abstract class Core {
   }
   
   /**
-  * Sets the flag to quit the game at the nearest convenience
+  * Sets a flag to close the program at the nearest convenience
   */
   public static void quitToDesk() {
     quit = true;
@@ -304,6 +302,11 @@ public abstract class Core {
     }
   }
   
+  /**
+   * Paints the contents of the program to the given {@code Graphics} object.
+   * 
+   * @param gra the supplied {@code Graphics} object
+   */
   public static void paintComponent(Graphics gra) {
     Graphics2D g = (Graphics2D) gra.create();
     
@@ -318,8 +321,8 @@ public abstract class Core {
       if (mouseDown[1]) {
         if (boundingBox) UIController.drawBoundingBox(g, mouseBnd, mousePos);
         else {
-          for (TileGrid p : currentScene.getSelectedTiles()) {
-            if (p.getTilePiece()!=null) p.getTilePiece().draw(g, mousePos, cam.getZoom(), false, false);
+          for (TileGrid p : currentScene.getSelectedTiles()) { //TODO sort this shit out
+            if (p.isPlaced()) p.getTilePiece().draw(g, mousePos, cam.getZoom(), false, false);
           }
         }
       }
@@ -392,7 +395,7 @@ public abstract class Core {
           Vector2I ind = currentScene.convertToIndex(mousePos, cam);
           if (!currentScene.selectTile(ind) && boundingBox) currentScene.selectTiles(currentScene.convertToIndex(mouseBnd, cam), ind);
           boundingBox = false;
-          return;
+          return; //TODO make a move happen if one can be done
         }
         
         //right click
@@ -463,6 +466,11 @@ public abstract class Core {
       });
     }
     
+    /**
+     * Updates the program's understanding of the location of the mouse cursor after a supplied {@code MouseEvent}.
+     * 
+     * @param e the {@code MouseEvent} to determine the cursor's current position from
+     */
     private static void updateMousePos(MouseEvent e) {
       int x = e.getX() - toolBarLeft;
       int y = e.getY() - toolBarTop;

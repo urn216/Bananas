@@ -112,7 +112,7 @@ public class TilePiece implements Comparable<TilePiece> {
     
     g.setColor(selected ? TileTheme.tileSele : TileTheme.tileBody);
     g.fill(new Rectangle2D.Double(origin.x+incr, origin.y+incr, size-incr*2, size-incr*2));
-    //implement for green/red borders (spell check)
+    //TODO implement for green/red borders (spell check)
     // g.fill(new Rectangle2D.Double((origin.x+TILE_INCR*2)*z-conX, (origin.y+TILE_INCR*2)*z-conY, (TILE_SIZE-TILE_INCR*4)*z, (TILE_SIZE-TILE_INCR*4)*z));
     
     if(hidden) return;
