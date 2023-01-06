@@ -51,7 +51,10 @@ enum State {
 public abstract class Core {
   
   public static final Vector2 DEFAULT_SCREEN_SIZE = new Vector2(1920, 1080);
+
   public static final String BLACKLISTED_CHARS = "/\\.?!*\n";
+  
+  public static final double EDGE_SCROLL_BOUNDS = 0.05;
   
   private static final double TICKS_PER_SECOND = 60;
   private static final double MILLISECONDS_PER_TICK = 1000/TICKS_PER_SECOND;
@@ -282,10 +285,7 @@ public abstract class Core {
         case HOST:
         case RUN:
         case END:
-        if (mouseDown[2] || mouseDown[3]) {
-          cam.setOffset(cam.getOffset().add(mousePos.subtract(mousePre)));
-          mousePre = mousePos;
-        }
+        cameraMovement();
         break;
       }
       
@@ -301,7 +301,7 @@ public abstract class Core {
       } catch(InterruptedException e){System.out.println(e); System.exit(0);}
     }
   }
-  
+
   /**
    * Paints the contents of the program to the given {@code Graphics} object.
    * 
@@ -477,6 +477,21 @@ public abstract class Core {
       mousePos = new Vector2I(x, y);
       
       UIController.cursorMove(mousePos);
+    }
+  
+    /**
+     * moves the camera around the scene
+     */
+    private static void cameraMovement() {
+      if (mouseDown[2] || mouseDown[3]) {
+        cam.addOffset(mousePos.subtract(mousePre));
+        mousePre = mousePos;
+        return;
+      }
+      if (mousePos.x < EDGE_SCROLL_BOUNDS*screenSizeX              ) cam.addOffset(new Vector2(20*cam.getZoom(), 0) );
+      if (mousePos.y < EDGE_SCROLL_BOUNDS*screenSizeY              ) cam.addOffset(new Vector2(0, 20*cam.getZoom()) );
+      if (mousePos.x > screenSizeX - EDGE_SCROLL_BOUNDS*screenSizeX) cam.addOffset(new Vector2(-20*cam.getZoom(), 0));
+      if (mousePos.y > screenSizeY - EDGE_SCROLL_BOUNDS*screenSizeY) cam.addOffset(new Vector2(0, -20*cam.getZoom()));
     }
   }
   

@@ -165,7 +165,7 @@ public class UITextfield extends UIInteractable {
   }
 
   @Override
-  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color tl, Color br, Color textCol) {
+  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color textCol, Color defaultBodyCol) {
     g.setColor(bodyCol);
     g.fill(new Rectangle2D.Double(x, y, width, height));
     g.setColor(textCol);

@@ -12,9 +12,9 @@ public class Camera
 {
   private static final double CLOSE_MAGNITUDE = 0.125;
 
-  private static final int OFFSET_BOUNDS   = Core.DEFAULT_MAP_SIZE*TileGrid.TILE_SIZE*3/2 + TileGrid.TILE_SIZE;
-  private static final double ZOOM_BOUND_U = 3;
-  private static final double ZOOM_BOUND_L = 0.25;
+  private static final int    OFFSET_BOUNDS = Core.DEFAULT_MAP_SIZE*TileGrid.TILE_SIZE*3/2 + TileGrid.TILE_SIZE;
+  private static final double ZOOM_BOUND_U  = 3;
+  private static final double ZOOM_BOUND_L  = 0.25;
 
   private double defaultZoom;
   private double zoom;
@@ -41,6 +41,16 @@ public class Camera
 
   public Vector2 getOffset() {return offset;}
 
+  public void setOffset(Vector2 offset) {
+    double bounds = OFFSET_BOUNDS*zoom;
+    this.offset = new Vector2(MathHelp.clamp(offset.x, -bounds, bounds), MathHelp.clamp(offset.y, -bounds, bounds));
+  }
+
+  public void addOffset(Vector2 offset) {
+    double bounds = OFFSET_BOUNDS*zoom;
+    this.offset = new Vector2(MathHelp.clamp(offset.x+this.offset.x, -bounds, bounds), MathHelp.clamp(offset.y+this.offset.y, -bounds, bounds));
+  }
+
   // public Vector2 getSize() {return new Vector2(screenSizeX/(zoom*2), screenSizeY/(zoom*2));}
 
   public Vector2I getScreenSize() {return new Vector2I(screenSizeX, screenSizeY);}
@@ -50,11 +60,6 @@ public class Camera
   public double getZoom() {return zoom;}
 
   public double getDZoom() {return (screenSizeY/Core.DEFAULT_SCREEN_SIZE.y)*defaultZoom;}
-
-  public void setOffset(Vector2 offset) {
-    double bounds = OFFSET_BOUNDS*zoom;
-    this.offset = new Vector2(MathHelp.clamp(offset.x, -bounds, bounds), MathHelp.clamp(offset.y, -bounds, bounds));
-  }
 
   public void setScreenSize(int sX, int sY) {
     this.screenSizeX = sX;

@@ -31,9 +31,20 @@ public class UIToggle extends UIInteractable {
   }
 
   @Override
-  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color tl, Color br, Color textCol) {
+  protected void drawBody(Graphics2D g, int off, Color bodyCol, Color textCol, Color defaultBodyCol) {
     float incrx = width/16;
     float incry = height/16;
+
+    Color tl;
+    Color br;
+    if (in) {
+      tl = defaultBodyCol.darker();
+      br = defaultBodyCol.brighter();
+    }
+    else {
+      tl = defaultBodyCol.brighter();
+      br = defaultBodyCol.darker();
+    }
 
     g.setColor(tl);
     g.fill(new Rectangle2D.Double(x, y, width, height));
