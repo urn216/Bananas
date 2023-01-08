@@ -24,12 +24,12 @@ class LocalGame extends Scene {
   private static void clearMap(TileGrid[][] map) {
     for (int x = 0; x < map.length; x++) {
       for (int y = 0; y < map[x].length; y++) {
-        map[x][y] = new TileGrid();
+        map[x][y] = new TileGrid(x, y);
       }
     }
     for (int x = 0; x < map.length; x++) {
       for (int y = 0; y < map[x].length; y++) {
-        map[x][y].findNeighbours(map, x, y);
+        map[x][y].findNeighbours(map);
       }
     }
   }

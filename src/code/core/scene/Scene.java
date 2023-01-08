@@ -102,7 +102,7 @@ public abstract class Scene
   public boolean isSelected(Vector2I p) {
     if (validate(p)) {
       TileGrid t = getTile(p);
-      if (t.isPlaced() && (t.isIn() || selectedTiles.contains(t))) {
+      if (t.isPlaced() && selectedTiles.contains(t)) {
         return true;
       }
     }
@@ -112,7 +112,7 @@ public abstract class Scene
   /**
    * Presses a tile in.
    * 
-   * @param p the index to depress
+   * @param p the index to press
    */
   public void pressTile(Vector2I p) {
     if (!validate(p)) return;

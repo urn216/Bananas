@@ -14,19 +14,26 @@ import java.awt.geom.Rectangle2D;
 public class TileGrid
 {
   public static final int TILE_SIZE = 64;
+
+  public final int x;
+
+  public final int y;
   
-  TilePiece piece = null;
+  private TilePiece piece = null;
   
   private boolean isIn = false;
   
   private final TileGrid[][] neighbouringTiles; //TODO spellchecker
 
-  private TileGrid(boolean b) {
+  private TileGrid() {
     neighbouringTiles = null;
+    x = y = -1;
   }
 
-  public TileGrid() {
-    neighbouringTiles = new TileGrid[][] {{new TileGrid(true), new TileGrid(true)}, {new TileGrid(true), new TileGrid(true)}};
+  public TileGrid(int x, int y) {
+    neighbouringTiles = new TileGrid[][] {{new TileGrid(), new TileGrid()}, {new TileGrid(), new TileGrid()}};
+    this.x = x;
+    this.y = y;
   }
 
   /**
@@ -80,13 +87,11 @@ public class TileGrid
 
   /**
    * Finds the neighbouring nodes to this tile,
-   * assuming it is located at the given {@code x} and {@code y} coordinates.
+   * assuming it is located at this {@code TileGrid}'s {@code x} and {@code y} coordinates.
    * 
    * @param map the total map of tiles this node is located in
-   * @param x the x coordinate of this node
-   * @param y the y coordinate of this node
    */
-  public void findNeighbours(TileGrid[][] map, int x, int y) {
+  public void findNeighbours(TileGrid[][] map) {
     if (x != 0)               neighbouringTiles[0][0] = map[x-1][y];
     if (x != map.length-1)    neighbouringTiles[0][1] = map[x+1][y];
     if (y != 0)               neighbouringTiles[1][0] = map[x][y-1];

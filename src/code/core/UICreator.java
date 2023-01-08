@@ -175,14 +175,15 @@ class UICreator {
     
     UIElement options = new ElemList(
     new Vector2(0   , 0.28),
-    new Vector2(0.24, 0.28+UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    new Vector2(0.24, 0.28+UIHelp.calculateListHeightDefault(5, BUFFER_HEIGHT, COMPON_HEIGHT)),
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UITextfield("Nickname", 16, 1, Core.globalSettings::setNickname, Core.globalSettings::getNickname),
-      new UIButton   ("Audio"   , () -> UIController.setMode(UIState.AUDIO)                                ),
-      new UIButton   ("Gameplay", () -> UIController.setMode(UIState.GAMEPLAY)                             ),
-      new UIButton   ("Back"    , checkSettings                                                            ),
+      new UITextfield("Nickname"   , 16, 1, Core.globalSettings::setNickname, Core.globalSettings::getNickname                               ),
+      new UIToggle   ("Fullscreen", Core::isFullScreen, (b) -> {Core.globalSettings.setBoolSetting("fullScreen", b); Core.setFullscreen(b);}),
+      new UIButton   ("Audio"      , () -> UIController.setMode(UIState.AUDIO)                                                               ),
+      new UIButton   ("Gameplay"   , () -> UIController.setMode(UIState.GAMEPLAY)                                                            ),
+      new UIButton   ("Back"       , UIController::back                                                                                      ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -320,24 +321,10 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Video"   , () -> UIController.setMode(UIState.VIDEO)   ),
-      new UIButton("Audio"   , () -> UIController.setMode(UIState.AUDIO)   ),
-      new UIButton("Gameplay", () -> UIController.setMode(UIState.GAMEPLAY)),
-      new UIButton("Back"    , checkSettings                               ),
-    },
-    new boolean[]{false, true, true, true}
-    );
-    
-    UIElement optvid = new ElemList(
-    new Vector2(0.38, 0.5-UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.calculateListHeightDefault(4, BUFFER_HEIGHT, COMPON_HEIGHT)/2),
-    COMPON_HEIGHT,
-    BUFFER_HEIGHT,
-    new UIInteractable[]{
-      new UIButton("AH"          , null         ),
-      new UIButton("MAKE IT STOP", null         ),
-      new UIButton("PLEASE"      , null         ),
-      new UIButton("Back"        , checkSettings),
+      new UIToggle("Fullscreen", Core::isFullScreen, (b) -> {Core.globalSettings.setBoolSetting("fullScreen", b); Core.setFullscreen(b);}),
+      new UIButton("Audio"   , () -> UIController.setMode(UIState.AUDIO)                                                                  ),
+      new UIButton("Gameplay", () -> UIController.setMode(UIState.GAMEPLAY)                                                               ),
+      new UIButton("Back"    , UIController::back                                                                                         ),
     },
     new boolean[]{false, true, true, true}
     );
@@ -352,18 +339,16 @@ class UICreator {
       new UISlider("Sound FX: %d" , () -> Core.globalSettings.getSetting    ("soundFX")    , (v) -> Core.globalSettings.setSetting    ("soundFX"    , v), 0, 100),
       new UISlider("Music: %d"    , () -> Core.globalSettings.getSetting    ("soundMusic") , (v) -> Core.globalSettings.setSetting    ("soundMusic" , v), 0, 100),
       new UIToggle("Subtitles"    , () -> Core.globalSettings.getBoolSetting("subtitles")  , (v) -> Core.globalSettings.setBoolSetting("subtitles"  , v)        ),
-      new UIButton("Back"         , checkSettings                                                                                                               ),
+      new UIButton("Back"         , UIController::back                                                                                                          ),
     },
     new boolean[]{false, true, true, true}
     );
     HUD.setModeParent(UIState.DEFAULT, UIState.PAUSED);
     HUD.addMode(UIState.PAUSED, greyed, UIState.DEFAULT);
     HUD.addMode(UIState.PAUSED, outPause);
-    HUD.addMode(UIState.OPTIONS, greyed, UIState.PAUSED);
+    HUD.addMode(UIState.OPTIONS, greyed, UIState.PAUSED, checkSettings);
     HUD.addMode(UIState.OPTIONS, options);
-    HUD.addMode(UIState.VIDEO, greyed, UIState.OPTIONS);
-    HUD.addMode(UIState.VIDEO, optvid);
-    HUD.addMode(UIState.AUDIO, greyed, UIState.OPTIONS);
+    HUD.addMode(UIState.AUDIO, greyed, UIState.OPTIONS, checkSettings);
     HUD.addMode(UIState.AUDIO, optaud);
     
     HUD.addElement(settingsChanged);

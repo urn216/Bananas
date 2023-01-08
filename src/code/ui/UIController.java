@@ -65,6 +65,10 @@ public abstract class UIController {
   public static UIState getMode() {
     return current.getMode();
   }
+
+  public static boolean isMode(UIState name) {
+    return current.getMode() == name;
+  }
   
   public static void retMode() {
     current.retMode();
@@ -133,6 +137,11 @@ public abstract class UIController {
     useSlider(x);
   }
   
+  /**
+   * Presses the highlighted {@code UIInteractible} in, if one is present.
+   * 
+   * @return true if a highlighted {@code UIInteractible} was pressed
+   */
   public static boolean press() {
     if (highlighted == null) return false;
     if (highlighted.isLocked()) return true;

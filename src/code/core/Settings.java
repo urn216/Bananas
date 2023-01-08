@@ -59,6 +59,7 @@ class Settings {
 
   public void resetToDefault() {
     IOHelp.saveToFile(LOCATION, ""
+    + "fullScreen " + 1 + "\n"
     + "soundMaster " + 100 + "\n"
     + "soundFX " + 100 + "\n"
     + "soundMusic " + 100 + "\n"
@@ -81,6 +82,7 @@ class Settings {
         for (int i = 2; i < entry.length; i++) nickname += " " + entry[i];
         continue;
       }
+      if (entry[0].equals("fullScreen")) Core.setFullscreen(entry[1].equals("1"));
 
       settings.put(entry[0], Integer.valueOf(entry[1]));
       // System.out.println(entry[0] + ", " + Integer.valueOf(entry[1]));

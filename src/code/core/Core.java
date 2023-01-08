@@ -16,6 +16,7 @@ import code.math.Vector2I;
 import code.server.Server;
 
 import code.ui.UIController;
+import code.ui.UIState;
 
 import java.awt.image.BufferedImage;
 import java.awt.Insets;
@@ -66,7 +67,6 @@ public abstract class Core {
   
   private static final JFrame FRAME = new JFrame("Bananas");
   private static final CorePanel PANEL = new CorePanel();
-  private static boolean maximized = true;
   
   private static final Decal splash;
   
@@ -113,14 +113,13 @@ public abstract class Core {
     FRAME.setResizable(true);
     BufferedImage image = IOHelp.readImage("icon.png");
     FRAME.setIconImage(image);
-    FRAME.setExtendedState(JFrame.MAXIMIZED_BOTH);
-    FRAME.setUndecorated(true);
     
     GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     smallScreenX = gd.getDisplayMode().getWidth()/2;
     smallScreenY = gd.getDisplayMode().getHeight()/2;
-    splash = new Decal(smallScreenX, smallScreenY, "splash.png", false);
-    FRAME.setBackground(new Color(173, 173, 173));
+
+    screenSizeX = smallScreenX;
+    screenSizeY = smallScreenY;
     
     FRAME.addWindowListener( new WindowAdapter() {
       @Override
@@ -137,12 +136,11 @@ public abstract class Core {
         // System.out.println(screenSizeX + ", " + screenSizeY);
       }
     });
-    
-    FRAME.setVisible(true);
-    FRAME.requestFocus();
+
     globalSettings = new Settings();
-    screenSizeX = FRAME.getWidth();
-    screenSizeY = FRAME.getHeight();
+    
+    splash = new Decal(screenSizeX/2, screenSizeY/2, "splash.png", false);
+    FRAME.setBackground(new Color(173, 173, 173));
     
     UIController.putPane("Main Menu", UICreator.createMain());
     UIController.putPane("HUD"      , UICreator.createHUD ());
@@ -168,29 +166,49 @@ public abstract class Core {
   }
   
   /**
-  * A helper method that toggles fullscreen for the window
+  * A helper method that toggles the fullscreen state for the window
   */
-  public static void doFull() {
+  public static void toggleFullscreen() {
+    setFullscreen(FRAME.getExtendedState() != JFrame.MAXIMIZED_BOTH);
+  }
+
+  /**
+   * A helper method to check whether or not the window is maximized
+   * 
+   * @return true if the window is maximized
+   */
+  public static boolean isFullScreen() {
+    return FRAME.getExtendedState() == JFrame.MAXIMIZED_BOTH;
+  }
+
+  /**
+   * A helper method that sets the fullscreen state for the window
+   * 
+   * @param maximize whether or not the screen should me maximized
+  */
+  public static void setFullscreen(boolean maximize) {
     FRAME.removeNotify();
-    if (maximized) {
+    FRAME.setVisible(false);
+    if (maximize) {
+      smallScreenX = screenSizeX;
+      smallScreenY = screenSizeY;
+      FRAME.setExtendedState(JFrame.MAXIMIZED_BOTH);
+      FRAME.setUndecorated(true);
+      FRAME.addNotify();
+      updateInsets();
+    }
+    else {
       FRAME.setExtendedState(JFrame.NORMAL);
       FRAME.setUndecorated(false);
       FRAME.addNotify();
       updateInsets();
       FRAME.setSize(smallScreenX + toolBarLeft + toolBarRight, smallScreenY + toolBarTop + toolBarBot);
     }
-    else {
-      smallScreenX = screenSizeX;
-      smallScreenY = screenSizeY;
-      FRAME.setVisible(false);
-      FRAME.setExtendedState(JFrame.MAXIMIZED_BOTH);
-      FRAME.setUndecorated(true);
-      FRAME.setVisible(true);
-      updateInsets();
-      FRAME.addNotify();
-    }
+    FRAME.setVisible(true);
     FRAME.requestFocus();
-    maximized = !maximized;
+
+    screenSizeX = FRAME.getWidth() - toolBarLeft - toolBarRight;
+    screenSizeY = FRAME.getHeight() - toolBarTop - toolBarBot;
   }
   
   /**
@@ -322,10 +340,10 @@ public abstract class Core {
         if (boundingBox) UIController.drawBoundingBox(g, mouseBnd, mousePos);
         else {
           for (TileGrid p : currentScene.getSelectedTiles()) { //TODO sort this shit out
-            if (p.isPlaced()) p.getTilePiece().draw(g, mousePos, cam.getZoom(), false, false);
-          }
-        }
-      }
+            p.getTilePiece().draw(g, mousePos.add(p.x, p.y), cam.getZoom(), false, false); //store relative offsets in an array once when 
+          }                                                                                //grabbed based on which tile was grabbed.
+        }                                                                                  //create final positions in tick loop,
+      }                                                                                    //then draw using existing data in draw loop.
       UIController.draw(g, screenSizeX, screenSizeY);
       break;
       
@@ -427,7 +445,7 @@ public abstract class Core {
         
         // System.out.print(keyCode);
         if (keyCode == KeyEvent.VK_F11) {
-          doFull();
+          toggleFullscreen();
           return;
         }
         if (keyCode == KeyEvent.VK_ESCAPE) {
@@ -483,6 +501,7 @@ public abstract class Core {
      * moves the camera around the scene
      */
     private static void cameraMovement() {
+      if (!UIController.isMode(UIState.DEFAULT)) return;
       if (mouseDown[2] || mouseDown[3]) {
         cam.addOffset(mousePos.subtract(mousePre));
         mousePre = mousePos;
