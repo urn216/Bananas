@@ -133,6 +133,10 @@ public abstract class Core {
         screenSizeX = FRAME.getWidth() - toolBarLeft - toolBarRight;
         screenSizeY = FRAME.getHeight() - toolBarTop - toolBarBot;
         if (cam != null) {cam.setScreenSize(screenSizeX, screenSizeY);}
+        if (!isFullScreen()) {
+          smallScreenX = screenSizeX;
+          smallScreenY = screenSizeY;
+        }
         // System.out.println(screenSizeX + ", " + screenSizeY);
       }
     });
@@ -190,8 +194,6 @@ public abstract class Core {
     FRAME.removeNotify();
     FRAME.setVisible(false);
     if (maximize) {
-      smallScreenX = screenSizeX;
-      smallScreenY = screenSizeY;
       FRAME.setExtendedState(JFrame.MAXIMIZED_BOTH);
       FRAME.setUndecorated(true);
       FRAME.addNotify();
