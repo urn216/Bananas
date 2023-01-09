@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.awt.Insets;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.MouseInfo;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
@@ -56,10 +57,14 @@ enum State {
 public abstract class Core {
   
   public static final Vector2 DEFAULT_SCREEN_SIZE = new Vector2(1920, 1080);
+  
+  public static final Settings GLOBAL_SETTINGS;
 
   public static final String BLACKLISTED_CHARS = "/\\.?!*\n";
   
   public static final double EDGE_SCROLL_BOUNDS = 0.05;
+  
+  public static final int DEFAULT_MAP_SIZE = 32;
   
   private static final double TICKS_PER_SECOND = 60;
   private static final double MILLISECONDS_PER_TICK = 1000/TICKS_PER_SECOND;
@@ -67,19 +72,18 @@ public abstract class Core {
   private static final long START_TIME = System.currentTimeMillis();
   private static final int SPLASH_TIME = 1000;
   
-  public static final int DEFAULT_MAP_SIZE = 32;
-  
   private static final JFrame FRAME = new JFrame("Bananas");
   private static final CorePanel PANEL = new CorePanel();
   
-  private static final Decal splash;
+  private static final boolean[] KEY_DOWN = new boolean[65536];
+  private static final boolean[] MOUSE_DOWN = new boolean[Math.max(MouseInfo.getNumberOfButtons(), 3)];
+  
+  private static final Decal SPLASH;
   
   private static boolean quit = false;
   
   private static int toolBarLeft, toolBarRight, toolBarTop, toolBarBot;
-  
-  private static boolean[] keyDown = new boolean[65536];
-  private static boolean[] mouseDown = new boolean[4];
+
   private static Vector2I mousePos = new Vector2I();
   private static Vector2I mousePre = new Vector2I();
   private static Vector2I mouseBnd = new Vector2I();
@@ -103,8 +107,6 @@ public abstract class Core {
   
   /** Current game state */
   private static State state = State.SPLASH;
-  
-  public static final Settings globalSettings;
   
   /**
   * Main method. Called on execution. Performs basic startup
@@ -149,9 +151,9 @@ public abstract class Core {
       }
     });
 
-    globalSettings = new Settings();
+    GLOBAL_SETTINGS = new Settings();
     
-    splash = new Decal(screenSizeX/2, screenSizeY/2, "splash.png", false);
+    SPLASH = new Decal(screenSizeX/2, screenSizeY/2, "splash.png", false);
     FRAME.setBackground(new Color(173, 173, 173));
     
     UIController.putPane("Main Menu", UICreator.createMain());
@@ -181,7 +183,7 @@ public abstract class Core {
   * A helper method that toggles the fullscreen state for the window
   */
   public static void toggleFullscreen() {
-    setFullscreen(FRAME.getExtendedState() != JFrame.MAXIMIZED_BOTH);
+    setFullscreen(!isFullScreen());
   }
 
   /**
@@ -190,7 +192,7 @@ public abstract class Core {
    * @return true if the window is maximized
    */
   public static boolean isFullScreen() {
-    return FRAME.getExtendedState() == JFrame.MAXIMIZED_BOTH;
+    return FRAME.getExtendedState() == JFrame.MAXIMIZED_BOTH && FRAME.isUndecorated();
   }
 
   /**
@@ -341,13 +343,13 @@ public abstract class Core {
     
     switch (state) {
       case SPLASH:
-      splash.draw(g);
+      SPLASH.draw(g);
       break;
       
       case HOST:
       case RUN:
       currentScene.draw(g, cam);
-      if (mouseDown[1]) {
+      if (MOUSE_DOWN[1]) {
         if (boundingBox) UIController.drawBoundingBox(g, mouseBnd, mousePos);
         else if (boundTiles != null) {
           for (Entry<TilePiece, Vector2> pair : selectedTileScreenCoordinates.entrySet()) {
@@ -390,7 +392,7 @@ public abstract class Core {
       public void mousePressed(MouseEvent e) {
         updateMousePos(e);
         
-        if (UIController.getHighlighted() == null) mouseDown[e.getButton()] = true;
+        if (UIController.getHighlighted() == null) MOUSE_DOWN[e.getButton()] = true;
         mousePre = mousePos;
         
         //left click
@@ -403,7 +405,7 @@ public abstract class Core {
             if (!pressed.isSelected() && currentScene.hasSelectedTiles()) currentScene.deselectTiles();
             currentScene.selectTile(ind);
           }
-          boundingBox = (!currentScene.isSelected(ind) || keyDown[KeyEvent.VK_SHIFT]);
+          boundingBox = (!currentScene.isSelected(ind) || KEY_DOWN[KeyEvent.VK_SHIFT]);
           mouseBnd = mousePos;
           boundIndex = ind;
           return;
@@ -420,7 +422,7 @@ public abstract class Core {
       public void mouseReleased(MouseEvent e) {
         updateMousePos(e);
         
-        mouseDown[e.getButton()] = false;
+        MOUSE_DOWN[e.getButton()] = false;
           
         currentScene.unsetIn();
         
@@ -461,10 +463,10 @@ public abstract class Core {
       public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
         
-        if (UIController.getActiveTextfield() != null && !keyDown[KeyEvent.VK_CONTROL]) UIController.typeKey(e);
+        if (UIController.getActiveTextfield() != null && !KEY_DOWN[KeyEvent.VK_CONTROL]) UIController.typeKey(e);
         
-        if(keyDown[keyCode]) return; //Key already in
-        keyDown[keyCode] = true;
+        if(KEY_DOWN[keyCode]) return; //Key already in
+        KEY_DOWN[keyCode] = true;
         
         // System.out.print(keyCode);
         if (keyCode == KeyEvent.VK_F11) {
@@ -498,7 +500,7 @@ public abstract class Core {
         @Override
         public void keyReleased(KeyEvent e){
           int keyCode = e.getKeyCode();
-          keyDown[keyCode] = false;
+          KEY_DOWN[keyCode] = false;
           
           if (keyCode == KeyEvent.VK_ENTER) {
             UIController.release();
@@ -524,7 +526,7 @@ public abstract class Core {
      * Performs dragging of tiles around the board
      */
     private static void leftMouseAction() {
-      if (!mouseDown[1]) return;
+      if (!MOUSE_DOWN[1]) return;
 
       currentScene.pressTile(currentScene.convertToIndex(mousePos, cam));
 
@@ -560,7 +562,7 @@ public abstract class Core {
      */
     private static void cameraMovement() {
       if (!UIController.isMode(UIState.DEFAULT)) return;
-      if (mouseDown[2] || mouseDown[3]) {
+      if (MOUSE_DOWN[2] || MOUSE_DOWN[3]) {
         cam.addOffset(mousePos.subtract(mousePre));
         mousePre = mousePos;
         return;
