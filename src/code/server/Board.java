@@ -13,11 +13,11 @@ class Board {
     return map;
   }
 
-  public boolean validate(Vector2I pos, char c) {
+  public synchronized boolean validate(Vector2I pos, char c) {
     return map[pos.x][pos.y] == c;
   }
 
-  public void setPiece(Vector2I pos, char c) {
+  public synchronized void setPiece(Vector2I pos, char c) {
     map[pos.x][pos.y] = c;
   }
 }

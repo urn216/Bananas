@@ -21,7 +21,7 @@ public class TileGrid
   
   private TilePiece piece = null;
   
-  private boolean isIn = false;
+  private boolean isSelected = false;
   
   private final TileGrid[][] neighbouringTiles; //TODO spellchecker
 
@@ -41,6 +41,13 @@ public class TileGrid
    */
   public TilePiece getTilePiece() {
     return this.piece;
+  }
+
+  /**
+   * @return the position of this {@code TileGrid} as a {@code Vector2I}
+   */
+  public Vector2I getPos() {
+    return new Vector2I(x, y);
   }
   
   /**
@@ -69,21 +76,23 @@ public class TileGrid
   }
   
   /**
-   * sets the pressed state of this grid element to the 'in' state
+   * sets the selected state of this grid element to {@code true}
    */
-  public void setIn() {
-    isIn = true;
+  public void select() {
+    isSelected = true;
   }
   
   /**
-   * resets the pressed state of this grid element to the 'out' state
+   * resets the selected state of this grid element to {@code false}
    */
-  public void unsetIn() {isIn = false;}
+  public void deselect() {
+    isSelected = false;
+  }
   
   /**
-   * @return true if this grid element is currently pressed in
+   * @return true if this grid element is currently selected
    */
-  public boolean isIn() {return isIn;}
+  public boolean isSelected() {return isSelected;}
 
   /**
    * Finds the neighbouring nodes to this tile,
@@ -91,11 +100,11 @@ public class TileGrid
    * 
    * @param map the total map of tiles this node is located in
    */
-  public void findNeighbours(TileGrid[][] map) {
-    if (x != 0)               neighbouringTiles[0][0] = map[x-1][y];
-    if (x != map.length-1)    neighbouringTiles[0][1] = map[x+1][y];
-    if (y != 0)               neighbouringTiles[1][0] = map[x][y-1];
-    if (y != map[0].length-1) neighbouringTiles[1][1] = map[x][y+1];
+  public void findNeighbours(TileGrid[][] map, int yOffset) {
+    if (x != 0)                       neighbouringTiles[0][0] = map[x-1][y-yOffset  ];
+    if (x != map.length-1)            neighbouringTiles[0][1] = map[x+1][y-yOffset  ];
+    if (y != 0+yOffset)               neighbouringTiles[1][0] = map[x]  [y-yOffset-1];
+    if (y != map[0].length+yOffset-1) neighbouringTiles[1][1] = map[x]  [y-yOffset+1];
   } 
   
   @Override
@@ -112,21 +121,21 @@ public class TileGrid
    * @param y the y co-ordinate of this tile in the grid
    * @param selected whether or not this tile has been selected
    */
-  public void draw(Graphics2D g, Camera cam, int x, int y, boolean selected) {
+  public void draw(Graphics2D g, Camera cam, int x, int y, boolean isIn) {
     double z = cam.getZoom();
     double conX = cam.conX();
     double conY = cam.conY();
     
     //draw the piece if present
     if (piece != null) {
-      piece.draw(g, new Vector2(x*TILE_SIZE, y*TILE_SIZE), z, conX, conY, selected, isIn);
+      piece.draw(g, new Vector2(x*TILE_SIZE, y*TILE_SIZE), z, conX, conY, isSelected, isIn);
       return;
     }
     
     //otherwise draw the grid section
     Rectangle2D s = new Rectangle2D.Double(x*TILE_SIZE*z-conX, y*TILE_SIZE*z-conY, TILE_SIZE*z, TILE_SIZE*z);
-    if (selected) {g.setColor(TileTheme.squaSele); g.fill(s);}
-    if (isIn)     {g.setColor(TileTheme.squaHigh); g.fill(s);}
+    if (isSelected) {g.setColor(TileTheme.squaSele); g.fill(s);}
+    if (isIn      ) {g.setColor(TileTheme.squaHigh); g.fill(s);}
     g.setColor(TileTheme.squaOutl);
     g.draw(s);
   }
@@ -146,8 +155,8 @@ public class TileGrid
     double conY = cam.conY();
     Vector2I screenSize = cam.getScreenSize();
     
-    if((x    *TILE_SIZE)*z-conX < screenSize.x
-    && (y    *TILE_SIZE)*z-conY < screenSize.y
+    if(( x   *TILE_SIZE)*z-conX < screenSize.x
+    && ( y   *TILE_SIZE)*z-conY < screenSize.y
     && ((x+1)*TILE_SIZE)*z-conX >= 0
     && ((y+1)*TILE_SIZE)*z-conY >= 0) {return true;}
     return false;

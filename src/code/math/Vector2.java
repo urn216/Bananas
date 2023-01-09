@@ -232,6 +232,21 @@ public class Vector2  // implements Comparable<Vector2>
     return new Vector2(this);
   }
 
+  @Override
+  public boolean equals(Object other) {
+    return other instanceof Vector2 ? equals((Vector2)other) : false;
+  }
+
+  /**
+   * Checks if a {@code Vector2} is equivalent to this one; i.e. the {@code x} and {@code y} coordinates are the same.
+   * 
+   * @param other the {@code Vector2} to compare against this one.
+   * @return true if the {@code x} and {@code y} coordinates of each {@code Vector2} are equal
+   */
+  public boolean equals(Vector2 other) {
+    return other.x==this.x && other.y==this.y;
+  }
+
   // public double toAngle() {
   //   return Math.atan2(y, x);
   // }

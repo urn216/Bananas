@@ -1,4 +1,6 @@
-soundFX 100
+fullScreen 1
 soundMaster 100
+soundFX 100
 soundMusic 100
 subtitles 0
+nickname 

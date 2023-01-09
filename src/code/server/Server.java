@@ -89,7 +89,9 @@ public abstract class Server {
   */
   public static void shutdown() {
     try {
-      if (!clients.isEmpty()) for (int id : clients.keySet().toArray(new Integer[0])) {removeClient(id, IOHelp.EXIT_SERVER_CLOSED);}
+      synchronized (clients) {
+        if (!clients.isEmpty()) for (int id : clients.keySet().toArray(new Integer[0])) {removeClient(id, IOHelp.EXIT_SERVER_CLOSED);}
+      }
       sock.close();
     } catch(IOException e){System.out.println("servercls "+e);}
     synchronized (clients) {clients.clear();}
@@ -482,7 +484,7 @@ class ClientHandler extends Thread {
     
     fromBoard.setPiece(fromPos, toLetter);
     toBoard.setPiece  (toPos, fromLetter);
-    Server.writeToClient(clientSock.getOutputStream(), IOHelp.MVE, bytes);
+    Server.broadcastBytes(IOHelp.MVE, bytes);
   }
   
   @Override

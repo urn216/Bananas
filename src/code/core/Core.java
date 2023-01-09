@@ -4,7 +4,7 @@ import code.core.scene.Scene;
 import code.core.scene.elements.Camera;
 import code.core.scene.elements.Decal;
 import code.core.scene.elements.TileGrid;
-
+import code.core.scene.elements.TilePiece;
 import code.error.ConnectionException;
 
 import java.awt.event.MouseWheelEvent;
@@ -18,6 +18,10 @@ import code.server.Server;
 import code.ui.UIController;
 import code.ui.UIState;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.awt.image.BufferedImage;
 import java.awt.Insets;
 import java.awt.GraphicsDevice;
@@ -81,6 +85,10 @@ public abstract class Core {
   private static Vector2I mouseBnd = new Vector2I();
   
   private static boolean boundingBox = false;
+  private static Vector2I boundIndex = new Vector2I();
+  private static TileGrid[][] boundTiles = null;
+
+  private static final Map<TilePiece, Vector2> selectedTileScreenCoordinates = new HashMap<TilePiece, Vector2>();
   
   private static Scene currentScene;
   
@@ -304,6 +312,7 @@ public abstract class Core {
         
         case HOST:
         case RUN:
+        leftMouseAction();
         case END:
         cameraMovement();
         break;
@@ -340,12 +349,12 @@ public abstract class Core {
       currentScene.draw(g, cam);
       if (mouseDown[1]) {
         if (boundingBox) UIController.drawBoundingBox(g, mouseBnd, mousePos);
-        else {
-          for (TileGrid p : currentScene.getSelectedTiles()) { //TODO sort this shit out
-            p.getTilePiece().draw(g, mousePos.add(p.x, p.y), cam.getZoom(), false, false); //store relative offsets in an array once when 
-          }                                                                                //grabbed based on which tile was grabbed.
-        }                                                                                  //create final positions in tick loop,
-      }                                                                                    //then draw using existing data in draw loop.
+        else if (boundTiles != null) {
+          for (Entry<TilePiece, Vector2> pair : selectedTileScreenCoordinates.entrySet()) {
+            pair.getKey().draw(g, pair.getValue(), cam.getZoom(), false, false);
+          }
+        }
+      }
       UIController.draw(g, screenSizeX, screenSizeY);
       break;
       
@@ -389,9 +398,14 @@ public abstract class Core {
           if (UIController.press()) return;
           
           Vector2I ind = currentScene.convertToIndex(mousePos, cam);
-          currentScene.pressTile(ind);
+          TileGrid pressed = currentScene.pressTile(ind);
+          if (pressed != null && pressed.isPlaced()) {
+            if (!pressed.isSelected() && currentScene.hasSelectedTiles()) currentScene.deselectTiles();
+            currentScene.selectTile(ind);
+          }
           boundingBox = (!currentScene.isSelected(ind) || keyDown[KeyEvent.VK_SHIFT]);
           mouseBnd = mousePos;
+          boundIndex = ind;
           return;
         }
         
@@ -407,21 +421,28 @@ public abstract class Core {
         updateMousePos(e);
         
         mouseDown[e.getButton()] = false;
+          
+        currentScene.unsetIn();
         
         //left click
         if (e.getButton() == 1) {
           UIController.release();
           
           Vector2I ind = currentScene.convertToIndex(mousePos, cam);
-          if (!currentScene.selectTile(ind) && boundingBox) currentScene.selectTiles(currentScene.convertToIndex(mouseBnd, cam), ind);
+          if (boundingBox) currentScene.selectTiles(currentScene.convertToIndex(mouseBnd, cam), ind);
+
+          if (boundTiles != null) {
+            currentScene.doMove(boundTiles, ind.subtract(boundIndex));
+          }
+          
           boundingBox = false;
-          return; //TODO make a move happen if one can be done
+          boundTiles = null;
+          return;
         }
         
         //right click
         if (e.getButton() == 3) {
           currentScene.deselectTiles();
-          currentScene.unsetIn();
           return;
         }
       }
@@ -497,6 +518,41 @@ public abstract class Core {
       mousePos = new Vector2I(x, y);
       
       UIController.cursorMove(mousePos);
+    }
+
+    /**
+     * Performs dragging of tiles around the board
+     */
+    private static void leftMouseAction() {
+      if (!mouseDown[1]) return;
+
+      currentScene.pressTile(currentScene.convertToIndex(mousePos, cam));
+
+      if (boundingBox) return;
+      
+      if (boundTiles == null) {
+        if (currentScene.convertToIndex(mousePos, cam).equals(boundIndex)) return;
+        boundTiles = calculateOffsetGrid();
+        selectedTileScreenCoordinates.clear();
+      }
+
+      for (TileGrid t : currentScene.getSelectedTiles()) {
+        selectedTileScreenCoordinates.put(t.getTilePiece(), mousePos.add((t.x-boundIndex.x)*TileGrid.TILE_SIZE*cam.getZoom(), (t.y-boundIndex.y)*TileGrid.TILE_SIZE*cam.getZoom()));
+      }
+    }
+
+    private static TileGrid[][] calculateOffsetGrid() {
+      int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
+      List<TileGrid> selectedTiles = currentScene.getSelectedTiles();
+      for (TileGrid t : selectedTiles) {
+        minX = Math.min(minX, t.x); maxX = Math.max(maxX, t.x);
+        minY = Math.min(minY, t.y); maxY = Math.max(maxY, t.y);
+      }
+      TileGrid[][] res = new TileGrid[maxX+1-minX][maxY+1-minY];
+      for (TileGrid t : selectedTiles) {
+        res[t.x-minX][t.y-minY] = t;
+      }
+      return res;
     }
   
     /**

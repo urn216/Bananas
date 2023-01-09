@@ -11,7 +11,7 @@ import code.server.Server;
 
 import code.ui.UIController;
 
-abstract class Client {
+public abstract class Client {
   
   private static volatile Socket sock = new Socket();
   
@@ -185,13 +185,16 @@ abstract class Client {
     int fromData = IOHelp.decodeTilePos(bytes, 0);
     int toData = IOHelp.decodeTilePos(bytes, 2);
     
-    boolean fromPile = IOHelp.extractPile(fromData);
-    boolean toPile   = IOHelp.extractPile(toData  );
+    Vector2I fromPos = IOHelp.extractPos(fromData);
+    Vector2I toPos   = IOHelp.extractPos(toData  );
     char fromLetter = IOHelp.extractLetter(fromData);
     char toLetter   = IOHelp.extractLetter(toData  );
+    boolean fromPile = IOHelp.extractPile(fromData);
+    boolean toPile   = IOHelp.extractPile(toData  );
     
-    Core.getCurrentScene().placeTile(IOHelp.extractPos(fromData), toLetter == '[' ? null : new TilePiece(toLetter, toPile), toPile);
-    Core.getCurrentScene().placeTile(IOHelp.extractPos(toData), fromLetter == '[' ? null : new TilePiece(fromLetter, fromPile), fromPile);
+    Core.getCurrentScene().placeTile(fromPos, toLetter   == '[' ? null : new TilePiece(toLetter  , fromPile), fromPile);
+    Core.getCurrentScene().placeTile(toPos  , fromLetter == '[' ? null : new TilePiece(fromLetter, toPile  ), toPile  );
+    Core.getCurrentScene().selectTile(fromPos, fromPile);
   }
   
   /**

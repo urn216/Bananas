@@ -1,5 +1,6 @@
 package code.core.scene;
 
+import code.core.Client;
 import code.core.scene.elements.Camera;
 import code.core.scene.elements.Decal;
 import code.core.scene.elements.TileGrid;
@@ -26,7 +27,9 @@ public abstract class Scene
   
   protected final Decal bg;
   
-  protected final List<TileGrid> selectedTiles = new ArrayList<TileGrid>();
+  // protected final List<TileGrid> selectedTiles = new ArrayList<TileGrid>();
+
+  protected TileGrid pressedTile = null;
   
   /**
    * @return the main menu scene singleton
@@ -70,18 +73,6 @@ public abstract class Scene
   private TileGrid getTile(Vector2I p) {return p.y >= mapSY ? map[p.x][p.y-mapSY] : pile[p.x][p.y];}
   
   /**
-   * @return an unmodifiable list containing the currently selected tiles
-   */
-  public List<TileGrid> getSelectedTiles() {return List.copyOf(selectedTiles);}
-  
-  /**
-   * @return true if there are tiles in the current selection
-   */
-  public boolean hasSelectedTiles() {return !selectedTiles.isEmpty();}
-  
-  // public Vector2 createPoint(int x, int y) {return new Vector2((x-mapSX/2)*TileGrid.TILE_SIZE, (y-mapSY/2)*TileGrid.TILE_SIZE);}
-  
-  /**
    * assesses whether or not a given index is a valid location within the scene
    * 
    * @param p the index to check
@@ -94,6 +85,35 @@ public abstract class Scene
   }
   
   /**
+   * @return an unmodifiable list containing the currently selected tiles
+   */
+  public List<TileGrid> getSelectedTiles() {
+    List<TileGrid> selectedTiles = new ArrayList<TileGrid>();
+    
+    for (int i = 0; i < mapSX; i++) {
+      for (int j = 0; j < mapSY; j++) {
+        if (map[i][j].isSelected()  && map[i][j].isPlaced() ) selectedTiles.add(map[i][j] );
+        if (pile[i][j].isSelected() && pile[i][j].isPlaced()) selectedTiles.add(pile[i][j]);
+      }
+    }
+
+    return List.copyOf(selectedTiles);
+  }
+  
+  /**
+   * @return true if there are tiles in the current selection
+   */
+  public boolean hasSelectedTiles() {
+    for (int i = 0; i < mapSX; i++) {
+      for (int j = 0; j < mapSY; j++) {
+        if (map[i][j].isSelected()) return true;
+        if (pile[i][j].isSelected()) return true;
+      }
+    }
+    return false;
+  }
+  
+  /**
    * Checks to see if the tile at a given index is selected.
    * 
    * @param p the index to check
@@ -102,7 +122,7 @@ public abstract class Scene
   public boolean isSelected(Vector2I p) {
     if (validate(p)) {
       TileGrid t = getTile(p);
-      if (t.isPlaced() && selectedTiles.contains(t)) {
+      if (t.isPlaced() && t.isSelected()) {
         return true;
       }
     }
@@ -113,11 +133,35 @@ public abstract class Scene
    * Presses a tile in.
    * 
    * @param p the index to press
+   * 
+   * @return the newly pressed {@code TileGrid}, or {@code null} if nothing was pressed.
    */
-  public void pressTile(Vector2I p) {
-    if (!validate(p)) return;
-    TileGrid t = getTile(p);
-    t.setIn();
+  public TileGrid pressTile(Vector2I p) {
+    if (!validate(p)) return null;
+    pressedTile = getTile(p);
+    return pressedTile;
+  }
+
+  /**
+   * Gets the currently pressed tile
+   * 
+   * @return the currently pressed tile, or null if one is not pressed.
+   */
+  public TileGrid getPressedTile() {return pressedTile;}
+
+  /**
+   * Selects a single tile at a given index in a board, 
+   * with a choice between placing into the pile or the player's personal board.
+   * 
+   * @param p the index to select
+   * @param pile <ul> 
+   *        <li>True - to place into the central pile </li>
+   *        <li>False - to place into the player's personal board </li>
+   * 
+   * @return true if a {@code TilePiece} was present at the selected location
+   */
+  public boolean selectTile(Vector2I p, boolean pile) {
+    return selectTile(pile ? p : p.add(0, mapSY));
   }
   
   /**
@@ -128,10 +172,10 @@ public abstract class Scene
    * @return true if a {@code TilePiece} was present at the selected location
    */
   public boolean selectTile(Vector2I p) {
-    deselectTiles();
-    if (validate(p) && getTile(p).isIn()) selectedTiles.add(getTile(p));
-    unsetIn();
-    return hasSelectedTiles();
+    if (!validate(p)) return false;
+
+    getTile(p).select();
+    return true;
   }
   
   /**
@@ -147,7 +191,7 @@ public abstract class Scene
     for (int y = Math.max(0, tL.y); y <= bR.y && y < mapSY*2; y++) {
       for (int x = Math.max(0, tL.x); x <= bR.x && x < mapSX; x++) {
         TileGrid t = getTile(new Vector2I(x, y));
-        if (t.isPlaced()) selectedTiles.add(t);
+        if (t.isPlaced()) t.select();
       }
     }
     unsetIn();
@@ -157,7 +201,12 @@ public abstract class Scene
    * Deselects all the tiles in the current selection.
    */
   public void deselectTiles() {
-    selectedTiles.clear();
+    for (int i = 0; i < mapSX; i++) {
+      for (int j = 0; j < mapSY; j++) {
+        map[i][j].deselect();
+        pile[i][j].deselect();
+      }
+    }
   }
   
   /**
@@ -192,12 +241,45 @@ public abstract class Scene
    * Resets all the tiles in the scene to their default 'out' state.
    */
   public void unsetIn() {
-    for (int i = 0; i < mapSX; i++) {
-      for (int j = 0; j < mapSY; j++) {
-        map[i][j].unsetIn();
-        pile[i][j].unsetIn();
+    pressedTile = null;
+  }
+
+  public void doMove(TileGrid[][] tilesToMove, Vector2I offset) {
+    deselectTiles();
+
+    int x = 0;
+    int xi = 1, yi = offset.y > 0 ? -1 : 1;
+    if (offset.x > 0) {x = tilesToMove   .length-1; xi = -1;}
+
+    for (; x < tilesToMove.length && x >= 0; x+=xi) {
+      int y = offset.y > 0 ? y = tilesToMove[0].length-1 : 0;
+      for (; y < tilesToMove[x].length && y >= 0; y+=yi) {
+        TileGrid fromTile = tilesToMove[x][y];
+
+        if (fromTile == null) continue;
+
+        Vector2I fromPos = fromTile.getPos();
+        Vector2I toPos   = fromPos.add(offset);
+
+        if (!validate(toPos)) continue;
+
+        TileGrid toTile = getTile(toPos);
+
+        boolean fromPile = true;
+        boolean toPile   = true;
+
+        if (fromPos.y >= mapSY) {fromPos = fromPos.subtract(0, mapSY); fromPile = false;}
+        if (toPos.y   >= mapSY) {toPos   = toPos  .subtract(0, mapSY); toPile   = false;}
+
+        TilePiece toPiece = toTile.getTilePiece();
+        char toLetter = toPiece != null ? toPiece.letter : '[';
+        
+        Client.doMove(fromPos, fromTile.getTilePiece().letter, fromPile, toPos, toLetter, toPile);
+        toTile  .place(fromTile.getTilePiece());
+        fromTile.place(toPiece                );
       }
     }
+    unsetIn();
   }
   
   /**
@@ -227,14 +309,14 @@ public abstract class Scene
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
         TileGrid t = pile[i][j];
-        if (TileGrid.onScreen(cam, i-mapSX/2, j-mapSY/2)) t.draw(g, cam, i-mapSX/2, j-mapSY/2, selectedTiles.contains(t));
+        if (TileGrid.onScreen(cam, i-mapSX/2, j-mapSY/2)) t.draw(g, cam, i-mapSX/2, j-mapSY/2, t == pressedTile);
       }
     }
     
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
         TileGrid t = map[i][j];
-        if (TileGrid.onScreen(cam, i-mapSX/2, j+1+mapSY/2)) t.draw(g, cam, i-mapSX/2, j+1+mapSY/2, selectedTiles.contains(t));
+        if (TileGrid.onScreen(cam, i-mapSX/2, j+1+mapSY/2)) t.draw(g, cam, i-mapSX/2, j+1+mapSY/2, t == pressedTile);
       }
     }
   }
