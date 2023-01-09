@@ -194,7 +194,7 @@ public abstract class Client {
     
     Core.getCurrentScene().placeTile(fromPos, toLetter   == '[' ? null : new TilePiece(toLetter  , fromPile), fromPile);
     Core.getCurrentScene().placeTile(toPos  , fromLetter == '[' ? null : new TilePiece(fromLetter, toPile  ), toPile  );
-    Core.getCurrentScene().selectTile(fromPos, fromPile);
+    Core.getCurrentScene().selectTile(fromPos, fromPile);//TODO multiplayer not work
   }
   
   /**

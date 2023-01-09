@@ -22,7 +22,7 @@ public abstract class Scene
 {
   protected final int mapSX;
   protected final int mapSY;
-  protected final TileGrid[][] map;
+  protected final TileGrid[][] map; //TODO add other players' boards
   protected final TileGrid[][] pile;
   
   protected final Decal bg;

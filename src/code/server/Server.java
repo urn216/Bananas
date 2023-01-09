@@ -484,7 +484,7 @@ class ClientHandler extends Thread {
     
     fromBoard.setPiece(fromPos, toLetter);
     toBoard.setPiece  (toPos, fromLetter);
-    Server.broadcastBytes(IOHelp.MVE, bytes);
+    Server.broadcastBytes(IOHelp.MVE, bytes);//TODO send player number
   }
   
   @Override
