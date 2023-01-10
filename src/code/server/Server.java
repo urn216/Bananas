@@ -445,11 +445,14 @@ class ClientHandler extends Thread {
   */
   private void refreshBoard(Player player) throws IOException {
     Board board = player == null ? Server.getPile() : player.getBoard();
+
+    byte playerNum = player == null ? -1 : (byte)player.getPlayerNum();
     
     for (int x = 0; x < board.getMap().length; x++) {
       for (int y = 0; y < board.getMap()[x].length; y++) {
         char c = board.getMap()[x][y];
-        Server.writeToClient(clientSock.getOutputStream(), IOHelp.SET, IOHelp.encodeTilePos(x, y, c, player==null));
+        byte[] bytes = IOHelp.encodeTilePos(x, y, c, player==null);
+        Server.writeToClient(clientSock.getOutputStream(), IOHelp.SET, new byte[]{bytes[0], bytes[1], playerNum});
       }
     }
   }
@@ -484,7 +487,7 @@ class ClientHandler extends Thread {
     
     fromBoard.setPiece(fromPos, toLetter);
     toBoard.setPiece  (toPos, fromLetter);
-    Server.broadcastBytes(IOHelp.MVE, bytes);//TODO send player number
+    Server.broadcastBytes(IOHelp.MVE, new byte[]{bytes[0], bytes[1], bytes[2], bytes[3], (byte)player.getPlayerNum()});
   }
   
   @Override

@@ -167,12 +167,13 @@ public abstract class Client {
   * @throws IOException if there's an issue holding a connection to the server during the reading process
   */
   private static void handleSetCommand() throws IOException {
-    int setData = IOHelp.decodeTilePos(readBytesFromServer(2), 0);
+    byte[] bytes = readBytesFromServer(3);
+    int setData = IOHelp.decodeTilePos(bytes, 0);
     
     boolean pile = IOHelp.extractPile(setData);
     char letter = IOHelp.extractLetter(setData);
     
-    Core.getCurrentScene().placeTile(IOHelp.extractPos(setData), letter == '[' ? null : new TilePiece(letter, pile), pile);
+    Core.getCurrentScene().placeTile(IOHelp.extractPos(setData), letter == '[' ? null : new TilePiece(letter, pile), pile ? -1 : bytes[2]);
   }
   
   /**
@@ -181,7 +182,7 @@ public abstract class Client {
   * @throws IOException if there's an issue holding a connection to the server during the reading process
   */
   private static void handleMoveCommand() throws IOException {
-    byte[] bytes = readBytesFromServer(4);
+    byte[] bytes = readBytesFromServer(5);
     int fromData = IOHelp.decodeTilePos(bytes, 0);
     int toData = IOHelp.decodeTilePos(bytes, 2);
     
@@ -192,9 +193,9 @@ public abstract class Client {
     boolean fromPile = IOHelp.extractPile(fromData);
     boolean toPile   = IOHelp.extractPile(toData  );
     
-    Core.getCurrentScene().placeTile(fromPos, toLetter   == '[' ? null : new TilePiece(toLetter  , fromPile), fromPile);
-    Core.getCurrentScene().placeTile(toPos  , fromLetter == '[' ? null : new TilePiece(fromLetter, toPile  ), toPile  );
-    Core.getCurrentScene().selectTile(fromPos, fromPile);//TODO multiplayer not work
+    Core.getCurrentScene().placeTile(fromPos, toLetter   == '[' ? null : new TilePiece(toLetter  , fromPile), fromPile ? -1 : bytes[4]);
+    Core.getCurrentScene().placeTile(toPos  , fromLetter == '[' ? null : new TilePiece(fromLetter, toPile  ), toPile   ? -1 : bytes[4]);
+    if (bytes[4] == playerNum) Core.getCurrentScene().selectTile(fromPos, fromPile);
   }
   
   /**

@@ -219,8 +219,9 @@ public abstract class Scene
    *        <li>True - to place into the central pile </li>
    *        <li>False - to place into the player's personal board </li>
    */
-  public void placeTile(Vector2I p, TilePiece piece, boolean pile) {
-    placeTile(pile ? p : p.add(0, mapSY), piece);
+  public void placeTile(Vector2I p, TilePiece piece, int playerNum) {
+    if (playerNum != Client.getPlayerNum() && playerNum >= 0) return;
+    placeTile(playerNum < 0 ? p : p.add(0, mapSY), piece);
   }
   
   /**

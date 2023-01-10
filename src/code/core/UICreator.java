@@ -92,12 +92,12 @@ class UICreator {
     );
     
     ElemInfo portErr = new ElemInfo(
-    new Vector2(0.38, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+    new Vector2(0.37, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
+    new Vector2(0.63, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
     BUFFER_HEIGHT, 
     new boolean[]{false, false, false, false},
     "Port must be a number",
-    "less than 65536"
+    "between 1024 and 65535"
     );
     
     ElemInfo ipErr = new ElemInfo(
@@ -119,7 +119,7 @@ class UICreator {
     
     UITextfield hostport = new UITextfield("Port Number", 5, 1){
       public boolean isValid() {
-        try {return totind > 0 && Integer.parseInt(getText()) > 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
+        try {return totind > 0 && Integer.parseInt(getText()) > 1023 && Integer.parseInt(getText()) <= 0xFFFF;} 
         catch (NumberFormatException e) {return false;}
       }
     };
@@ -147,7 +147,7 @@ class UICreator {
     
     UITextfield joinport = new UITextfield("Port Number", 5, 1){
       public boolean isValid() {
-        try {return totind > 0 && Integer.parseInt(getText()) > 0 && Integer.parseInt(getText()) <= 0xFFFF;} 
+        try {return totind > 0 && Integer.parseInt(getText()) > 1023 && Integer.parseInt(getText()) <= 0xFFFF;} 
         catch (NumberFormatException e) {return false;}
       }
     };
