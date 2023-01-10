@@ -219,8 +219,8 @@ public abstract class Core {
     FRAME.setVisible(true);
     FRAME.requestFocus();
 
-    screenSizeX = FRAME.getWidth() - toolBarLeft - toolBarRight;
-    screenSizeY = FRAME.getHeight() - toolBarTop - toolBarBot;
+    screenSizeX = FRAME.getWidth()  - toolBarLeft - toolBarRight;
+    screenSizeY = FRAME.getHeight() - toolBarTop  - toolBarBot  ;
   }
   
   /**
