@@ -62,7 +62,7 @@ public abstract class Core {
 
   public static final String BLACKLISTED_CHARS = "/\\.?!*\n";
   
-  public static final double EDGE_SCROLL_BOUNDS = 0.05;
+  public static final double EDGE_SCROLL_BOUNDS = 0.02;
   
   public static final int DEFAULT_MAP_SIZE = 32;
   
@@ -567,10 +567,30 @@ public abstract class Core {
         mousePre = mousePos;
         return;
       }
-      if (mousePos.x < EDGE_SCROLL_BOUNDS*screenSizeX              ) cam.addOffset(new Vector2(20*cam.getZoom(), 0) );
-      if (mousePos.y < EDGE_SCROLL_BOUNDS*screenSizeY              ) cam.addOffset(new Vector2(0, 20*cam.getZoom()) );
-      if (mousePos.x > screenSizeX - EDGE_SCROLL_BOUNDS*screenSizeX) cam.addOffset(new Vector2(-20*cam.getZoom(), 0));
-      if (mousePos.y > screenSizeY - EDGE_SCROLL_BOUNDS*screenSizeY) cam.addOffset(new Vector2(0, -20*cam.getZoom()));
+      //Left
+      if (
+        KEY_DOWN[KeyEvent.VK_LEFT] || 
+        KEY_DOWN[KeyEvent.VK_A   ] || 
+        mousePos.x < EDGE_SCROLL_BOUNDS*screenSizeX
+      ) cam.addOffset(new Vector2(10+15*cam.getZoom(), 0) );
+      //Up
+      if (
+        KEY_DOWN[KeyEvent.VK_UP] || 
+        KEY_DOWN[KeyEvent.VK_W ] || 
+        mousePos.y < EDGE_SCROLL_BOUNDS*screenSizeY
+      ) cam.addOffset(new Vector2(0, 10+15*cam.getZoom()) );
+      //Right
+      if (
+        KEY_DOWN[KeyEvent.VK_RIGHT] || 
+        KEY_DOWN[KeyEvent.VK_D    ] || 
+        mousePos.x > screenSizeX - EDGE_SCROLL_BOUNDS*screenSizeX
+      ) cam.addOffset(new Vector2(-10-15*cam.getZoom(), 0));
+      //Down
+      if (
+        KEY_DOWN[KeyEvent.VK_DOWN] || 
+        KEY_DOWN[KeyEvent.VK_S   ] || 
+        mousePos.y > screenSizeY - EDGE_SCROLL_BOUNDS*screenSizeY
+      ) cam.addOffset(new Vector2(0, -10-15*cam.getZoom()));
     }
   }
   

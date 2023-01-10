@@ -39,7 +39,7 @@ public abstract class Client {
   */
   public static void connect(String ip, int port) {
     try {
-      sock = new Socket(ip, port);
+      sock = new Socket(ip, port);//TODO reconnect if there's a hiccup
     } catch(IOException e){System.out.println("clientcon "+e);}
     
     //Text output
