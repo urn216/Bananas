@@ -457,18 +457,24 @@ public abstract class Core {
     
     FRAME.addMouseWheelListener(new MouseAdapter() {
       public void mouseWheelMoved(MouseWheelEvent e) {
-        if (KEY_DOWN[KeyEvent.VK_CONTROL]) {
+        if (e.isControlDown()) {
           cam.setZoom(
             e.getWheelRotation()<0 ? cam.getZoom()*1.1 : cam.getZoom()/1.1, 
             mousePos.subtract(screenSizeX*0.5, screenSizeY*0.5)
           );
           return;
         }
+
         if(e.isShiftDown()) {
-          cam.addOffset(new Vector2(-e.getPreciseWheelRotation()*100, 0));
+          cam.addOffset(
+            new Vector2(-e.getPreciseWheelRotation()*100, 0)
+          );
           return;
         }
-        cam.addOffset(new Vector2(0, -e.getPreciseWheelRotation()*100));
+        
+        cam.addOffset(
+          new Vector2(0, -e.getPreciseWheelRotation()*100)
+        );
       }
     });
     
