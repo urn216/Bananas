@@ -59,7 +59,7 @@ public abstract class Core {
   public static final Vector2 DEFAULT_SCREEN_SIZE = new Vector2(1920, 1080);
   
   public static final Settings GLOBAL_SETTINGS;
-
+  
   public static final String BLACKLISTED_CHARS = "/\\.?!*\n";
   
   public static final double EDGE_SCROLL_BOUNDS = 0.02;
@@ -83,7 +83,7 @@ public abstract class Core {
   private static boolean quit = false;
   
   private static int toolBarLeft, toolBarRight, toolBarTop, toolBarBot;
-
+  
   private static Vector2I mousePos = new Vector2I();
   private static Vector2I mousePre = new Vector2I();
   private static Vector2I mouseBnd = new Vector2I();
@@ -91,7 +91,7 @@ public abstract class Core {
   private static boolean boundingBox = false;
   private static Vector2I boundIndex = new Vector2I();
   private static TileGrid[][] boundTiles = null;
-
+  
   private static final Map<TilePiece, Vector2> selectedTileScreenCoordinates = new HashMap<TilePiece, Vector2>();
   
   private static Scene currentScene;
@@ -127,7 +127,7 @@ public abstract class Core {
     GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     smallScreenX = gd.getDisplayMode().getWidth()/2;
     smallScreenY = gd.getDisplayMode().getHeight()/2;
-
+    
     screenSizeX = smallScreenX;
     screenSizeY = smallScreenY;
     
@@ -150,7 +150,7 @@ public abstract class Core {
         // System.out.println(screenSizeX + ", " + screenSizeY);
       }
     });
-
+    
     GLOBAL_SETTINGS = new Settings();
     
     SPLASH = new Decal(screenSizeX/2, screenSizeY/2, "splash.png", false);
@@ -185,20 +185,20 @@ public abstract class Core {
   public static void toggleFullscreen() {
     setFullscreen(!isFullScreen());
   }
-
+  
   /**
-   * A helper method to check whether or not the window is maximized
-   * 
-   * @return true if the window is maximized
-   */
+  * A helper method to check whether or not the window is maximized
+  * 
+  * @return true if the window is maximized
+  */
   public static boolean isFullScreen() {
     return FRAME.getExtendedState() == JFrame.MAXIMIZED_BOTH && FRAME.isUndecorated();
   }
-
+  
   /**
-   * A helper method that sets the fullscreen state for the window
-   * 
-   * @param maximize whether or not the screen should me maximized
+  * A helper method that sets the fullscreen state for the window
+  * 
+  * @param maximize whether or not the screen should me maximized
   */
   public static void setFullscreen(boolean maximize) {
     FRAME.removeNotify();
@@ -218,7 +218,7 @@ public abstract class Core {
     }
     FRAME.setVisible(true);
     FRAME.requestFocus();
-
+    
     screenSizeX = FRAME.getWidth()  - toolBarLeft - toolBarRight;
     screenSizeY = FRAME.getHeight() - toolBarTop  - toolBarBot  ;
   }
@@ -332,12 +332,12 @@ public abstract class Core {
       } catch(InterruptedException e){System.out.println(e); System.exit(0);}
     }
   }
-
+  
   /**
-   * Paints the contents of the program to the given {@code Graphics} object.
-   * 
-   * @param gra the supplied {@code Graphics} object
-   */
+  * Paints the contents of the program to the given {@code Graphics} object.
+  * 
+  * @param gra the supplied {@code Graphics} object
+  */
   public static void paintComponent(Graphics gra) {
     Graphics2D g = (Graphics2D) gra.create();
     
@@ -423,7 +423,7 @@ public abstract class Core {
         updateMousePos(e);
         
         MOUSE_DOWN[e.getButton()] = false;
-          
+        
         currentScene.unsetIn();
         
         //left click
@@ -432,7 +432,7 @@ public abstract class Core {
           
           Vector2I ind = currentScene.convertToIndex(mousePos, cam);
           if (boundingBox) currentScene.selectTiles(currentScene.convertToIndex(mouseBnd, cam), ind);
-
+          
           if (boundTiles != null) {
             currentScene.doMove(boundTiles, ind.subtract(boundIndex));
           }
@@ -448,12 +448,27 @@ public abstract class Core {
           return;
         }
       }
+      
+      @Override
+      public void mouseExited(MouseEvent e) {
+        mousePos = new Vector2I(screenSizeX/2, screenSizeY/2);
+      }
     });
     
     FRAME.addMouseWheelListener(new MouseAdapter() {
       public void mouseWheelMoved(MouseWheelEvent e) {
-        double z = e.getWheelRotation()<0 ? cam.getZoom()*1.1 : cam.getZoom()/1.1;
-        cam.setZoom(z, mousePos.subtract(screenSizeX*0.5, screenSizeY*0.5));
+        if (KEY_DOWN[KeyEvent.VK_CONTROL]) {
+          cam.setZoom(
+            e.getWheelRotation()<0 ? cam.getZoom()*1.1 : cam.getZoom()/1.1, 
+            mousePos.subtract(screenSizeX*0.5, screenSizeY*0.5)
+          );
+          return;
+        }
+        if(e.isShiftDown()) {
+          cam.addOffset(new Vector2(-e.getPreciseWheelRotation()*100, 0));
+          return;
+        }
+        cam.addOffset(new Vector2(0, -e.getPreciseWheelRotation()*100));
       }
     });
     
@@ -510,10 +525,10 @@ public abstract class Core {
     }
     
     /**
-     * Updates the program's understanding of the location of the mouse cursor after a supplied {@code MouseEvent}.
-     * 
-     * @param e the {@code MouseEvent} to determine the cursor's current position from
-     */
+    * Updates the program's understanding of the location of the mouse cursor after a supplied {@code MouseEvent}.
+    * 
+    * @param e the {@code MouseEvent} to determine the cursor's current position from
+    */
     private static void updateMousePos(MouseEvent e) {
       int x = e.getX() - toolBarLeft;
       int y = e.getY() - toolBarTop;
@@ -521,15 +536,15 @@ public abstract class Core {
       
       UIController.cursorMove(mousePos);
     }
-
+    
     /**
-     * Performs dragging of tiles around the board
-     */
+    * Performs dragging of tiles around the board
+    */
     private static void leftMouseAction() {
       if (!MOUSE_DOWN[1]) return;
-
+      
       currentScene.pressTile(currentScene.convertToIndex(mousePos, cam));
-
+      
       if (boundingBox) return;
       
       if (boundTiles == null) {
@@ -537,12 +552,12 @@ public abstract class Core {
         boundTiles = calculateOffsetGrid();
         selectedTileScreenCoordinates.clear();
       }
-
+      
       for (TileGrid t : currentScene.getSelectedTiles()) {
         selectedTileScreenCoordinates.put(t.getTilePiece(), mousePos.add((t.x-boundIndex.x)*TileGrid.TILE_SIZE*cam.getZoom(), (t.y-boundIndex.y)*TileGrid.TILE_SIZE*cam.getZoom()));
       }
     }
-
+    
     private static TileGrid[][] calculateOffsetGrid() {
       int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
       List<TileGrid> selectedTiles = currentScene.getSelectedTiles();
@@ -556,10 +571,10 @@ public abstract class Core {
       }
       return res;
     }
-  
+    
     /**
-     * moves the camera around the scene
-     */
+    * moves the camera around the scene
+    */
     private static void cameraMovement() {
       if (!UIController.isMode(UIState.DEFAULT)) return;
       if (MOUSE_DOWN[2] || MOUSE_DOWN[3]) {
@@ -569,27 +584,27 @@ public abstract class Core {
       }
       //Left
       if (
-        KEY_DOWN[KeyEvent.VK_LEFT] || 
-        KEY_DOWN[KeyEvent.VK_A   ] || 
-        mousePos.x < EDGE_SCROLL_BOUNDS*screenSizeX
+      KEY_DOWN[KeyEvent.VK_LEFT] || 
+      KEY_DOWN[KeyEvent.VK_A   ] || 
+      mousePos.x < EDGE_SCROLL_BOUNDS*screenSizeX
       ) cam.addOffset(new Vector2(10+15*cam.getZoom(), 0) );
       //Up
       if (
-        KEY_DOWN[KeyEvent.VK_UP] || 
-        KEY_DOWN[KeyEvent.VK_W ] || 
-        mousePos.y < EDGE_SCROLL_BOUNDS*screenSizeY
+      KEY_DOWN[KeyEvent.VK_UP] || 
+      KEY_DOWN[KeyEvent.VK_W ] || 
+      mousePos.y < EDGE_SCROLL_BOUNDS*screenSizeY
       ) cam.addOffset(new Vector2(0, 10+15*cam.getZoom()) );
       //Right
       if (
-        KEY_DOWN[KeyEvent.VK_RIGHT] || 
-        KEY_DOWN[KeyEvent.VK_D    ] || 
-        mousePos.x > screenSizeX - EDGE_SCROLL_BOUNDS*screenSizeX
+      KEY_DOWN[KeyEvent.VK_RIGHT] || 
+      KEY_DOWN[KeyEvent.VK_D    ] || 
+      mousePos.x > screenSizeX - EDGE_SCROLL_BOUNDS*screenSizeX
       ) cam.addOffset(new Vector2(-10-15*cam.getZoom(), 0));
       //Down
       if (
-        KEY_DOWN[KeyEvent.VK_DOWN] || 
-        KEY_DOWN[KeyEvent.VK_S   ] || 
-        mousePos.y > screenSizeY - EDGE_SCROLL_BOUNDS*screenSizeY
+      KEY_DOWN[KeyEvent.VK_DOWN] || 
+      KEY_DOWN[KeyEvent.VK_S   ] || 
+      mousePos.y > screenSizeY - EDGE_SCROLL_BOUNDS*screenSizeY
       ) cam.addOffset(new Vector2(0, -10-15*cam.getZoom()));
     }
   }
