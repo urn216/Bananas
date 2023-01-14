@@ -22,7 +22,7 @@ public abstract class Scene
 {
   protected final int mapSX;
   protected final int mapSY;
-  protected final TileGrid[][] map; //TODO add other players' boards
+  protected final TileGrid[][][] maps;
   protected final TileGrid[][] pile;
   
   protected final Decal bg;
@@ -41,10 +41,10 @@ public abstract class Scene
    */
   public static final Scene localGame() {return new LocalGame();}
 
-  protected Scene(int mapSX, int mapSY, TileGrid[][] map, TileGrid[][] pile, Decal bg) {
+  protected Scene(int mapSX, int mapSY, TileGrid[][][] maps, TileGrid[][] pile, Decal bg) {
     this.mapSX = mapSX;
     this.mapSY = mapSY;
-    this.map = map;
+    this.maps = maps;
     this.pile = pile;
     this.bg = bg;
   }
@@ -70,7 +70,7 @@ public abstract class Scene
    * @param p the index to get the tile from
    * @return the {@code TileGrid} at the given index
    */
-  private TileGrid getTile(Vector2I p) {return p.y >= mapSY ? map[p.x][p.y-mapSY] : pile[p.x][p.y];}
+  private TileGrid getTile(Vector2I p) {return p.y >= mapSY ? maps[Client.getPlayerNum()][p.x][p.y-mapSY] : pile[p.x][p.y];}
   
   /**
    * assesses whether or not a given index is a valid location within the scene
@@ -89,6 +89,8 @@ public abstract class Scene
    */
   public List<TileGrid> getSelectedTiles() {
     List<TileGrid> selectedTiles = new ArrayList<TileGrid>();
+
+    TileGrid[][] map = maps[Client.getPlayerNum()];
     
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
@@ -104,6 +106,8 @@ public abstract class Scene
    * @return true if there are tiles in the current selection
    */
   public boolean hasSelectedTiles() {
+    TileGrid[][] map = maps[Client.getPlayerNum()];
+
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
         if (map[i][j].isSelected()) return true;
@@ -201,6 +205,9 @@ public abstract class Scene
    * Deselects all the tiles in the current selection.
    */
   public void deselectTiles() {
+
+    TileGrid[][] map = maps[Client.getPlayerNum()];
+
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
         map[i][j].deselect();
@@ -220,7 +227,7 @@ public abstract class Scene
    *        <li>False - to place into the player's personal board </li>
    */
   public void placeTile(Vector2I p, TilePiece piece, int playerNum) {
-    if (playerNum != Client.getPlayerNum() && playerNum >= 0) return;
+    if (playerNum != Client.getPlayerNum() && playerNum >= 0) return; //TODO make work for other players
     placeTile(playerNum < 0 ? p : p.add(0, mapSY), piece);
   }
   
@@ -313,11 +320,14 @@ public abstract class Scene
         if (TileGrid.onScreen(cam, i-mapSX/2, j-mapSY/2)) t.draw(g, cam, i-mapSX/2, j-mapSY/2, t == pressedTile);
       }
     }
-    
-    for (int i = 0; i < mapSX; i++) {
-      for (int j = 0; j < mapSY; j++) {
-        TileGrid t = map[i][j];
-        if (TileGrid.onScreen(cam, i-mapSX/2, j+1+mapSY/2)) t.draw(g, cam, i-mapSX/2, j+1+mapSY/2, t == pressedTile);
+
+    for (int p = 0; p < 8; p++) { //TODO change 8 to number of players
+      //TODO calculate offset for this player
+      for (int i = 0; i < mapSX; i++) {
+        for (int j = 0; j < mapSY; j++) {
+          TileGrid t = maps[(p+Client.getPlayerNum())%8][i][j];
+          if (TileGrid.onScreen(cam, i-mapSX/2, j+1+mapSY/2)) t.draw(g, cam, i-mapSX/2, j+1+mapSY/2, t == pressedTile);
+        }
       }
     }
   }

@@ -11,7 +11,7 @@ class Menu extends Scene {
     super(
       0, 
       0, 
-      new TileGrid[0][0], 
+      new TileGrid[0][0][0], 
       new TileGrid[0][0], 
       new Decal(1920, 1080, "BG/Menu.png", false)
     );

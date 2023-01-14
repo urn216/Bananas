@@ -9,7 +9,7 @@ class LocalGame extends Scene {
     super(
       Core.DEFAULT_MAP_SIZE, 
       Core.DEFAULT_MAP_SIZE, 
-      emptyMap(false), 
+      emptyMaps(8), 
       emptyMap(true), 
       new Decal(1920, 1080, "BG/Menu.png", false)
     );
@@ -17,7 +17,7 @@ class LocalGame extends Scene {
 
   @Override
   public void reset() {
-    clearMap(map, mapSY);
+    for (TileGrid[][] map : maps) clearMap(map, mapSY);
     clearMap(pile, 0);
   }
 
@@ -38,5 +38,11 @@ class LocalGame extends Scene {
     TileGrid[][] map = new TileGrid[Core.DEFAULT_MAP_SIZE][Core.DEFAULT_MAP_SIZE];
     clearMap(map, pile ? 0 : Core.DEFAULT_MAP_SIZE);
     return map;
+  }
+
+  private static TileGrid[][][] emptyMaps(int num) {
+    TileGrid[][][] maps = new TileGrid[num][][];
+    for (int i = 0; i < num; i++) maps[i] = emptyMap(false);
+    return maps;
   }
 }
