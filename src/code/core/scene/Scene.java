@@ -20,10 +20,15 @@ import java.util.List;
 */
 public abstract class Scene
 {
+
   protected final int mapSX;
   protected final int mapSY;
   protected final TileGrid[][][] maps;
   protected final TileGrid[][] pile;
+
+  protected final Vector2I[] playerPositions;
+
+  protected final int numPlayers;
   
   protected final Decal bg;
   
@@ -47,6 +52,19 @@ public abstract class Scene
     this.maps = maps;
     this.pile = pile;
     this.bg = bg;
+
+    this.numPlayers = Client.getTotPlayers();
+
+    this.playerPositions = new Vector2I[] {
+      new Vector2I(  -mapSX  /2,  1+mapSY  /2),
+      new Vector2I(  -mapSX  /2, -1-mapSY*3/2),
+      new Vector2I(-1-mapSX*3/2,   -mapSY  /2),
+      new Vector2I( 1+mapSX  /2,   -mapSY  /2),
+      new Vector2I(-1-mapSX*3/2, -1-mapSY*3/2),
+      new Vector2I( 1+mapSX  /2,  1+mapSY  /2),
+      new Vector2I( 1+mapSX  /2, -1-mapSY*3/2),
+      new Vector2I(-1-mapSX*3/2,  1+mapSY  /2),
+    };
   }
   
   /**
@@ -68,9 +86,24 @@ public abstract class Scene
    * Gets a tile at a given index within the scene.
    * 
    * @param p the index to get the tile from
+   * 
    * @return the {@code TileGrid} at the given index
    */
-  private TileGrid getTile(Vector2I p) {return p.y >= mapSY ? maps[Client.getPlayerNum()][p.x][p.y-mapSY] : pile[p.x][p.y];}
+  private TileGrid getTile(Vector2I p) {
+    return p.y >= mapSY ? maps[0][p.x][p.y-mapSY] : pile[p.x][p.y];
+  }
+  
+  /**
+   * Gets a tile at a given index within the scene.
+   * 
+   * @param p the index to get the tile from
+   * @param playerNum the number of the player to get the chosen tile from
+   * 
+   * @return the {@code TileGrid} at the given index
+   */
+  private TileGrid getTile(Vector2I p, int playerNum) {
+    return playerNum >= 0 ? maps[(playerNum - Client.getPlayerNum() + numPlayers)%numPlayers][p.x][p.y] : pile[p.x][p.y];
+  }
   
   /**
    * assesses whether or not a given index is a valid location within the scene
@@ -90,7 +123,7 @@ public abstract class Scene
   public List<TileGrid> getSelectedTiles() {
     List<TileGrid> selectedTiles = new ArrayList<TileGrid>();
 
-    TileGrid[][] map = maps[Client.getPlayerNum()];
+    TileGrid[][] map = maps[0];
     
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
@@ -106,7 +139,7 @@ public abstract class Scene
    * @return true if there are tiles in the current selection
    */
   public boolean hasSelectedTiles() {
-    TileGrid[][] map = maps[Client.getPlayerNum()];
+    TileGrid[][] map = maps[0];
 
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
@@ -206,7 +239,7 @@ public abstract class Scene
    */
   public void deselectTiles() {
 
-    TileGrid[][] map = maps[Client.getPlayerNum()];
+    TileGrid[][] map = maps[0];
 
     for (int i = 0; i < mapSX; i++) {
       for (int j = 0; j < mapSY; j++) {
@@ -222,28 +255,11 @@ public abstract class Scene
    * 
    * @param p The index within the chosen board to place the piece
    * @param piece The piece to place
-   * @param pile <ul> 
-   *        <li>True - to place into the central pile </li>
-   *        <li>False - to place into the player's personal board </li>
+   * @param playerNum The player number to place a tile for, or -1 for the central pile
    */
   public void placeTile(Vector2I p, TilePiece piece, int playerNum) {
-    if (playerNum != Client.getPlayerNum() && playerNum >= 0) return; //TODO make work for other players
-    placeTile(playerNum < 0 ? p : p.add(0, mapSY), piece);
+    if (validate(p)) getTile(p, playerNum).place(piece);
   }
-  
-  /**
-   * Places a {@code TilePiece} into the scene at a given index.
-   * 
-   * @param p The index within the scene to place the piece
-   * @param piece The piece to place
-   */
-  public void placeTile(Vector2I p, TilePiece piece) {
-    if (validate(p)) getTile(p).place(piece);
-  }
-  
-  // public void removeTile(Vector2I p) {
-  //   if (validate(p)) getTile(p).unPlace();
-  // }
   
   /**
    * Resets all the tiles in the scene to their default 'out' state.
@@ -264,7 +280,7 @@ public abstract class Scene
       for (; y < tilesToMove[x].length && y >= 0; y+=yi) {
         TileGrid fromTile = tilesToMove[x][y];
 
-        if (fromTile == null) continue;
+        if (fromTile == null || !fromTile.isPlaced()) continue;
 
         Vector2I fromPos = fromTile.getPos();
         Vector2I toPos   = fromPos.add(offset);
@@ -311,24 +327,5 @@ public abstract class Scene
    * @param g the {@code Graphics2D} object to draw to
    * @param cam the {@code Camera} to view the scene through
    */
-  public void draw(Graphics2D g, Camera cam) {
-    bg.draw(g);
-    
-    for (int i = 0; i < mapSX; i++) {
-      for (int j = 0; j < mapSY; j++) {
-        TileGrid t = pile[i][j];
-        if (TileGrid.onScreen(cam, i-mapSX/2, j-mapSY/2)) t.draw(g, cam, i-mapSX/2, j-mapSY/2, t == pressedTile);
-      }
-    }
-
-    for (int p = 0; p < 8; p++) { //TODO change 8 to number of players
-      //TODO calculate offset for this player
-      for (int i = 0; i < mapSX; i++) {
-        for (int j = 0; j < mapSY; j++) {
-          TileGrid t = maps[(p+Client.getPlayerNum())%8][i][j];
-          if (TileGrid.onScreen(cam, i-mapSX/2, j+1+mapSY/2)) t.draw(g, cam, i-mapSX/2, j+1+mapSY/2, t == pressedTile);
-        }
-      }
-    }
-  }
+  public abstract void draw(Graphics2D g, Camera cam);
 }

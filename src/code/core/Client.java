@@ -92,6 +92,12 @@ public abstract class Client {
   public static int getPlayerNum() {
     return playerNum;
   }
+
+  public static int getTotPlayers() {
+    int tot = 0;
+    for (byte[] player : players) if (player != null) tot++;
+    return tot;
+  }
   
   /**
   * Toggles this player's ready status for the lobby.
