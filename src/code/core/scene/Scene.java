@@ -295,12 +295,13 @@ public abstract class Scene
         if (fromPos.y >= mapSY) {fromPos = fromPos.subtract(0, mapSY); fromPile = false;}
         if (toPos.y   >= mapSY) {toPos   = toPos  .subtract(0, mapSY); toPile   = false;}
 
-        TilePiece toPiece = toTile.getTilePiece();
+        TilePiece fromPiece = fromTile.getTilePiece();
+        TilePiece toPiece   = toTile.getTilePiece();
         char toLetter = toPiece != null ? toPiece.letter : '[';
         
         Client.doMove(fromPos, fromTile.getTilePiece().letter, fromPile, toPos, toLetter, toPile);
-        toTile  .place(toPile   ? fromTile.getTilePiece().hide() : fromTile.getTilePiece().reveal());
-        fromTile.place(fromPile ? toPiece.hide()                 : toPiece.reveal()                );
+        toTile  .place(fromPiece == null ? null : toPile   ? fromPiece.hide() : fromPiece.reveal());
+        fromTile.place(toPiece   == null ? null : fromPile ? toPiece.hide()   : toPiece.reveal()  );
       }
     }
     unsetIn();

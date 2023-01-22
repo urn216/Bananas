@@ -29,6 +29,8 @@ import code.ui.UIState;
 abstract class Controls {
   
   public static final double EDGE_SCROLL_BOUNDS = 0.02;
+
+  private static double scrollSens = 10;
   
   public static final boolean[] KEY_DOWN = new boolean[65536];
   public static final boolean[] MOUSE_DOWN = new boolean[Math.max(MouseInfo.getNumberOfButtons(), 3)];
@@ -47,6 +49,7 @@ abstract class Controls {
   * Starts up all the listeners for the window. Only to be called once on startup.
   */
   public static void initialiseControls(JFrame FRAME) {
+    scrollSens = Core.GLOBAL_SETTINGS.getSetting("scrollSensitivity");
     
     //Mouse Controls
     FRAME.addMouseMotionListener(new MouseAdapter() {
@@ -140,13 +143,13 @@ abstract class Controls {
         
         if(e.isShiftDown()) {
           Core.getCam().addOffset(
-          new Vector2(-e.getPreciseWheelRotation()*100, 0)
+          new Vector2(-e.getPreciseWheelRotation()*scrollSens*20, 0)
           );
           return;
         }
         
         Core.getCam().addOffset(
-        new Vector2(0, -e.getPreciseWheelRotation()*100)
+        new Vector2(0, -e.getPreciseWheelRotation()*scrollSens*20)
         );
       }
     });
@@ -196,6 +199,10 @@ abstract class Controls {
         }
       }
     });
+  }
+
+  public static void updateScrollSensitivity(int v) {
+    scrollSens = v;
   }
   
   /**

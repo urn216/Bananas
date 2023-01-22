@@ -201,6 +201,17 @@ class UICreator {
     },
     new boolean[]{false, false, true, false}
     );
+
+    UIElement optgme = new ElemList(
+    new Vector2(0.38, 0.28),
+    new Vector2(0.62, 0.28+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2)),
+    COMPON_HEIGHT,
+    BUFFER_HEIGHT,
+    new UIInteractable[]{
+      new UISlider("Scroll Sensitivity: %d", () -> Core.GLOBAL_SETTINGS.getSetting("scrollSensitivity"), (v) -> {Controls.updateScrollSensitivity(v);Core.GLOBAL_SETTINGS.setSetting("scrollSensitivity", v);}, 1, 10),
+    },
+    new boolean[]{false, false, true, false}
+    );
     
     UIComponent[] lobbyList = new UIComponent[Server.MAX_PLAYERS];
     
@@ -272,6 +283,9 @@ class UICreator {
     mainMenu.addMode(UIState.AUDIO, title, UIState.OPTIONS, checkSettings);
     mainMenu.addMode(UIState.AUDIO, options);
     mainMenu.addMode(UIState.AUDIO, optaud);
+    mainMenu.addMode(UIState.GAMEPLAY, title, UIState.OPTIONS, checkSettings);
+    mainMenu.addMode(UIState.GAMEPLAY, options);
+    mainMenu.addMode(UIState.GAMEPLAY, optgme);
     mainMenu.addMode(UIState.LOBBY, lobbyClientList, UIState.DEFAULT, Core::toMenu);
     mainMenu.addMode(UIState.LOBBY_HOST, lobbyClientList, UIState.DEFAULT, Core::toMenu);
     mainMenu.addMode(UIState.LOBBY_HOST, lobbyHostStart);
@@ -343,6 +357,19 @@ class UICreator {
     },
     new boolean[]{false, true, true, true}
     );
+
+    UIElement optgme = new ElemList(
+    new Vector2(0.38, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT)/2),
+    new Vector2(0.62, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT)/2),
+    COMPON_HEIGHT,
+    BUFFER_HEIGHT,
+    new UIInteractable[]{
+      new UISlider("Scroll Sensitivity: %d", () -> Core.GLOBAL_SETTINGS.getSetting("scrollSensitivity"), (v) -> {Controls.updateScrollSensitivity(v);Core.GLOBAL_SETTINGS.setSetting("scrollSensitivity", v);}, 1, 10),
+      new UIButton("Back"                  , UIController::back),
+    },
+    new boolean[]{false, true, true, true}
+    );
+
     HUD.setModeParent(UIState.DEFAULT, UIState.PAUSED);
     HUD.addMode(UIState.PAUSED, greyed, UIState.DEFAULT);
     HUD.addMode(UIState.PAUSED, outPause);
@@ -350,6 +377,8 @@ class UICreator {
     HUD.addMode(UIState.OPTIONS, options);
     HUD.addMode(UIState.AUDIO, greyed, UIState.OPTIONS, checkSettings);
     HUD.addMode(UIState.AUDIO, optaud);
+    HUD.addMode(UIState.GAMEPLAY, greyed, UIState.OPTIONS, checkSettings);
+    HUD.addMode(UIState.GAMEPLAY, optgme);
     
     HUD.addElement(settingsChanged);
     

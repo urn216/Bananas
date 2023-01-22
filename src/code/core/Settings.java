@@ -28,6 +28,7 @@ class Settings {
   }
 
   public Integer getSetting(String name) {
+    if (settings.get(name) == null) resetToDefault();
     return settings.get(name);
   }
 
@@ -64,6 +65,7 @@ class Settings {
     + "soundFX " + 100 + "\n"
     + "soundMusic " + 100 + "\n"
     + "subtitles " + 0 + "\n"
+    + "scrollSensitivity " + 5 + "\n"
     + "nickname " + "" + "\n"
     );
     load();
