@@ -130,7 +130,7 @@ abstract class Controls {
     
     FRAME.addMouseWheelListener(new MouseAdapter() {
       public void mouseWheelMoved(MouseWheelEvent e) {
-        if (e.isControlDown()) {
+        if (KEY_DOWN[KeyEvent.VK_CONTROL] || KEY_DOWN[KeyEvent.VK_META]) {
           Core.getCam().setZoom(
           e.getWheelRotation()<0 ? Core.getCam().getZoom()*1.1 : Core.getCam().getZoom()/1.1, 
           mousePos.subtract(Core.screenWidth()*0.5, Core.screenHeight()*0.5)
@@ -215,7 +215,7 @@ abstract class Controls {
   * Performs dragging of tiles around the board
   */
   public static void leftMouseAction() {
-    if (!MOUSE_DOWN[1]) return;
+    if (!MOUSE_DOWN[1] || KEY_DOWN[KeyEvent.VK_META]) return;
     
     Core.getCurrentScene().pressTile(Core.getCurrentScene().convertToIndex(mousePos, Core.getCam()));
     
@@ -243,7 +243,7 @@ abstract class Controls {
   */
   public static void cameraMovement() {
     if (!UIController.isMode(UIState.DEFAULT)) return;
-    if (MOUSE_DOWN[2] || MOUSE_DOWN[3]) {
+    if (MOUSE_DOWN[2] || MOUSE_DOWN[3] || (MOUSE_DOWN[1] && KEY_DOWN[KeyEvent.VK_META])) {
       Core.getCam().addOffset(mousePos.subtract(mousePre));
       mousePre = mousePos;
       return;

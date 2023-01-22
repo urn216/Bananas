@@ -299,8 +299,8 @@ public abstract class Scene
         char toLetter = toPiece != null ? toPiece.letter : '[';
         
         Client.doMove(fromPos, fromTile.getTilePiece().letter, fromPile, toPos, toLetter, toPile);
-        toTile  .place(fromTile.getTilePiece());
-        fromTile.place(toPiece                );
+        toTile  .place(toPile   ? fromTile.getTilePiece().hide() : fromTile.getTilePiece().reveal());
+        fromTile.place(fromPile ? toPiece.hide()                 : toPiece.reveal()                );
       }
     }
     unsetIn();

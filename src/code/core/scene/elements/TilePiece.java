@@ -45,6 +45,10 @@ public class TilePiece implements Comparable<TilePiece> {
   public TilePiece reveal() {
     return new TilePiece(letter, false);
   }
+
+  public TilePiece hide() {
+    return new TilePiece(letter, true);
+  }
   
   /**
   * Draws the tile to the screen centred on the given position
