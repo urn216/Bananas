@@ -20,12 +20,12 @@ public abstract class IOHelp {
   //                              FILE TRANSFER HELPERS
   //-------------------------------------------------------------------------------------
   
-  public static final void saveToFile(String filename, String content) {
+  public static final void saveToFile(String filename, String... content) {
     try {
       File f = new File(filename);
       f.createNewFile();
       PrintStream out = new PrintStream(f);
-      out.print(content);
+      for (String s : content) out.print(s);
       out.close();
     } catch(IOException e){System.err.println("Saving failed " + e);}
   }

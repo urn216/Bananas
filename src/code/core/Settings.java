@@ -9,6 +9,16 @@ import java.util.TreeMap;
 class Settings {
   private static final String LOCATION = "../settings.txt";
 
+  private static final String[] DEFAULT_SETTINGS = {
+    "fullScreen"        , " " + "true"  + "\n",
+    "soundMaster"       , " " + 100     + "\n",
+    "soundFX"           , " " + 100     + "\n",
+    "soundMusic"        , " " + 100     + "\n",
+    "subtitles"         , " " + "false" + "\n",
+    "scrollSensitivity" , " " + 5       + "\n",
+    "nickname"          , " " + ""      + "\n",
+  };
+
   private final SortedMap<String, String> settings = new TreeMap<String, String>();
 
   private boolean changed = false;
@@ -26,12 +36,19 @@ class Settings {
   }
 
   public int getIntSetting(String name) {
-    if (settings.get(name) == null) resetToDefault(); //TODO find a better way to achieve something similar
     return Integer.parseInt(settings.get(name));
   }
 
   public void setIntSetting(String name, int value) {
     if (value != Integer.parseInt(settings.replace(name, "" + value))) changed = true;
+  }
+
+  public double getDoubleSetting(String name) {
+    return Double.parseDouble(settings.get(name));
+  }
+
+  public void setDoubleSetting(String name, double value) {
+    if (value != Double.parseDouble(settings.replace(name, "" + value))) changed = true;
   }
 
   public boolean getBoolSetting(String name) {
@@ -55,15 +72,7 @@ class Settings {
   }
 
   public void resetToDefault() {
-    IOHelp.saveToFile(LOCATION, ""
-    + "fullScreen "        + "true"  + "\n"
-    + "soundMaster "       + 100     + "\n"
-    + "soundFX "           + 100     + "\n"
-    + "soundMusic "        + 100     + "\n"
-    + "subtitles "         + "false" + "\n"
-    + "scrollSensitivity " + 5       + "\n"
-    + "nickname "          + ""      + "\n"
-    );
+    IOHelp.saveToFile(LOCATION, DEFAULT_SETTINGS);
     load();
   }
 
@@ -72,8 +81,13 @@ class Settings {
 
     settings.clear();
 
-    for (String line : lines) {
-      String[] entry = line.split(" ", 2);
+    for (int i = 0; i < lines.size(); i++) {
+      String[] entry = lines.get(i).split(" ", 2);
+
+      if (!entry[0].equals(DEFAULT_SETTINGS[i*2])) {
+        resetToDefault();
+        return;
+      }
 
       if (entry[0].equals("fullScreen")) Core.setFullscreen(entry[1].equals("true"));
 
@@ -90,14 +104,4 @@ class Settings {
     }
     return res;
   }
-
-  private static final String[] DEFAULT_SETTINGS = {//TODO finish
-    "fullScreen " + 1 + "\n",
-    "soundMaster " + 100 + "\n",
-    "soundFX " + 100 + "\n",
-    "soundMusic " + 100 + "\n",
-    "subtitles " + 0 + "\n",
-    "scrollSensitivity " + 5 + "\n",
-    "nickname " + "" + "\n"
-  };
 }
