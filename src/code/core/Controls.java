@@ -49,7 +49,7 @@ abstract class Controls {
   * Starts up all the listeners for the window. Only to be called once on startup.
   */
   public static void initialiseControls(JFrame FRAME) {
-    scrollSens = Core.GLOBAL_SETTINGS.getSetting("scrollSensitivity");
+    scrollSens = Core.GLOBAL_SETTINGS.getIntSetting("scrollSensitivity");
     
     //Mouse Controls
     FRAME.addMouseMotionListener(new MouseAdapter() {

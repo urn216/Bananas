@@ -210,7 +210,7 @@ public abstract class Client {
   * @throws IOException if there's an issue holding a connection to the server during the writing process
   */
   private static void handleUserDataRequest() throws IOException {
-    writeToServer(IOHelp.USR_SND, Core.GLOBAL_SETTINGS.getNickname().getBytes());
+    writeToServer(IOHelp.USR_SND, Core.GLOBAL_SETTINGS.getStringSetting("nickname").getBytes());
   }
   
   /**

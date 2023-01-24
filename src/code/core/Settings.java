@@ -9,41 +9,37 @@ import java.util.TreeMap;
 class Settings {
   private static final String LOCATION = "../settings.txt";
 
-  private final SortedMap<String, Integer> settings = new TreeMap<String, Integer>();
-
-  private String nickname = "";
+  private final SortedMap<String, String> settings = new TreeMap<String, String>();
 
   private boolean changed = false;
-
-  public String getNickname() {return nickname;}
-
-  public void setNickname(String nickname) {
-    if (this.nickname.equals(nickname)) return;
-    this.nickname = nickname;
-    changed = true;
-  }
 
   public Settings() {
     revertChanges();
   }
 
-  public Integer getSetting(String name) {
-    if (settings.get(name) == null) resetToDefault();
+  public String getStringSetting(String name) {
     return settings.get(name);
   }
 
-  public void setSetting(String name, Integer value) {
-    settings.replace(name, value);
-    changed = true;
+  public void setStringSetting(String name, String value) {
+    if (!value.equals(settings.replace(name, "" + value))) changed = true;
   }
 
-  public Boolean getBoolSetting(String name) {
-    return settings.get(name) == 0 ? false : true;
+  public int getIntSetting(String name) {
+    if (settings.get(name) == null) resetToDefault(); //TODO find a better way to achieve something similar
+    return Integer.parseInt(settings.get(name));
   }
 
-  public void setBoolSetting(String name, Boolean value) {
-    settings.replace(name, value ? 1 : 0);
-    changed = true;
+  public void setIntSetting(String name, int value) {
+    if (value != Integer.parseInt(settings.replace(name, "" + value))) changed = true;
+  }
+
+  public boolean getBoolSetting(String name) {
+    return Boolean.parseBoolean(settings.get(name));
+  }
+
+  public void setBoolSetting(String name, boolean value) {
+    if (value != Boolean.parseBoolean(settings.replace(name, value ? "true" : "false"))) changed = true;
   }
 
   public boolean hasChanged() {return changed;}
@@ -60,13 +56,13 @@ class Settings {
 
   public void resetToDefault() {
     IOHelp.saveToFile(LOCATION, ""
-    + "fullScreen " + 1 + "\n"
-    + "soundMaster " + 100 + "\n"
-    + "soundFX " + 100 + "\n"
-    + "soundMusic " + 100 + "\n"
-    + "subtitles " + 0 + "\n"
-    + "scrollSensitivity " + 5 + "\n"
-    + "nickname " + "" + "\n"
+    + "fullScreen "        + "true"  + "\n"
+    + "soundMaster "       + 100     + "\n"
+    + "soundFX "           + 100     + "\n"
+    + "soundMusic "        + 100     + "\n"
+    + "subtitles "         + "false" + "\n"
+    + "scrollSensitivity " + 5       + "\n"
+    + "nickname "          + ""      + "\n"
     );
     load();
   }
@@ -79,14 +75,9 @@ class Settings {
     for (String line : lines) {
       String[] entry = line.split(" ", 2);
 
-      if (entry[0].equals("nickname")) {
-        nickname = entry.length > 1 ? entry[1] : "";
-        for (int i = 2; i < entry.length; i++) nickname += " " + entry[i];
-        continue;
-      }
-      if (entry[0].equals("fullScreen")) Core.setFullscreen(entry[1].equals("1"));
+      if (entry[0].equals("fullScreen")) Core.setFullscreen(entry[1].equals("true"));
 
-      settings.put(entry[0], Integer.valueOf(entry[1]));
+      settings.put(entry[0], entry[1]);
       // System.out.println(entry[0] + ", " + Integer.valueOf(entry[1]));
     }
     changed = false;
@@ -94,10 +85,19 @@ class Settings {
 
   public String toString() {
     String res = "";
-    for (SortedMap.Entry<String, Integer> e : settings.entrySet()) {
+    for (SortedMap.Entry<String, String> e : settings.entrySet()) {
       res += e.getKey() + " " + e.getValue() + "\n";
     }
-    res += "nickname " + nickname;
     return res;
   }
+
+  private static final String[] DEFAULT_SETTINGS = {//TODO finish
+    "fullScreen " + 1 + "\n",
+    "soundMaster " + 100 + "\n",
+    "soundFX " + 100 + "\n",
+    "soundMusic " + 100 + "\n",
+    "subtitles " + 0 + "\n",
+    "scrollSensitivity " + 5 + "\n",
+    "nickname " + "" + "\n"
+  };
 }

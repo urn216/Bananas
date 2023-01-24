@@ -179,7 +179,7 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UITextfield("Nickname"   , 16, 1, Core.GLOBAL_SETTINGS::setNickname, Core.GLOBAL_SETTINGS::getNickname                               ),
+      new UITextfield("Nickname"   , 16, 1, (s) -> Core.GLOBAL_SETTINGS.setStringSetting("nickname", s), () -> Core.GLOBAL_SETTINGS.getStringSetting("nickname")),
       new UIToggle   ("Fullscreen", Core::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.setFullscreen(b);}),
       new UIButton   ("Audio"      , () -> UIController.setMode(UIState.AUDIO)                                                               ),
       new UIButton   ("Gameplay"   , () -> UIController.setMode(UIState.GAMEPLAY)                                                            ),
@@ -194,9 +194,9 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Master: %d"   , () -> Core.GLOBAL_SETTINGS.getSetting    ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setSetting    ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> Core.GLOBAL_SETTINGS.getSetting    ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setSetting    ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> Core.GLOBAL_SETTINGS.getSetting    ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setSetting    ("soundMusic" , v), 0, 100),
+      new UISlider("Master: %d"   , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d" , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"    , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundMusic" , v), 0, 100),
       new UIToggle("Subtitles"    , () -> Core.GLOBAL_SETTINGS.getBoolSetting("subtitles")  , (v) -> Core.GLOBAL_SETTINGS.setBoolSetting("subtitles"  , v)        ),
     },
     new boolean[]{false, false, true, false}
@@ -208,7 +208,7 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Scroll Sensitivity: %d", () -> Core.GLOBAL_SETTINGS.getSetting("scrollSensitivity"), (v) -> {Controls.updateScrollSensitivity(v);Core.GLOBAL_SETTINGS.setSetting("scrollSensitivity", v);}, 1, 10),
+      new UISlider("Scroll Sensitivity: %d", () -> Core.GLOBAL_SETTINGS.getIntSetting("scrollSensitivity"), (v) -> {Controls.updateScrollSensitivity(v);Core.GLOBAL_SETTINGS.setIntSetting("scrollSensitivity", v);}, 1, 10),
     },
     new boolean[]{false, false, true, false}
     );
@@ -349,9 +349,9 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Master: %d"   , () -> Core.GLOBAL_SETTINGS.getSetting    ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setSetting    ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> Core.GLOBAL_SETTINGS.getSetting    ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setSetting    ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> Core.GLOBAL_SETTINGS.getSetting    ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setSetting    ("soundMusic" , v), 0, 100),
+      new UISlider("Master: %d"   , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d" , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"    , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundMusic" , v), 0, 100),
       new UIToggle("Subtitles"    , () -> Core.GLOBAL_SETTINGS.getBoolSetting("subtitles")  , (v) -> Core.GLOBAL_SETTINGS.setBoolSetting("subtitles"  , v)        ),
       new UIButton("Back"         , UIController::back                                                                                                          ),
     },
@@ -364,7 +364,7 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Scroll Sensitivity: %d", () -> Core.GLOBAL_SETTINGS.getSetting("scrollSensitivity"), (v) -> {Controls.updateScrollSensitivity(v);Core.GLOBAL_SETTINGS.setSetting("scrollSensitivity", v);}, 1, 10),
+      new UISlider("Scroll Sensitivity: %d", () -> Core.GLOBAL_SETTINGS.getIntSetting("scrollSensitivity"), (v) -> {Controls.updateScrollSensitivity(v);Core.GLOBAL_SETTINGS.setIntSetting("scrollSensitivity", v);}, 1, 10),
       new UIButton("Back"                  , UIController::back),
     },
     new boolean[]{false, true, true, true}
