@@ -95,12 +95,14 @@ abstract class GenerateBoard extends Board {
   private static char[] shuffleLetters(Random rand) {
     char[] res = Arrays.copyOf(LETTERS, LETTERS.length);
 
-    for (int i = res.length-1; i < 0; i--) {
+    for (int i = res.length-1; i > 0; i--) {
       int j = rand.nextInt(i+1);
 
+      // System.out.println("Swapping " + res[i] + " with " + res[j]);
       char c = res[i];
       res[i] = res[j];
       res[j] = c;
+      // System.out.println("Now have " + res[i] + " and  " + res[j]);
     }
 
     return res;

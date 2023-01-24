@@ -135,7 +135,7 @@ abstract class Controls {
       public void mouseWheelMoved(MouseWheelEvent e) {
         if (KEY_DOWN[KeyEvent.VK_CONTROL] || KEY_DOWN[KeyEvent.VK_META]) {
           Core.getCam().setZoom(
-          e.getWheelRotation()<0 ? Core.getCam().getZoom()*1.1 : Core.getCam().getZoom()/1.1, 
+          e.getWheelRotation()<0 ? Core.getCam().getZoom()*((scrollSens*0.02)+1) : Core.getCam().getZoom()/((scrollSens*0.02)+1), 
           mousePos.subtract(Core.screenWidth()*0.5, Core.screenHeight()*0.5)
           );
           return;
