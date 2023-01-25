@@ -179,11 +179,11 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UITextfield("Nickname"   , 16, 1, (s) -> Core.GLOBAL_SETTINGS.setStringSetting("nickname", s), () -> Core.GLOBAL_SETTINGS.getStringSetting("nickname")),
-      new UIToggle   ("Fullscreen", Core::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.setFullscreen(b);}),
-      new UIButton   ("Audio"      , () -> UIController.setMode(UIState.AUDIO)                                                               ),
-      new UIButton   ("Gameplay"   , () -> UIController.setMode(UIState.GAMEPLAY)                                                            ),
-      new UIButton   ("Back"       , UIController::back                                                                                      ),
+      new UITextfield("Nickname"  , 16, 1, (s) -> Core.GLOBAL_SETTINGS.setStringSetting("nickname", s), () -> Core.GLOBAL_SETTINGS.getStringSetting("nickname")),
+      new UIToggle   ("Fullscreen", Core::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.setFullscreen(b);}                  ),
+      new UIButton   ("Audio"     , () -> UIController.setMode(UIState.AUDIO)                                                                                  ),
+      new UIButton   ("Gameplay"  , () -> UIController.setMode(UIState.GAMEPLAY)                                                                               ),
+      new UIButton   ("Back"      , UIController::back                                                                                                         ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -194,9 +194,9 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Master: %d"   , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundMusic" , v), 0, 100),
+      new UISlider("Master: %d"   , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d" , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"    , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundMusic" , v), 0, 100),
       new UIToggle("Subtitles"    , () -> Core.GLOBAL_SETTINGS.getBoolSetting("subtitles")  , (v) -> Core.GLOBAL_SETTINGS.setBoolSetting("subtitles"  , v)        ),
     },
     new boolean[]{false, false, true, false}
@@ -268,31 +268,31 @@ class UICreator {
     
     ((UIButton)(lobbyHostStart.getComponents()[0])).setLockCheck(() -> !Server.allReady());
     
-    mainMenu.addMode(UIState.DEFAULT, title);
-    mainMenu.addMode(UIState.DEFAULT, outPanel);
-    mainMenu.addMode(UIState.NEW_GAME, title, UIState.DEFAULT);
-    mainMenu.addMode(UIState.NEW_GAME, playModes);
-    mainMenu.addMode(UIState.SETUP_HOST, title, UIState.NEW_GAME);
-    mainMenu.addMode(UIState.SETUP_HOST, playModes);
-    mainMenu.addMode(UIState.SETUP_HOST, hostSetup);
-    mainMenu.addMode(UIState.SETUP_CLIENT, title, UIState.NEW_GAME);
-    mainMenu.addMode(UIState.SETUP_CLIENT, playModes);
-    mainMenu.addMode(UIState.SETUP_CLIENT, clientSetup);
-    mainMenu.addMode(UIState.OPTIONS, title, UIState.DEFAULT, checkSettings);
-    mainMenu.addMode(UIState.OPTIONS, options);
-    mainMenu.addMode(UIState.AUDIO, title, UIState.OPTIONS, checkSettings);
-    mainMenu.addMode(UIState.AUDIO, options);
-    mainMenu.addMode(UIState.AUDIO, optaud);
-    mainMenu.addMode(UIState.GAMEPLAY, title, UIState.OPTIONS, checkSettings);
-    mainMenu.addMode(UIState.GAMEPLAY, options);
-    mainMenu.addMode(UIState.GAMEPLAY, optgme);
-    mainMenu.addMode(UIState.LOBBY, lobbyClientList, UIState.DEFAULT, Core::toMenu);
-    mainMenu.addMode(UIState.LOBBY_HOST, lobbyClientList, UIState.DEFAULT, Core::toMenu);
-    mainMenu.addMode(UIState.LOBBY_HOST, lobbyHostStart);
+    mainMenu.addMode(UIState.DEFAULT     , title          );
+    mainMenu.addMode(UIState.DEFAULT     , outPanel       );
+    mainMenu.addMode(UIState.NEW_GAME    , title           , UIState.DEFAULT );
+    mainMenu.addMode(UIState.NEW_GAME    , playModes      );
+    mainMenu.addMode(UIState.SETUP_HOST  , title           , UIState.NEW_GAME);
+    mainMenu.addMode(UIState.SETUP_HOST  , playModes      );
+    mainMenu.addMode(UIState.SETUP_HOST  , hostSetup      );
+    mainMenu.addMode(UIState.SETUP_CLIENT, title           , UIState.NEW_GAME);
+    mainMenu.addMode(UIState.SETUP_CLIENT, playModes      );
+    mainMenu.addMode(UIState.SETUP_CLIENT, clientSetup    );
+    mainMenu.addMode(UIState.OPTIONS     , title           , UIState.DEFAULT  , checkSettings);
+    mainMenu.addMode(UIState.OPTIONS     , options        );
+    mainMenu.addMode(UIState.AUDIO       , title           , UIState.OPTIONS  , checkSettings);
+    mainMenu.addMode(UIState.AUDIO       , options        );
+    mainMenu.addMode(UIState.AUDIO       , optaud         );
+    mainMenu.addMode(UIState.GAMEPLAY    , title           , UIState.OPTIONS  , checkSettings);
+    mainMenu.addMode(UIState.GAMEPLAY    , options        );
+    mainMenu.addMode(UIState.GAMEPLAY    , optgme         );
+    mainMenu.addMode(UIState.LOBBY       , lobbyClientList , UIState.DEFAULT  , Core::toMenu );
+    mainMenu.addMode(UIState.LOBBY_HOST  , lobbyClientList , UIState.DEFAULT  , Core::toMenu );
+    mainMenu.addMode(UIState.LOBBY_HOST  , lobbyHostStart );
     
-    mainMenu.addElement(portErr);
-    mainMenu.addElement(ipErr);
-    mainMenu.addElement(connectErr);
+    mainMenu.addElement(portErr        );
+    mainMenu.addElement(ipErr          );
+    mainMenu.addElement(connectErr     );
     mainMenu.addElement(settingsChanged);
     
     mainMenu.clear();
@@ -371,14 +371,15 @@ class UICreator {
     );
 
     HUD.setModeParent(UIState.DEFAULT, UIState.PAUSED);
-    HUD.addMode(UIState.PAUSED, greyed, UIState.DEFAULT);
-    HUD.addMode(UIState.PAUSED, outPause);
-    HUD.addMode(UIState.OPTIONS, greyed, UIState.PAUSED, checkSettings);
-    HUD.addMode(UIState.OPTIONS, options);
-    HUD.addMode(UIState.AUDIO, greyed, UIState.OPTIONS, checkSettings);
-    HUD.addMode(UIState.AUDIO, optaud);
-    HUD.addMode(UIState.GAMEPLAY, greyed, UIState.OPTIONS, checkSettings);
-    HUD.addMode(UIState.GAMEPLAY, optgme);
+
+    HUD.addMode(UIState.PAUSED  , greyed   , UIState.DEFAULT);
+    HUD.addMode(UIState.PAUSED  , outPause);
+    HUD.addMode(UIState.OPTIONS , greyed   , UIState.PAUSED  , checkSettings);
+    HUD.addMode(UIState.OPTIONS , options );
+    HUD.addMode(UIState.AUDIO   , greyed   , UIState.OPTIONS , checkSettings);
+    HUD.addMode(UIState.AUDIO   , optaud  );
+    HUD.addMode(UIState.GAMEPLAY, greyed   , UIState.OPTIONS , checkSettings);
+    HUD.addMode(UIState.GAMEPLAY, optgme  );
     
     HUD.addElement(settingsChanged);
     
