@@ -20,7 +20,6 @@ import java.util.List;
 */
 public abstract class Scene
 {
-
   protected final int mapSX;
   protected final int mapSY;
   protected final TileGrid[][][] maps;
@@ -29,6 +28,8 @@ public abstract class Scene
   protected final Vector2I[] playerPositions;
 
   protected final int numPlayers;
+  
+  protected final Camera cam;
   
   protected final Decal bg;
   
@@ -46,11 +47,12 @@ public abstract class Scene
    */
   public static final Scene localGame() {return new LocalGame();}
 
-  protected Scene(int mapSX, int mapSY, TileGrid[][][] maps, TileGrid[][] pile, Decal bg) {
+  protected Scene(int mapSX, int mapSY, TileGrid[][][] maps, TileGrid[][] pile, Camera cam, Decal bg) {
     this.mapSX = mapSX;
     this.mapSY = mapSY;
     this.maps = maps;
     this.pile = pile;
+    this.cam = cam;
     this.bg = bg;
 
     this.numPlayers = Client.getTotPlayers();
@@ -81,6 +83,11 @@ public abstract class Scene
    * @return the height of the player's board
    */
   public int getMapSY() {return mapSY;}
+
+  /**
+   * @return the camera for this scene
+   */
+  public Camera getCam() {return cam;}
   
   /**
    * Gets a tile at a given index within the scene.
@@ -316,7 +323,7 @@ public abstract class Scene
    * 
    * @return a usable index within the scene
    */
-  public Vector2I convertToIndex(Vector2 pos, Camera cam) {
+  public Vector2I convertToIndex(Vector2 pos) {
     Vector2I res = new Vector2I ((int)(((pos.x+cam.conX())/(cam.getZoom()*TileGrid.TILE_SIZE))+mapSX/2), (int)(((pos.y+cam.conY())/(cam.getZoom()*TileGrid.TILE_SIZE))+mapSX/2));
     if (res.y >= mapSY) res = res.subtract(0, 1);
     return res;
@@ -328,5 +335,5 @@ public abstract class Scene
    * @param g the {@code Graphics2D} object to draw to
    * @param cam the {@code Camera} to view the scene through
    */
-  public abstract void draw(Graphics2D g, Camera cam);
+  public abstract void draw(Graphics2D g);
 }

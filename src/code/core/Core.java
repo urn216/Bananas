@@ -31,9 +31,9 @@ enum State {
 */
 public abstract class Core {
 
-  public static final Window WINDOW = new Window();
+  public static final Window WINDOW;
   
-  public static final Settings GLOBAL_SETTINGS = new Settings();
+  public static final Settings GLOBAL_SETTINGS;
   
   public static final String BLACKLISTED_CHARS = "/\\.?!*\n";
   
@@ -51,8 +51,6 @@ public abstract class Core {
   
   private static Scene currentScene;
   
-  private static Camera cam;
-  
   /** Current game state */
   private static State state = State.SPLASH;
   
@@ -65,7 +63,11 @@ public abstract class Core {
     Core.playGame();
   }
   
-  static {    
+  static {
+    WINDOW = new Window();
+
+    GLOBAL_SETTINGS = new Settings();
+
     SPLASH = new Decal(WINDOW.screenWidth()/2, WINDOW.screenHeight()/2, "splash.png", false);
     WINDOW.FRAME.setBackground(new Color(173, 173, 173));
     
@@ -83,8 +85,8 @@ public abstract class Core {
   /**
   * @return the currently active camera
   */
-  public static Camera getCam() {
-    return cam;
+  public static Camera getActiveCam() {
+    return currentScene == null ? null : currentScene.getCam();
   }
   
   /**
@@ -94,7 +96,6 @@ public abstract class Core {
     Client.disconnect();
     Server.shutdown();
     currentScene = Scene.mainMenu();
-    cam = new Camera(new Vector2(), new Vector2(), 1);
     
     state = State.MAINMENU;
     UIController.setCurrent("Main Menu");
@@ -145,7 +146,6 @@ public abstract class Core {
   */
   public static void beginMatch() {
     currentScene = Scene.localGame();
-    cam = new Camera(new Vector2(), new Vector2(), 1);
     
     state = Server.isRunning() ? State.HOST : State.RUN;
     UIController.setCurrent("HUD");
@@ -212,12 +212,12 @@ public abstract class Core {
       
       case HOST:
       case RUN:
-      currentScene.draw(g, cam);
+      currentScene.draw(g);
       if (Controls.MOUSE_DOWN[1]) {
         if (Controls.boundingBox) UIController.drawBoundingBox(g, Controls.mouseBnd, Controls.mousePos);
         else if (Controls.boundTiles != null) {
           for (Entry<TilePiece, Vector2> pair : Controls.selectedTileScreenCoordinates.entrySet()) {
-            pair.getKey().draw(g, pair.getValue(), cam.getZoom(), false, false);
+            pair.getKey().draw(g, pair.getValue(), currentScene.getCam().getZoom(), false, false);
           }
         }
       }
@@ -226,7 +226,7 @@ public abstract class Core {
       
       case MAINMENU:
       case END:
-      currentScene.draw(g, cam);
+      currentScene.draw(g);
       UIController.draw(g, WINDOW.screenWidth(), WINDOW.screenHeight());
       break;
     }

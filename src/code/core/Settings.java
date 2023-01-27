@@ -163,10 +163,10 @@ class Settings {
         return;
       }
 
-      if (entry[0].equals("fullScreen")) Core.WINDOW.setFullscreen(entry[1].equals("true"));
+      if (entry[0].equals("fullScreen")) Core.WINDOW.setFullscreen(entry[1].equals("true"));//Don't like this very much. Change it at some point
 
       settings.put(entry[0], entry[1]);
-      // System.out.println(entry[0] + ", " + Integer.valueOf(entry[1]));
+      // System.out.println(entry[0] + ", " + entry[1]);
     }
     changed = false;
   }

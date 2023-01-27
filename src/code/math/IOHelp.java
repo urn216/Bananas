@@ -2,10 +2,13 @@ package code.math;
 
 import code.core.Core;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+
+import javax.imageio.ImageIO;
 import java.io.*;
 import java.nio.file.*;
+
+import java.awt.Desktop;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -115,6 +118,23 @@ public abstract class IOHelp {
     BufferedImage img = IOHelp.readImage(filename);
     
     return img.getRGB(0, 0, img.getHeight(), img.getHeight(), null, 0, img.getWidth());
+  }
+
+  /**
+   * If supported by the user's {@code Operating System}, 
+   * this method will attempt to open the given file path using the {@code OS}'s default application for the given file
+   * 
+   * @param filename the path to the desired file
+   * 
+   * @return {@code true} if the file was opened successfully
+   */
+  public static final boolean openProgram(String filename) {
+    if (!Desktop.isDesktopSupported()) return false;
+    try {
+      Desktop.getDesktop().open(new File(filename));
+      return true;
+    } catch (IOException e) {System.err.println("Failed to open file at " + filename);}
+    return false;
   }
   
   //-------------------------------------------------------------------------------------

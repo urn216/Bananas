@@ -14,6 +14,7 @@ import java.util.Map;
 
 import javax.swing.JFrame;
 
+import code.core.scene.elements.Camera;
 import code.core.scene.elements.TileGrid;
 import code.core.scene.elements.TilePiece;
 
@@ -75,7 +76,7 @@ abstract class Controls {
         if (e.getButton() == 1) {
           if (UIController.press()) return;
           
-          Vector2I ind = Core.getCurrentScene().convertToIndex(mousePos, Core.getCam());
+          Vector2I ind = Core.getCurrentScene().convertToIndex(mousePos);
           TileGrid pressed = Core.getCurrentScene().pressTile(ind);
           if (pressed != null && pressed.isPlaced()) {
             if (!pressed.isSelected() && Core.getCurrentScene().hasSelectedTiles()) Core.getCurrentScene().deselectTiles();
@@ -89,7 +90,7 @@ abstract class Controls {
         
         //right click
         if (e.getButton() == 3) {
-          Core.getCurrentScene().pressTile(Core.getCurrentScene().convertToIndex(mousePos, Core.getCam()));
+          Core.getCurrentScene().pressTile(Core.getCurrentScene().convertToIndex(mousePos));
           return;
         }
       }
@@ -106,8 +107,8 @@ abstract class Controls {
         if (e.getButton() == 1) {
           UIController.release();
           
-          Vector2I ind = Core.getCurrentScene().convertToIndex(mousePos, Core.getCam());
-          if (boundingBox) Core.getCurrentScene().selectTiles(Core.getCurrentScene().convertToIndex(mouseBnd, Core.getCam()), ind);
+          Vector2I ind = Core.getCurrentScene().convertToIndex(mousePos);
+          if (boundingBox) Core.getCurrentScene().selectTiles(Core.getCurrentScene().convertToIndex(mouseBnd), ind);
           
           if (boundTiles != null) {
             Core.getCurrentScene().doMove(boundTiles, ind.subtract(boundIndex));
@@ -133,22 +134,25 @@ abstract class Controls {
     
     FRAME.addMouseWheelListener(new MouseAdapter() {
       public void mouseWheelMoved(MouseWheelEvent e) {
+
+        Camera cam = Core.getActiveCam();
+
         if (KEY_DOWN[KeyEvent.VK_CONTROL] || KEY_DOWN[KeyEvent.VK_META]) {
-          Core.getCam().setZoom(
-          e.getWheelRotation()<0 ? Core.getCam().getZoom()*((scrollSens*0.02)+1) : Core.getCam().getZoom()/((scrollSens*0.02)+1), 
+          cam.setZoom(
+          e.getWheelRotation()<0 ? cam.getZoom()*((scrollSens*0.02)+1) : cam.getZoom()/((scrollSens*0.02)+1), 
           mousePos.subtract(Core.WINDOW.screenWidth()*0.5, Core.WINDOW.screenHeight()*0.5)
           );
           return;
         }
         
         if(e.isShiftDown()) {
-          Core.getCam().addOffset(
+          cam.addOffset(
           new Vector2(-e.getPreciseWheelRotation()*scrollSens*20, 0)
           );
           return;
         }
         
-        Core.getCam().addOffset(
+        cam.addOffset(
         new Vector2(0, -e.getPreciseWheelRotation()*scrollSens*20)
         );
       }
@@ -180,11 +184,11 @@ abstract class Controls {
           return;
         }
         if (keyCode == KeyEvent.VK_MINUS) {
-          Core.getCam().setZoom(Core.getCam().getZoom()/1.1);
+          Core.getActiveCam().setZoom(Core.getActiveCam().getZoom()/1.1);
           return;
         }
         if (keyCode == KeyEvent.VK_EQUALS) {
-          Core.getCam().setZoom(Core.getCam().getZoom()*1.1);
+          Core.getActiveCam().setZoom(Core.getActiveCam().getZoom()*1.1);
           return;
         }
       }
@@ -224,22 +228,24 @@ abstract class Controls {
   public static void leftMouseAction() {
     if (!MOUSE_DOWN[1] || KEY_DOWN[KeyEvent.VK_META]) return;
     
-    Core.getCurrentScene().pressTile(Core.getCurrentScene().convertToIndex(mousePos, Core.getCam()));
+    Core.getCurrentScene().pressTile(Core.getCurrentScene().convertToIndex(mousePos));
     
     if (boundingBox) return;
     
     if (boundTiles == null) {
-      if (Core.getCurrentScene().convertToIndex(mousePos, Core.getCam()).equals(boundIndex)) return;
+      if (Core.getCurrentScene().convertToIndex(mousePos).equals(boundIndex)) return;
       boundTiles = calculateOffsetGrid();
       selectedTileScreenCoordinates.clear();
     }
+
+    Camera cam = Core.getActiveCam();
     
     for (TileGrid t : Core.getCurrentScene().getSelectedTiles()) {
       selectedTileScreenCoordinates.put(
       t.getTilePiece(),
       mousePos.add(
-      (t.x-boundIndex.x)*TileGrid.TILE_SIZE*Core.getCam().getZoom(),
-      (t.y-boundIndex.y)*TileGrid.TILE_SIZE*Core.getCam().getZoom()
+      (t.x-boundIndex.x)*TileGrid.TILE_SIZE*cam.getZoom(),
+      (t.y-boundIndex.y)*TileGrid.TILE_SIZE*cam.getZoom()
       )
       );
     }
@@ -250,35 +256,39 @@ abstract class Controls {
   */
   public static void cameraMovement() {
     if (!UIController.isMode(UIState.DEFAULT)) return;
+
+    Camera cam = Core.getActiveCam();
+
     if (MOUSE_DOWN[2] || MOUSE_DOWN[3] || (MOUSE_DOWN[1] && KEY_DOWN[KeyEvent.VK_META])) {
-      Core.getCam().addOffset(mousePos.subtract(mousePre));
+      cam.addOffset(mousePos.subtract(mousePre));
       mousePre = mousePos;
       return;
     }
+
     //Left
     if (
     KEY_DOWN[KeyEvent.VK_LEFT] || 
     KEY_DOWN[KeyEvent.VK_A   ] || 
     mousePos.x < EDGE_SCROLL_BOUNDS*Core.WINDOW.screenWidth()
-    ) Core.getCam().addOffset(new Vector2(10+15*Core.getCam().getZoom(), 0) );
+    ) cam.addOffset(new Vector2(10+15*cam.getZoom(), 0) );
     //Up
     if (
     KEY_DOWN[KeyEvent.VK_UP] || 
     KEY_DOWN[KeyEvent.VK_W ] || 
     mousePos.y < EDGE_SCROLL_BOUNDS*Core.WINDOW.screenHeight()
-    ) Core.getCam().addOffset(new Vector2(0, 10+15*Core.getCam().getZoom()) );
+    ) cam.addOffset(new Vector2(0, 10+15*cam.getZoom()) );
     //Right
     if (
     KEY_DOWN[KeyEvent.VK_RIGHT] || 
     KEY_DOWN[KeyEvent.VK_D    ] || 
     mousePos.x > Core.WINDOW.screenWidth() - EDGE_SCROLL_BOUNDS*Core.WINDOW.screenWidth()
-    ) Core.getCam().addOffset(new Vector2(-10-15*Core.getCam().getZoom(), 0));
+    ) cam.addOffset(new Vector2(-10-15*cam.getZoom(), 0));
     //Down
     if (
     KEY_DOWN[KeyEvent.VK_DOWN] || 
     KEY_DOWN[KeyEvent.VK_S   ] || 
     mousePos.y > Core.WINDOW.screenHeight() - EDGE_SCROLL_BOUNDS*Core.WINDOW.screenHeight()
-    ) Core.getCam().addOffset(new Vector2(0, -10-15*Core.getCam().getZoom()));
+    ) cam.addOffset(new Vector2(0, -10-15*cam.getZoom()));
   }
   
   /**

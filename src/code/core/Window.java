@@ -3,6 +3,8 @@ package code.core;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import code.core.scene.elements.Camera;
+
 import code.math.IOHelp;
 import code.math.Vector2;
 
@@ -54,7 +56,10 @@ public final class Window {
       public void componentResized(ComponentEvent e) {
         screenSizeX = FRAME.getWidth() - toolBarLeft - toolBarRight;
         screenSizeY = FRAME.getHeight() - toolBarTop - toolBarBot;
-        if (Core.getCam() != null) {Core.getCam().resetZoom();}
+
+        Camera cam = Core.getActiveCam();
+
+        if (cam != null) {cam.resetZoom();}
         if (!isFullScreen()) {
           smallScreenX = screenSizeX;
           smallScreenY = screenSizeY;

@@ -5,7 +5,7 @@ import code.core.Core;
 import code.core.scene.elements.Camera;
 import code.core.scene.elements.Decal;
 import code.core.scene.elements.TileGrid;
-
+import code.math.Vector2;
 import code.math.Vector2I;
 
 import java.awt.Graphics2D;
@@ -17,6 +17,7 @@ class LocalGame extends Scene {
       Core.DEFAULT_MAP_SIZE, 
       emptyMaps(8), 
       emptyMap(true), 
+      new Camera(new Vector2(), new Vector2(), 1),
       new Decal(1920, 1080, "BG/Menu.png", false)
     );
   }
@@ -52,7 +53,7 @@ class LocalGame extends Scene {
     return maps;
   }
 
-  public void draw(Graphics2D g, Camera cam) {
+  public void draw(Graphics2D g) {
     bg.draw(g);
     
     for (int i = 0; i < mapSX; i++) {
