@@ -139,28 +139,6 @@ public class TileGrid
     g.setColor(TileTheme.squaOutl);
     g.draw(s);
   }
-
-  /**
-   * Checks to see if a grid element is currently visible within the bounds of a camera
-   * 
-   * @param cam the camera to try to view the grid element through
-   * @param x the x coordinate of the element to view
-   * @param y the y coordinate of the element to view
-   * 
-   * @return true if the chosen grid element is visible to the camera
-   */
-  public static boolean onScreen(Camera cam, int x, int y) {
-    double z = cam.getZoom();
-    double conX = cam.conX();
-    double conY = cam.conY();
-    Vector2I screenSize = cam.getScreenSize();
-    
-    if(( x   *TILE_SIZE)*z-conX < screenSize.x
-    && ( y   *TILE_SIZE)*z-conY < screenSize.y
-    && ((x+1)*TILE_SIZE)*z-conX >= 0
-    && ((y+1)*TILE_SIZE)*z-conY >= 0) {return true;}
-    return false;
-  }
 }
 
 // Vector2 test = new Vector2(Math.abs(opos.x-tpos.x)-(other.getWidth()+this.width)/2, Math.abs(opos.y-tpos.y)-(other.getHeight()+this.height)/2);

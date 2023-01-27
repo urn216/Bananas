@@ -6,7 +6,6 @@ import code.core.scene.elements.Decal;
 import code.core.scene.elements.TilePiece;
 import code.error.ConnectionException;
 
-import code.math.IOHelp;
 import code.math.Vector2;
 
 import code.server.Server;
@@ -14,18 +13,6 @@ import code.server.Server;
 import code.ui.UIController;
 
 import java.util.Map.Entry;
-
-import java.awt.image.BufferedImage;
-import java.awt.Insets;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentAdapter;
-
-import javax.swing.JFrame;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -43,10 +30,10 @@ enum State {
 * Core class for the currently unnamed game
 */
 public abstract class Core {
+
+  public static final Window WINDOW = new Window();
   
-  public static final Vector2 DEFAULT_SCREEN_SIZE = new Vector2(1920, 1080);
-  
-  public static final Settings GLOBAL_SETTINGS;
+  public static final Settings GLOBAL_SETTINGS = new Settings();
   
   public static final String BLACKLISTED_CHARS = "/\\.?!*\n";
   
@@ -58,9 +45,6 @@ public abstract class Core {
   private static final long START_TIME = System.currentTimeMillis();
   private static final int SPLASH_TIME = 1000;
   
-  private static final JFrame FRAME = new JFrame("Bananas");
-  private static final CorePanel PANEL = new CorePanel();
-  
   private static final Decal SPLASH;
   
   private static boolean quit = false;
@@ -68,12 +52,6 @@ public abstract class Core {
   private static Scene currentScene;
   
   private static Camera cam;
-  private static int screenSizeX;
-  private static int screenSizeY;
-  private static int smallScreenX;
-  private static int smallScreenY;
-  
-  static int toolBarLeft, toolBarRight, toolBarTop, toolBarBot;
   
   /** Current game state */
   private static State state = State.SPLASH;
@@ -87,44 +65,9 @@ public abstract class Core {
     Core.playGame();
   }
   
-  static {
-    FRAME.getContentPane().add(PANEL);
-    FRAME.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    FRAME.setResizable(true);
-    BufferedImage image = IOHelp.readImage("icon.png");
-    FRAME.setIconImage(image);
-    
-    GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-    smallScreenX = gd.getDisplayMode().getWidth()/2;
-    smallScreenY = gd.getDisplayMode().getHeight()/2;
-    
-    screenSizeX = smallScreenX;
-    screenSizeY = smallScreenY;
-    
-    FRAME.addWindowListener( new WindowAdapter() {
-      @Override
-      public void windowClosing(WindowEvent e) {
-        quit = true;
-      }
-    });
-    FRAME.addComponentListener( new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        screenSizeX = FRAME.getWidth() - toolBarLeft - toolBarRight;
-        screenSizeY = FRAME.getHeight() - toolBarTop - toolBarBot;
-        if (cam != null) {cam.setScreenSize(screenSizeX, screenSizeY);}
-        if (!isFullScreen()) {
-          smallScreenX = screenSizeX;
-          smallScreenY = screenSizeY;
-        }
-        // System.out.println(screenSizeX + ", " + screenSizeY);
-      }
-    });
-    
-    GLOBAL_SETTINGS = new Settings();
-    
-    SPLASH = new Decal(screenSizeX/2, screenSizeY/2, "splash.png", false);
-    FRAME.setBackground(new Color(173, 173, 173));
+  static {    
+    SPLASH = new Decal(WINDOW.screenWidth()/2, WINDOW.screenHeight()/2, "splash.png", false);
+    WINDOW.FRAME.setBackground(new Color(173, 173, 173));
     
     UIController.putPane("Main Menu", UICreator.createMain());
     UIController.putPane("HUD"      , UICreator.createHUD ());
@@ -143,76 +86,6 @@ public abstract class Core {
   public static Camera getCam() {
     return cam;
   }
-
-  /**
-   * @return the current width of the screen
-   */
-  public static int screenWidth() {
-    return screenSizeX;
-  }
-
-  /**
-   * @return the current height of the screen
-   */
-  public static int screenHeight() {
-    return screenSizeY;
-  }
-  
-  /**
-  * A helper method that updates the window insets to match their current state
-  */
-  private static void updateInsets() {
-    Insets i = FRAME.getInsets(); //Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration())
-    // System.out.println(i);
-    toolBarLeft = i.left;
-    toolBarRight = i.right;
-    toolBarTop = i.top;
-    toolBarBot = i.bottom;
-  }
-  
-  /**
-  * A helper method that toggles the fullscreen state for the window
-  */
-  public static void toggleFullscreen() {
-    setFullscreen(!isFullScreen());
-  }
-  
-  /**
-  * A helper method to check whether or not the window is maximized
-  * 
-  * @return true if the window is maximized
-  */
-  public static boolean isFullScreen() {
-    return FRAME.getExtendedState() == JFrame.MAXIMIZED_BOTH && FRAME.isUndecorated();
-  }
-  
-  /**
-  * A helper method that sets the fullscreen state for the window
-  * 
-  * @param maximize whether or not the screen should me maximized
-  */
-  public static void setFullscreen(boolean maximize) {
-    FRAME.removeNotify();
-    FRAME.setVisible(false);
-    if (maximize) {
-      FRAME.setExtendedState(JFrame.MAXIMIZED_BOTH);
-      FRAME.setUndecorated(true);
-      FRAME.addNotify();
-      updateInsets();
-    }
-    else {
-      FRAME.setExtendedState(JFrame.NORMAL);
-      FRAME.setUndecorated(false);
-      FRAME.addNotify();
-      updateInsets();
-      FRAME.setSize(smallScreenX + toolBarLeft + toolBarRight, smallScreenY + toolBarTop + toolBarBot);
-    }
-    FRAME.setVisible(true);
-    FRAME.requestFocus();
-    
-    screenSizeX = FRAME.getWidth()  - toolBarLeft - toolBarRight;
-    screenSizeY = FRAME.getHeight() - toolBarTop  - toolBarBot  ;
-  }
   
   /**
   * Switches the current scene to the main menu
@@ -221,7 +94,7 @@ public abstract class Core {
     Client.disconnect();
     Server.shutdown();
     currentScene = Scene.mainMenu();
-    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
+    cam = new Camera(new Vector2(), new Vector2(), 1);
     
     state = State.MAINMENU;
     UIController.setCurrent("Main Menu");
@@ -272,7 +145,7 @@ public abstract class Core {
   */
   public static void beginMatch() {
     currentScene = Scene.localGame();
-    cam = new Camera(new Vector2(), new Vector2(), 1, screenSizeX, screenSizeY);
+    cam = new Camera(new Vector2(), new Vector2(), 1);
     
     state = Server.isRunning() ? State.HOST : State.RUN;
     UIController.setCurrent("HUD");
@@ -295,7 +168,7 @@ public abstract class Core {
       switch (state) {
         case SPLASH:
         if (tickTime-START_TIME >= SPLASH_TIME) {
-          Controls.initialiseControls(FRAME);
+          Controls.initialiseControls(WINDOW.FRAME);
           toMenu();
         }
         break;
@@ -316,7 +189,7 @@ public abstract class Core {
         Server.shutdown();
         System.exit(0);
       }
-      PANEL.repaint();
+      WINDOW.PANEL.repaint();
       tickTime = System.currentTimeMillis() - tickTime;
       try {
         Thread.sleep(Math.max((long)(MILLISECONDS_PER_TICK - tickTime), 0));
@@ -348,13 +221,13 @@ public abstract class Core {
           }
         }
       }
-      UIController.draw(g, screenSizeX, screenSizeY);
+      UIController.draw(g, WINDOW.screenWidth(), WINDOW.screenHeight());
       break;
       
       case MAINMENU:
       case END:
       currentScene.draw(g, cam);
-      UIController.draw(g, screenSizeX, screenSizeY);
+      UIController.draw(g, WINDOW.screenWidth(), WINDOW.screenHeight());
       break;
     }
     

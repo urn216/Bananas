@@ -84,9 +84,9 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Host Game"   , () -> UIController.setMode(UIState.SETUP_HOST)  ),
-      new UIButton("Join Game"   , () -> UIController.setMode(UIState.SETUP_CLIENT)),
-      new UIButton("Back"        , UIController::back                              ),
+      new UIButton("Host Game", () -> UIController.setMode(UIState.SETUP_HOST)  ),
+      new UIButton("Join Game", () -> UIController.setMode(UIState.SETUP_CLIENT)),
+      new UIButton("Back"     , UIController::back                              ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -180,7 +180,7 @@ class UICreator {
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UITextfield("Nickname"  , 16, 1, (s) -> Core.GLOBAL_SETTINGS.setStringSetting("nickname", s), () -> Core.GLOBAL_SETTINGS.getStringSetting("nickname")),
-      new UIToggle   ("Fullscreen", Core::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.setFullscreen(b);}                  ),
+      new UIToggle   ("Fullscreen", Core.WINDOW::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.WINDOW.setFullscreen(b);}    ),
       new UIButton   ("Audio"     , () -> UIController.setMode(UIState.AUDIO)                                                                                  ),
       new UIButton   ("Gameplay"  , () -> UIController.setMode(UIState.GAMEPLAY)                                                                               ),
       new UIButton   ("Back"      , UIController::back                                                                                                         ),
@@ -194,10 +194,10 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Master: %d"   , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundMusic" , v), 0, 100),
-      new UIToggle("Subtitles"    , () -> Core.GLOBAL_SETTINGS.getBoolSetting("subtitles")  , (v) -> Core.GLOBAL_SETTINGS.setBoolSetting("subtitles"  , v)        ),
+      new UISlider("Master: %d"  , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d", () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"   , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundMusic" , v), 0, 100),
+      new UIToggle("Subtitles"   , () -> Core.GLOBAL_SETTINGS.getBoolSetting("subtitles")  , (v) -> Core.GLOBAL_SETTINGS.setBoolSetting("subtitles"  , v)        ),
     },
     new boolean[]{false, false, true, false}
     );
@@ -335,10 +335,10 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIToggle("Fullscreen", Core::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.setFullscreen(b);}),
-      new UIButton("Audio"   , () -> UIController.setMode(UIState.AUDIO)                                                                  ),
-      new UIButton("Gameplay", () -> UIController.setMode(UIState.GAMEPLAY)                                                               ),
-      new UIButton("Back"    , UIController::back                                                                                         ),
+      new UIToggle("Fullscreen", Core.WINDOW::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.WINDOW.setFullscreen(b);}),
+      new UIButton("Audio"     , () -> UIController.setMode(UIState.AUDIO)                                                                              ),
+      new UIButton("Gameplay"  , () -> UIController.setMode(UIState.GAMEPLAY)                                                                           ),
+      new UIButton("Back"      , UIController::back                                                                                                     ),
     },
     new boolean[]{false, true, true, true}
     );
@@ -349,11 +349,11 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UISlider("Master: %d"   , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundMaster", v), 0, 100),
-      new UISlider("Sound FX: %d" , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundFX"    , v), 0, 100),
-      new UISlider("Music: %d"    , () -> Core.GLOBAL_SETTINGS.getIntSetting    ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setIntSetting    ("soundMusic" , v), 0, 100),
-      new UIToggle("Subtitles"    , () -> Core.GLOBAL_SETTINGS.getBoolSetting("subtitles")  , (v) -> Core.GLOBAL_SETTINGS.setBoolSetting("subtitles"  , v)        ),
-      new UIButton("Back"         , UIController::back                                                                                                          ),
+      new UISlider("Master: %d"  , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundMaster"), (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundMaster", v), 0, 100),
+      new UISlider("Sound FX: %d", () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundFX")    , (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundFX"    , v), 0, 100),
+      new UISlider("Music: %d"   , () -> Core.GLOBAL_SETTINGS.getIntSetting ("soundMusic") , (v) -> Core.GLOBAL_SETTINGS.setIntSetting ("soundMusic" , v), 0, 100),
+      new UIToggle("Subtitles"   , () -> Core.GLOBAL_SETTINGS.getBoolSetting("subtitles")  , (v) -> Core.GLOBAL_SETTINGS.setBoolSetting("subtitles"  , v)        ),
+      new UIButton("Back"        , UIController::back                                                                                                            ),
     },
     new boolean[]{false, true, true, true}
     );

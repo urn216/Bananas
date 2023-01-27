@@ -127,7 +127,7 @@ abstract class Controls {
       
       @Override
       public void mouseExited(MouseEvent e) {
-        mousePos = new Vector2I(Core.screenWidth()/2, Core.screenHeight()/2);
+        mousePos = new Vector2I(Core.WINDOW.screenWidth()/2, Core.WINDOW.screenHeight()/2);
       }
     });
     
@@ -136,7 +136,7 @@ abstract class Controls {
         if (KEY_DOWN[KeyEvent.VK_CONTROL] || KEY_DOWN[KeyEvent.VK_META]) {
           Core.getCam().setZoom(
           e.getWheelRotation()<0 ? Core.getCam().getZoom()*((scrollSens*0.02)+1) : Core.getCam().getZoom()/((scrollSens*0.02)+1), 
-          mousePos.subtract(Core.screenWidth()*0.5, Core.screenHeight()*0.5)
+          mousePos.subtract(Core.WINDOW.screenWidth()*0.5, Core.WINDOW.screenHeight()*0.5)
           );
           return;
         }
@@ -167,7 +167,7 @@ abstract class Controls {
         
         // System.out.print(keyCode);
         if (keyCode == KeyEvent.VK_F11) {
-          Core.toggleFullscreen();
+          Core.WINDOW.toggleFullscreen();
           return;
         }
         if (keyCode == KeyEvent.VK_ESCAPE) {
@@ -211,8 +211,8 @@ abstract class Controls {
   * @param e the {@code MouseEvent} to determine the cursor's current position from
   */
   public static void updateMousePos(MouseEvent e) {
-    int x = e.getX() - Core.toolBarLeft;
-    int y = e.getY() - Core.toolBarTop;
+    int x = e.getX() - Core.WINDOW.toolBarLeft;
+    int y = e.getY() - Core.WINDOW.toolBarTop;
     mousePos = new Vector2I(x, y);
     
     UIController.cursorMove(mousePos);
@@ -259,25 +259,25 @@ abstract class Controls {
     if (
     KEY_DOWN[KeyEvent.VK_LEFT] || 
     KEY_DOWN[KeyEvent.VK_A   ] || 
-    mousePos.x < EDGE_SCROLL_BOUNDS*Core.screenWidth()
+    mousePos.x < EDGE_SCROLL_BOUNDS*Core.WINDOW.screenWidth()
     ) Core.getCam().addOffset(new Vector2(10+15*Core.getCam().getZoom(), 0) );
     //Up
     if (
     KEY_DOWN[KeyEvent.VK_UP] || 
     KEY_DOWN[KeyEvent.VK_W ] || 
-    mousePos.y < EDGE_SCROLL_BOUNDS*Core.screenHeight()
+    mousePos.y < EDGE_SCROLL_BOUNDS*Core.WINDOW.screenHeight()
     ) Core.getCam().addOffset(new Vector2(0, 10+15*Core.getCam().getZoom()) );
     //Right
     if (
     KEY_DOWN[KeyEvent.VK_RIGHT] || 
     KEY_DOWN[KeyEvent.VK_D    ] || 
-    mousePos.x > Core.screenWidth() - EDGE_SCROLL_BOUNDS*Core.screenWidth()
+    mousePos.x > Core.WINDOW.screenWidth() - EDGE_SCROLL_BOUNDS*Core.WINDOW.screenWidth()
     ) Core.getCam().addOffset(new Vector2(-10-15*Core.getCam().getZoom(), 0));
     //Down
     if (
     KEY_DOWN[KeyEvent.VK_DOWN] || 
     KEY_DOWN[KeyEvent.VK_S   ] || 
-    mousePos.y > Core.screenHeight() - EDGE_SCROLL_BOUNDS*Core.screenHeight()
+    mousePos.y > Core.WINDOW.screenHeight() - EDGE_SCROLL_BOUNDS*Core.WINDOW.screenHeight()
     ) Core.getCam().addOffset(new Vector2(0, -10-15*Core.getCam().getZoom()));
   }
   

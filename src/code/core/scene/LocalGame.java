@@ -56,9 +56,12 @@ class LocalGame extends Scene {
     bg.draw(g);
     
     for (int i = 0; i < mapSX; i++) {
+      int x = i-mapSX/2;
       for (int j = 0; j < mapSY; j++) {
+        int y = j-mapSY/2;
         TileGrid t = pile[i][j];
-        if (TileGrid.onScreen(cam, i-mapSX/2, j-mapSY/2)) t.draw(g, cam, i-mapSX/2, j-mapSY/2, t == pressedTile);
+        if (cam.canSee(x*TileGrid.TILE_SIZE, y*TileGrid.TILE_SIZE, (x+1)*TileGrid.TILE_SIZE, (y+1)*TileGrid.TILE_SIZE)) 
+          t.draw(g, cam, x, y, t == pressedTile);
       }
     }
 
@@ -67,9 +70,12 @@ class LocalGame extends Scene {
       TileGrid[][] map = maps[p];
 
       for (int i = 0; i < mapSX; i++) {
+        int x = i+offset.x;
         for (int j = 0; j < mapSY; j++) {
+          int y = j+offset.y;
           TileGrid t = map[i][j];
-          if (TileGrid.onScreen(cam, i+offset.x, j+offset.y)) t.draw(g, cam, i+offset.x, j+offset.y, t == pressedTile);
+          if (cam.canSee(x*TileGrid.TILE_SIZE, y*TileGrid.TILE_SIZE, (x+1)*TileGrid.TILE_SIZE, (y+1)*TileGrid.TILE_SIZE)) 
+            t.draw(g, cam, x, y, t == pressedTile);
         }
       }
     }

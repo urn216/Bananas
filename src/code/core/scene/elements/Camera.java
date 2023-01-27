@@ -1,9 +1,10 @@
 package code.core.scene.elements;
 
-import code.math.MathHelp;
 import code.core.Core;
+import code.core.Window;
+
+import code.math.MathHelp;
 import code.math.Vector2;
-import code.math.Vector2I;
 
 /**
 * A camera allows a player to see what's happening in the game.
@@ -21,22 +22,18 @@ public class Camera
   private Vector2 position;
   private Vector2 offset;
   private Vector2 target;
-  private int screenSizeX;
-  private int screenSizeY;
 
   /**
   * @Camera
   *
   * Constructs a camera with an x position, a y position, a default zoom level, and the current resolution of the game window.
   */
-  public Camera(Vector2 worldPos, Vector2 offset, double z, int sX, int sY)
+  public Camera(Vector2 worldPos, Vector2 offset, double z)
   {
     this.position = worldPos;
     this.offset = offset;
     this.defaultZoom = z;
-    this.screenSizeX = sX;
-    this.screenSizeY = sY;
-    this.zoom = sY/Core.DEFAULT_SCREEN_SIZE.y*z;
+    this.zoom = Core.WINDOW.screenHeight()/Window.DEFAULT_SCREEN_SIZE.y*z;
   }
 
   public Vector2 getOffset() {return offset;}
@@ -53,19 +50,13 @@ public class Camera
 
   // public Vector2 getSize() {return new Vector2(screenSizeX/(zoom*2), screenSizeY/(zoom*2));}
 
-  public Vector2I getScreenSize() {return new Vector2I(screenSizeX, screenSizeY);}
-
   public Vector2 getTarget() {return target;}
 
   public double getZoom() {return zoom;}
 
-  public double getDZoom() {return (screenSizeY/Core.DEFAULT_SCREEN_SIZE.y)*defaultZoom;}
+  public double getDZoom() {return (Core.WINDOW.screenHeight()/Window.DEFAULT_SCREEN_SIZE.y)*defaultZoom;}
 
-  public void setScreenSize(int sX, int sY) {
-    this.screenSizeX = sX;
-    this.screenSizeY = sY;
-    this.zoom = (sY/Core.DEFAULT_SCREEN_SIZE.y)*defaultZoom;
-  }
+  public void resetZoom() {this.zoom = getDZoom();}
 
   public void setTarget(Vector2 t){
     target = t;
@@ -77,7 +68,8 @@ public class Camera
   }
 
   public void setZoom(double z, Vector2 cursorOffset) {
-    z = MathHelp.clamp(z, (screenSizeY/Core.DEFAULT_SCREEN_SIZE.y)*ZOOM_BOUND_L, (screenSizeY/Core.DEFAULT_SCREEN_SIZE.y)*ZOOM_BOUND_U);
+    double screenScale = Core.WINDOW.screenHeight()/Window.DEFAULT_SCREEN_SIZE.y;
+    z = MathHelp.clamp(z, screenScale*ZOOM_BOUND_L, screenScale*ZOOM_BOUND_U);
     offset = offset.scale(z/zoom).add(cursorOffset.scale(1-z/zoom));
     this.zoom = z;
     setOffset(offset);
@@ -92,14 +84,35 @@ public class Camera
   }
 
   public double conX() {
-    return position.x*zoom-screenSizeX/2-offset.x;
+    return position.x*zoom-Core.WINDOW.screenWidth()/2-offset.x;
   }
 
   public double conY() {
-    return position.y*zoom-screenSizeY/2-offset.y;
+    return position.y*zoom-Core.WINDOW.screenHeight()/2-offset.y;
   }
 
   public Vector2 getPos() {
     return position;
+  }
+
+  /**
+   * Checks to see if an object is currently visible within the bounds of a camera
+   * 
+   * @param leftWorldBound  the left-most extent of the object within world-space
+   * @param upperWorldBound the top-most extent of the object within world-space
+   * @param rightWorldBound the right-most extent of the object within world-space
+   * @param lowerWorldBound the bottom-most extent of the object within world-space
+   * 
+   * @return {@code true} if the given bounds lie within the frame of the camera
+   */
+  public boolean canSee(double leftWorldBound, double upperWorldBound, double rightWorldBound, double lowerWorldBound) {
+    double conX = conX();
+    double conY = conY();
+
+    if (leftWorldBound*zoom-conX < Core.WINDOW.screenWidth ()
+    && upperWorldBound*zoom-conY < Core.WINDOW.screenHeight()
+    && rightWorldBound*zoom-conX >= 0
+    && lowerWorldBound*zoom-conY >= 0) {return true;}
+    return false;
   }
 }
