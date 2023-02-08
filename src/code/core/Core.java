@@ -92,7 +92,7 @@ public abstract class Core {
   /**
   * Switches the current scene to the main menu
   */
-  public static void toMenu() {
+  public static synchronized void toMenu() {
     Client.disconnect();
     Server.shutdown();
     currentScene = Scene.mainMenu();
@@ -108,7 +108,7 @@ public abstract class Core {
   * 
   * @return true if the connection was successfully established
   */
-  public static void hostGame(int port) throws ConnectionException {
+  public static synchronized void hostGame(int port) throws ConnectionException {
     Client.disconnect();
     Server.shutdown();
     
@@ -129,7 +129,7 @@ public abstract class Core {
   * 
   * @return true if the connection was successfully established
   */
-  public static void joinGame(String ip, int port) throws ConnectionException {
+  public static synchronized void joinGame(String ip, int port) throws ConnectionException {
     Client.disconnect();
     Server.shutdown();
     
@@ -144,7 +144,7 @@ public abstract class Core {
   /**
   * Begins a new match
   */
-  public static void beginMatch() {
+  public static synchronized void beginMatch() {
     currentScene = Scene.localGame();
     
     state = Server.isRunning() ? State.HOST : State.RUN;

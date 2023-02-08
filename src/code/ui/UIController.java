@@ -28,7 +28,7 @@ public abstract class UIController {
   private static UITextfield activeTextfield = null;
   private static UISlider activeSlider = null;
   
-  public static void displayWarning(double bufferHeight, double componentHeight, String... message) {
+  public static synchronized void displayWarning(double bufferHeight, double componentHeight, String... message) {
     double height = UIHelp.calculateListHeight(bufferHeight, UIHelp.calculateComponentHeights(componentHeight, message));
     double width = UIHelp.calculateElementWidth(bufferHeight, UIHelp.calculateComponentWidths(componentHeight/2, message));
 
@@ -44,9 +44,13 @@ public abstract class UIController {
     info.transIn();
   }
 
-  public static void displayTempElement(UIElement temp) {
+  public static synchronized void displayTempElement(UIElement temp) {
     current.setTempElement(temp);
     temp.transIn();
+  }
+
+  public static synchronized void clearTempElement() {
+    current.clearTempElement();
   }
   
   public static void putPane(String s, UIPane p) {
@@ -57,14 +61,14 @@ public abstract class UIController {
     return panes.get(name);
   }
   
-  public static UIPane setCurrent(String name) {
+  public static synchronized UIPane setCurrent(String name) {
     current.clear();
     current = panes.get(name);
     current.reset();
     return current;
   }
   
-  public static void setMode(UIState name) {
+  public static synchronized void setMode(UIState name) {
     current.setMode(name);
   }
   
@@ -76,19 +80,19 @@ public abstract class UIController {
     return current.getMode() == name;
   }
   
-  public static void retMode() {
+  public static synchronized void retMode() {
     current.retMode();
   }
   
-  public static void back() {
+  public static synchronized void back() {
     current.back();
   }
   
-  public static void transOut() {
+  public static synchronized void transOut() {
     current.transOut();
   }
   
-  public static void transIn() {
+  public static synchronized void transIn() {
     current.transIn();
   }
   
@@ -100,7 +104,7 @@ public abstract class UIController {
     return current == null ? null : current.getComponent(x, y);
   }
   
-  public static void resetClickables() {
+  public static synchronized void resetClickables() {
     current.resetClickables();
   }
   

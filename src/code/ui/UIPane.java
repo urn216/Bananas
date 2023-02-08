@@ -23,9 +23,11 @@ import java.awt.Graphics2D;
 */
 public class UIPane {
   
-  private UIElement tempElement = new UIElement(new Vector2(), new Vector2(), new boolean[]{false, false, false, false}) {
+  private static UIElement TEMP_ELEMENT_TEMPLATE = new UIElement(new Vector2(), new Vector2(), new boolean[]{false, false, false, false}) {
     protected void draw(Graphics2D g, int screenSizeY, Vector2 tL, Vector2 bR, Color[] c, UIInteractable highlighted) {}
   };
+
+  private UIElement tempElement = TEMP_ELEMENT_TEMPLATE;
   
   private List<UIElement> elements;
   private Map<UIState, Mode> modes;
@@ -37,6 +39,8 @@ public class UIPane {
   public UIPane() {
     elements = new ArrayList<UIElement>();
     modes = new HashMap<UIState, Mode>();
+    current = null;
+    
     modes.put(UIState.DEFAULT, new Mode(this::retMode));
   }
   
@@ -46,6 +50,8 @@ public class UIPane {
   }
   
   public void clear() {
+    current = null;
+
     for (UIElement e : elements) {
       e.deactivate();
     }
@@ -71,6 +77,10 @@ public class UIPane {
   
   public void setTempElement(UIElement tempElement) {
     this.tempElement = tempElement;
+  }
+
+  public void clearTempElement() {
+    this.tempElement = TEMP_ELEMENT_TEMPLATE;
   }
   
   public void transOut() {

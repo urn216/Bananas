@@ -372,7 +372,7 @@ class UICreator {
         Thread join = new Thread(() -> {
           try {
             Core.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
-            if (Client.isConnected()) UIController.setMode(UIState.LOBBY);
+            if (Client.isConnected()) {UIController.setMode(UIState.LOBBY); UIController.clearTempElement();}
           } catch (ConnectionException e) {UIController.displayWarning(BUFFER_HEIGHT, COMPON_HEIGHT, "Connection failed!", "Please check details are correct");}
         });
         

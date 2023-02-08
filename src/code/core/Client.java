@@ -53,7 +53,7 @@ public abstract class Client {
           while(true) {
             handleTextOut(System.in.read());
           }
-        } catch(IOException e){System.out.println("clientout "+e);}
+        } catch(IOException e){System.out.println("clientout "+e); Core.toMenu();}
       }
     }.start();
     
@@ -64,7 +64,7 @@ public abstract class Client {
           while (true) {
             handleInput(sock.getInputStream().read());
           }
-        } catch(IOException e){System.out.println("clientin  "+e);}
+        } catch(IOException e){System.out.println("clientin  "+e); Core.toMenu();}
       }
     }.start();
 
