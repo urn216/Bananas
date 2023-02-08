@@ -133,12 +133,12 @@ public abstract class Core {
     Client.disconnect();
     Server.shutdown();
     
-    Client.connect(ip, port);
+    int res = Client.connect(ip, port);
     if (Client.isConnected()) return;
     
     Client.disconnect();
     Server.shutdown();
-    throw new ConnectionException();
+    if (res < 0) throw new ConnectionException();
   }
   
   /**

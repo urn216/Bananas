@@ -49,6 +49,8 @@ public class UIPane {
     for (UIElement e : elements) {
       e.deactivate();
     }
+
+    tempElement.deactivate();
   }
   
   public UIElement getPane(int i) {
@@ -110,6 +112,8 @@ public class UIPane {
       if (mode.contains(e)) {e.transIn();}
       else {e.transOut();}
     }
+
+    tempElement.transOut();
   }
   
   public UIState getMode() {
@@ -166,6 +170,8 @@ public class UIPane {
     for (UIElement e : elements) {
       e.resetClickables();
     }
+
+    tempElement.resetClickables();
   }
   
   public void draw(Graphics2D g, int screenSizeX, int screenSizeY, UIInteractable highlighted) {

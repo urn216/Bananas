@@ -39,12 +39,12 @@ class UICreator {
   );
   
   /**
-   * A lambda function which, in place of transitioning back a step,
-   * checks if the global settings have been changed and if so, 
-   * brings up a confirmation dialogue to handle the changes before transitioning back.
-   */
+  * A lambda function which, in place of transitioning back a step,
+  * checks if the global settings have been changed and if so, 
+  * brings up a confirmation dialogue to handle the changes before transitioning back.
+  */
   public static final UIAction checkSettings = () -> {
-    if (Core.GLOBAL_SETTINGS.hasChanged()) settingsChanged.transIn();
+    if (Core.GLOBAL_SETTINGS.hasChanged()) UIController.displayTempElement(settingsChanged);
     else UIController.retMode();
   };
   
@@ -91,87 +91,9 @@ class UICreator {
     new boolean[]{false, false, true, false}
     );
     
-    ElemInfo portErr = new ElemInfo(
-    new Vector2(0.37, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
-    new Vector2(0.63, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
-    BUFFER_HEIGHT, 
-    new boolean[]{false, false, false, false},
-    "Port must be a number",
-    "between 1024 and 65535"
-    );
+    UIElement hostSetup = hostSetup();
     
-    ElemInfo ipErr = new ElemInfo(
-    new Vector2(0.38, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2),
-    new Vector2(0.62, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
-    BUFFER_HEIGHT, 
-    new boolean[]{false, false, false, false},
-    "Address required"
-    );
-    
-    ElemInfo connectErr = new ElemInfo(
-    new Vector2(0.34, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
-    new Vector2(0.66, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
-    BUFFER_HEIGHT, 
-    new boolean[]{false, false, false, false},
-    "Connection failed!",
-    "Please check details are correct"
-    );
-    
-    UITextfield hostport = new UITextfield("Port Number", 5, 1){
-      public boolean isValid() {
-        try {return totind > 0 && Integer.parseInt(getText()) > 1023 && Integer.parseInt(getText()) <= 0xFFFF;} 
-        catch (NumberFormatException e) {return false;}
-      }
-    };
-    
-    UIElement hostSetup = new ElemList(
-    new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.calculateListHeightDefault(2, BUFFER_HEIGHT, COMPON_HEIGHT)),
-    COMPON_HEIGHT,
-    BUFFER_HEIGHT,
-    new UIInteractable[]{
-      hostport,
-      new UIButton("Host New Game", () -> {
-        if (!hostport.isValid()) { portErr.transIn(); return;}
-        
-        try {
-          Core.hostGame(Integer.parseInt(hostport.getText()));
-          UIController.setMode(UIState.LOBBY_HOST);
-        } catch (ConnectionException e) {connectErr.transIn();}
-      }),
-    },
-    new boolean[]{false, false, true, false}
-    );
-    
-    UITextfield ipaddr = new UITextfield("Server Address", 15, 1){public boolean isValid() {return totind > 0;}};
-    
-    UITextfield joinport = new UITextfield("Port Number", 5, 1){
-      public boolean isValid() {
-        try {return totind > 0 && Integer.parseInt(getText()) > 1023 && Integer.parseInt(getText()) <= 0xFFFF;} 
-        catch (NumberFormatException e) {return false;}
-      }
-    };
-    
-    UIElement clientSetup = new ElemList(
-    new Vector2(0.38, 0.28),
-    new Vector2(0.62, 0.28+UIHelp.calculateListHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
-    COMPON_HEIGHT,
-    BUFFER_HEIGHT,
-    new UIInteractable[]{
-      ipaddr,
-      joinport,
-      new UIButton("Connect!", () -> {
-        if (!ipaddr.isValid()) {ipErr.transIn(); return;}
-        if (!joinport.isValid()) {portErr.transIn(); return;}
-        
-        try {
-          Core.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
-          UIController.setMode(UIState.LOBBY);
-        } catch (ConnectionException e) {connectErr.transIn();}
-      }),
-    },
-    new boolean[]{false, false, true, false}
-    );
+    UIElement clientSetup = clientSetup();
     
     UIElement options = new ElemList(
     new Vector2(0   , 0.28),
@@ -201,7 +123,7 @@ class UICreator {
     },
     new boolean[]{false, false, true, false}
     );
-
+    
     UIElement optgme = new ElemList(
     new Vector2(0.38, 0.28),
     new Vector2(0.62, 0.28+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2)),
@@ -225,14 +147,14 @@ class UICreator {
         () -> {return player == null ? false : player[1]==49;}, 
         b  -> {if (player != null && Client.getPlayerNum() == player[0]-48) Client.sendReadyToggle();}
         );
-
+        
         public void setIn() {
           in = true; 
           if (player != null && Client.getPlayerNum() == player[0]-48) toggle.setIn();
         }
-      
+        
         public void setOut() {in = false; toggle.setOut();}
-
+        
         public void primeAct() {toggle.primeAct();}
         
         public void draw(Graphics2D g, Color... colours) {
@@ -289,11 +211,6 @@ class UICreator {
     mainMenu.addMode(UIState.LOBBY       , lobbyClientList , UIState.DEFAULT  , Core::toMenu );
     mainMenu.addMode(UIState.LOBBY_HOST  , lobbyClientList , UIState.DEFAULT  , Core::toMenu );
     mainMenu.addMode(UIState.LOBBY_HOST  , lobbyHostStart );
-    
-    mainMenu.addElement(portErr        );
-    mainMenu.addElement(ipErr          );
-    mainMenu.addElement(connectErr     );
-    mainMenu.addElement(settingsChanged);
     
     mainMenu.clear();
     
@@ -357,7 +274,7 @@ class UICreator {
     },
     new boolean[]{false, true, true, true}
     );
-
+    
     UIElement optgme = new ElemList(
     new Vector2(0.38, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT)/2),
     new Vector2(0.62, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT*2, COMPON_HEIGHT)/2),
@@ -369,9 +286,9 @@ class UICreator {
     },
     new boolean[]{false, true, true, true}
     );
-
+    
     HUD.setModeParent(UIState.DEFAULT, UIState.PAUSED);
-
+    
     HUD.addMode(UIState.PAUSED  , greyed   , UIState.DEFAULT);
     HUD.addMode(UIState.PAUSED  , outPause);
     HUD.addMode(UIState.OPTIONS , greyed   , UIState.PAUSED  , checkSettings);
@@ -381,10 +298,92 @@ class UICreator {
     HUD.addMode(UIState.GAMEPLAY, greyed   , UIState.OPTIONS , checkSettings);
     HUD.addMode(UIState.GAMEPLAY, optgme  );
     
-    HUD.addElement(settingsChanged);
-    
     HUD.clear();
     
     return HUD;
+  }
+  
+  //-------------------------------------------------------------------------------------
+  //                            CLIENT-SERVER CONNECTION
+  //-------------------------------------------------------------------------------------
+  
+  private static UIElement hostSetup() {
+    UITextfield hostport = new UITextfield("Port Number", 5, 1){
+      public boolean isValid() {
+        try {return totind > 0 && Integer.parseInt(getText()) > 1023 && Integer.parseInt(getText()) <= 0xFFFF;} 
+        catch (NumberFormatException e) {return false;}
+      }
+    };
+    
+    return new ElemList(
+    new Vector2(0.38, 0.28),
+    new Vector2(0.62, 0.28+UIHelp.calculateListHeightDefault(2, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    COMPON_HEIGHT,
+    BUFFER_HEIGHT,
+    new UIInteractable[]{
+      hostport,
+      new UIButton("Host New Game", () -> {
+        if (!hostport.isValid()) { UIController.displayWarning(BUFFER_HEIGHT, COMPON_HEIGHT, "Port must be a number", "between 1024 and 65535"); return;}
+        
+        try {
+          Core.hostGame(Integer.parseInt(hostport.getText()));
+          if (Client.isConnected()) UIController.setMode(UIState.LOBBY_HOST);
+        } catch (ConnectionException e) {UIController.displayWarning(BUFFER_HEIGHT, COMPON_HEIGHT, "Server Creation Failed");}
+      }),
+    },
+    new boolean[]{false, false, true, false}
+    );
+  }
+  
+  private static UIElement clientSetup() {
+    UITextfield ipaddr = new UITextfield("Server Address", 15, 1){public boolean isValid() {return totind > 0;}};
+    
+    UITextfield joinport = new UITextfield("Port Number", 5, 1){
+      public boolean isValid() {
+        try {return totind > 0 && Integer.parseInt(getText()) > 1023 && Integer.parseInt(getText()) <= 0xFFFF;} 
+        catch (NumberFormatException e) {return false;}
+      }
+    };
+
+    ElemList connecting = new ElemList(
+    new Vector2(0.33, 0.5-UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+    new Vector2(0.67, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
+    COMPON_HEIGHT,
+    BUFFER_HEIGHT, 
+    new UIComponent[]{
+      new UIText("Attempting to Connect to Server...", 1, Font.PLAIN),
+      null
+    },
+    new boolean[]{false, false, false, false}
+    ) {protected void init() {solidBacking = true;}};
+    
+    return new ElemList(
+    new Vector2(0.38, 0.28),
+    new Vector2(0.62, 0.28+UIHelp.calculateListHeightDefault(3, BUFFER_HEIGHT, COMPON_HEIGHT)),
+    COMPON_HEIGHT,
+    BUFFER_HEIGHT,
+    new UIInteractable[]{
+      ipaddr,
+      joinport,
+      new UIButton("Connect!", () -> {
+        if (!ipaddr.isValid()) {UIController.displayWarning(BUFFER_HEIGHT, COMPON_HEIGHT, "Address required"); return;}
+        if (!joinport.isValid()) {UIController.displayWarning(BUFFER_HEIGHT, COMPON_HEIGHT, "Port must be a number", "between 1024 and 65535"); return;}
+        
+        Thread join = new Thread(() -> {
+          try {
+            Core.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
+            if (Client.isConnected()) UIController.setMode(UIState.LOBBY);
+          } catch (ConnectionException e) {UIController.displayWarning(BUFFER_HEIGHT, COMPON_HEIGHT, "Connection failed!", "Please check details are correct");}
+        });
+        
+        join.start();
+        
+        connecting.getComponents()[1] = new UIButton("Cancel", () -> {Client.disconnect(); connecting.transOut();});
+        
+        UIController.displayTempElement(connecting);
+      }),
+    },
+    new boolean[]{false, false, true, false}
+    );
   }
 }

@@ -23,10 +23,10 @@ import java.awt.Color;
 public abstract class UIElement {
   private final Vector2 topLeft;
   private final Vector2 botRight;
-
+  
   private final double fadeDist = 0.08;
   private double fadeCount = 0;
-
+  
   private final double animTimeMillis = 175;
   private long startTimeMillis = System.currentTimeMillis();
   
@@ -36,20 +36,22 @@ public abstract class UIElement {
   private final int fadeRight;
   
   private static Color[] colourPack = UIColours.DEFAULT;
-
+  
   protected int backgroundColour = UIColours.BACKGROUND;
+  
+  protected boolean solidBacking = false;
   
   private boolean active = false;
   private boolean transIn = false;
   private boolean transOut = false;
-
+  
   protected UIComponent[] components = {};
-
+  
   public UIElement(Vector2 topLeft, Vector2 botRight, boolean[] ties) {
     if (ties == null || ties.length != 4) throw new IllegalArgumentException("Must have four ties: (up, down, left, right)");
     this.topLeft = topLeft;
     this.botRight = botRight;
-
+    
     if (ties[0] || ties[1]) {
       fadeUp    = ties[0] ? 1 : -1;
       fadeDown  = ties[1] ? -1 : 1;
@@ -58,10 +60,10 @@ public abstract class UIElement {
       fadeLeft  = ties[2] ? 1 : -1;
       fadeRight = ties[3] ? -1 : 1;
     } else fadeLeft=fadeRight=0;
-
+    
     init();
   }
-
+  
   protected void init() {}
   
   /**
@@ -142,10 +144,10 @@ public abstract class UIElement {
       if (c instanceof UIInteractable) ((UIInteractable)c).setOut();
     }
   }
-
+  
   /**
-   * @return the components tied to this element
-   */
+  * @return the components tied to this element
+  */
   public UIComponent[] getComponents() {return components;}
   
   /**
@@ -179,12 +181,27 @@ public abstract class UIElement {
         lurd = fadeVecs(topLeft, botRight, fadeCount);
       }
     }
-
+    
     Vector2 tL = lurd[0].scale(screenSizeX, screenSizeY);
     Vector2 bR = lurd[1].scale(screenSizeX, screenSizeY);
-
+    
     g.setColor(c[backgroundColour]);
     g.fill(new Rectangle2D.Double(tL.x, tL.y, bR.x-tL.x, bR.y-tL.y));
+    
+    if (solidBacking) {
+      double buffer = 0.007;
+      
+      Rectangle2D s = new Rectangle2D.Double(
+      tL.x+buffer*screenSizeY, tL.y+buffer*screenSizeY, 
+      bR.x-tL.x-buffer*2*screenSizeY, 
+      bR.y-tL.y-buffer*2*screenSizeY
+      );
+      
+      g.setColor(c[UIColours.BUTTON_BODY]);
+      g.fill(s);
+      g.setColor(c[UIColours.BUTTON_OUT_ACC]);
+      g.draw(s);
+    }
     
     draw(g, screenSizeY, tL, bR, c, highlighted);
   }

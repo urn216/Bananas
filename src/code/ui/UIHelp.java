@@ -75,7 +75,7 @@ public abstract class UIHelp {
   /**
    * Calculates the width of an arbitrary element with a given buffer size and component widths
    * 
-   * @param buff the buffer between components
+   * @param buffer the buffer between components
    * @param componentWidths the widths of all the components in the element
    * 
    * @return the calclated width
@@ -97,7 +97,7 @@ public abstract class UIHelp {
   public static final double[] calculateComponentWidths(double textHeight, String... componentTexts) {
     double[] widths = new double[componentTexts.length];
     for (int i = 0; i < componentTexts.length; i++) {
-      widths[i] = componentTexts[i].length()*textHeight/4;
+      widths[i] = componentTexts[i].length()*textHeight/3.5;
     }
     return widths;
   }

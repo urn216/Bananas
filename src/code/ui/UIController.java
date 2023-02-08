@@ -8,6 +8,7 @@ import code.ui.components.UIInteractable;
 import code.ui.components.interactables.UISlider;
 import code.ui.components.interactables.UITextfield;
 import code.ui.elements.ElemInfo;
+import code.ui.elements.UIElement;
 
 import java.awt.event.KeyEvent;
 
@@ -41,6 +42,11 @@ public abstract class UIController {
     
     current.setTempElement(info);
     info.transIn();
+  }
+
+  public static void displayTempElement(UIElement temp) {
+    current.setTempElement(temp);
+    temp.transIn();
   }
   
   public static void putPane(String s, UIPane p) {

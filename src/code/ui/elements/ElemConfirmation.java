@@ -3,7 +3,6 @@ package code.ui.elements;
 import java.awt.Font;
 
 import java.awt.Color;
-import java.awt.geom.Rectangle2D;
 import java.awt.Graphics2D;
 
 import code.math.Vector2;
@@ -23,6 +22,7 @@ public class ElemConfirmation extends UIElement {
     super(tL, bR, ties);
     this.buffer = buffer;
     this.componentHeight = (bR.y-tL.y-(buffer*(info.length+2)))/(info.length*0.5+1);
+    this.solidBacking = true;
     components = new UIComponent[info.length+3];
 
     for (int i = 0; i < info.length; i++) {
@@ -35,19 +35,6 @@ public class ElemConfirmation extends UIElement {
 
   @Override
   protected void draw(Graphics2D g, int screenSizeY, Vector2 tL, Vector2 bR, Color[] c, UIInteractable highlighted) {
-    
-    double buffer = this.buffer/2;
-
-    Rectangle2D s = new Rectangle2D.Double(
-    tL.x+buffer*screenSizeY, tL.y+buffer*screenSizeY, 
-    bR.x-tL.x-buffer*2*screenSizeY, 
-    bR.y-tL.y-buffer*2*screenSizeY
-    );
-
-    g.setColor(c[UIColours.BUTTON_BODY]);
-    g.fill(s);
-    g.setColor(c[UIColours.BUTTON_OUT_ACC]);
-    g.draw(s);
 
     float buff = (float) (this.buffer * screenSizeY);
 

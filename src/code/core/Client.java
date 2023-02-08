@@ -1,6 +1,7 @@
 package code.core;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import code.core.scene.elements.TilePiece;
@@ -32,15 +33,18 @@ public abstract class Client {
   }
   
   /**
-  * Connects the client to a server as chosen by the supplied IPv4 address and port number.
-  * 
-  * @param ip the IPv4 address to attempt to connect to
-  * @param port the port number to access the server through
-  */
-  public static void connect(String ip, int port) {
+   * Connects the client to a server as chosen by the supplied IPv4 address and port number.
+   * 
+   * @param ip the IPv4 address to attempt to connect to
+   * @param port the port number to access the server through
+   * 
+   * @return {@code -1} if something went wrong, {@code 0} if the connection was cancelled, or {@code 1} if connection was successful
+   */
+  public static int connect(String ip, int port) {
+    sock = new Socket();
     try {
-      sock = new Socket(ip, port);//TODO reconnect if there's a hiccup
-    } catch(IOException e){System.out.println("clientcon "+e);}
+      sock.connect(new InetSocketAddress(ip, port));//TODO reconnect if there's a hiccup
+    } catch(IOException e){System.out.println("clientcon "+e); return sock.isClosed() ? 0 : -1;}
     
     //Text output
     new Thread(){
@@ -63,6 +67,8 @@ public abstract class Client {
         } catch(IOException e){System.out.println("clientin  "+e);}
       }
     }.start();
+
+    return 1;
   }
   
   /**
