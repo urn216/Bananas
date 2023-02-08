@@ -8,7 +8,7 @@ import java.awt.Desktop;
 abstract class Update {
   public static void main(String[] args) throws Throwable{
     URL url = new URL("https://github.com/urn216/Bananas/blob/master/versions/Bananas.jar?raw=true");
-    File file = new File("./versions/Bananas.jar");
+    File file = new File("./Bananas.jar");
     url.openStream().transferTo(new FileOutputStream(file));
     if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(file);
   }

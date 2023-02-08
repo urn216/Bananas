@@ -203,7 +203,7 @@ public abstract class Core {
   * @param gra the supplied {@code Graphics} object
   */
   public static void paintComponent(Graphics gra) {
-    Graphics2D g = (Graphics2D) gra.create();
+    Graphics2D g = (Graphics2D)gra;
     
     switch (state) {
       case SPLASH:
@@ -230,7 +230,5 @@ public abstract class Core {
       UIController.draw(g, WINDOW.screenWidth(), WINDOW.screenHeight());
       break;
     }
-    
-    g.dispose();
   }
 }
