@@ -27,7 +27,7 @@ public abstract class UIElement {
   private final double fadeDist = 0.08;
   private double fadeCount = 0;
   
-  private final double animTimeMillis = 175;
+  private long animTimeMillis = 175;
   private long startTimeMillis = System.currentTimeMillis();
   
   private final int fadeUp   ;
@@ -93,32 +93,41 @@ public abstract class UIElement {
   
   /**
   * Tells the element to transition out if it is not already doing so
+  *
+  * @return {@code true} if the element is now transitioning out
   */
-  public final void transOut() {
+  public final boolean transOut(long animTimeMillis) {
     resetClickables();
-    if (!transOut) startTimeMillis = System.currentTimeMillis();
-    transOut = active;
+    if (transOut) return true;
+
+    this.startTimeMillis = System.currentTimeMillis();
+    this.animTimeMillis = animTimeMillis;
+    this.transOut = active;
+    return transOut;
   }
   
   /**
   * Tells the element to transition in if it is not already doing so
+  *
+  * @return {@code true} if the element is now transitioning in
   */
-  public final void transIn() {
+  public final boolean transIn(long animTimeMillis) {
     for (UIComponent c : components) c.onTransIn();
-    if (!transIn) startTimeMillis = System.currentTimeMillis();
-    transIn = !active;
+    if (transIn) return true;
+
+    this.startTimeMillis = System.currentTimeMillis();
+    this.animTimeMillis = animTimeMillis;
+    this.transIn = !active;
+    return transIn;
   }
   
   /**
   * toggles the state of this element
   *
-  * @return true if the element is now transitioning in
+  * @return true if the element is now transitioning
   */
-  public final boolean toggle() {
-    transIn = !active;
-    transOut = active;
-    startTimeMillis = System.currentTimeMillis();
-    return !active;
+  public final boolean toggle(long animTimeMillis) {
+    return active ? transOut(animTimeMillis) : transIn(animTimeMillis);
   }
   
   /**
@@ -168,7 +177,7 @@ public abstract class UIElement {
     if (transIn) {
       if (fadeCount >= fadeDist) {transIn = false; active = true; fadeCount = 0;}
       else {
-        fadeCount = Math.min(fadeDist, MathHelp.lerp(0, fadeDist, (System.currentTimeMillis()-startTimeMillis)/animTimeMillis));
+        fadeCount = Math.min(fadeDist, MathHelp.lerp(0, fadeDist, (1.0*System.currentTimeMillis()-startTimeMillis)/animTimeMillis));
         c = fadeCols(fadeCount/fadeDist);
         lurd = fadeVecs(topLeft, botRight, fadeDist-fadeCount);
       }
@@ -176,7 +185,7 @@ public abstract class UIElement {
     else if (transOut) {
       if (fadeCount >= fadeDist) {transOut = false; active = false; fadeCount = 0; return;}
       else {
-        fadeCount = Math.min(fadeDist, MathHelp.lerp(0, fadeDist, (System.currentTimeMillis()-startTimeMillis)/animTimeMillis));
+        fadeCount = Math.min(fadeDist, MathHelp.lerp(0, fadeDist, (1.0*System.currentTimeMillis()-startTimeMillis)/animTimeMillis));
         c = fadeCols(1-fadeCount/fadeDist);
         lurd = fadeVecs(topLeft, botRight, fadeCount);
       }

@@ -69,7 +69,7 @@ abstract class Controls {
       public void mousePressed(MouseEvent e) {
         updateMousePos(e);
         
-        if (UIController.getHighlighted() == null) MOUSE_DOWN[e.getButton()] = true;
+        if (UIController.getHighlightedInteractable() == null) MOUSE_DOWN[e.getButton()] = true;
         mousePre = mousePos;
         
         //left click

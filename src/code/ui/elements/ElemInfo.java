@@ -1,5 +1,6 @@
 package code.ui.elements;
 
+import code.ui.UIController;
 import code.ui.components.UIComponent;
 import code.ui.components.UIText;
 import code.ui.components.interactables.UIButton;
@@ -38,7 +39,7 @@ public class ElemInfo extends ElemList {
     for (int i = 0; i < info.length; i++) {
       components[i] = new UIText(info[i], 1, Font.PLAIN);
     }
-    components[info.length] = new UIButton("OK", this::transOut);
+    components[info.length] = new UIButton("OK", () -> this.transOut(UIController.DEFAULT_ANIMATION_TIME_MILLIS));
 
     this.solidBacking = true;
   }

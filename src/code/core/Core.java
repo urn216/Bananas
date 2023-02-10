@@ -98,7 +98,7 @@ public abstract class Core {
     currentScene = Scene.mainMenu();
     
     state = State.MAINMENU;
-    UIController.setCurrent("Main Menu");
+    UIController.setCurrentPane("Main Menu");
   }
   
   /**
@@ -148,7 +148,7 @@ public abstract class Core {
     currentScene = Scene.localGame();
     
     state = Server.isRunning() ? State.HOST : State.RUN;
-    UIController.setCurrent("HUD");
+    UIController.setCurrentPane("HUD");
   }
   
   /**

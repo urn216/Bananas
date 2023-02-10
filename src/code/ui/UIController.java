@@ -20,11 +20,14 @@ import java.awt.geom.Rectangle2D;
 * UI class
 */
 public abstract class UIController {
+
+  public static final long DEFAULT_ANIMATION_TIME_MILLIS = 175;
+  public static final long TRANSITION_ANIMATION_TIME_MILLIS = 1000;
   
   private static final HashMap<String, UIPane> panes = new HashMap<String, UIPane>();;
-  private static UIPane current = new UIPane();
+  private static UIPane currentPane = new UIPane();
   
-  private static UIInteractable highlighted = null;
+  private static UIInteractable highlightedInteractable = null;
   private static UITextfield activeTextfield = null;
   private static UISlider activeSlider = null;
   
@@ -40,17 +43,17 @@ public abstract class UIController {
     message
     );
     
-    current.setTempElement(info);
-    info.transIn();
+    currentPane.setTempElement(info);
+    info.transIn(DEFAULT_ANIMATION_TIME_MILLIS);
   }
 
   public static synchronized void displayTempElement(UIElement temp) {
-    current.setTempElement(temp);
-    temp.transIn();
+    currentPane.setTempElement(temp);
+    temp.transIn(DEFAULT_ANIMATION_TIME_MILLIS);
   }
 
   public static synchronized void clearTempElement() {
-    current.clearTempElement();
+    currentPane.clearTempElement();
   }
   
   public static void putPane(String s, UIPane p) {
@@ -61,51 +64,51 @@ public abstract class UIController {
     return panes.get(name);
   }
   
-  public static synchronized UIPane setCurrent(String name) {
-    current.clear();
-    current = panes.get(name);
-    current.reset();
-    return current;
+  public static synchronized UIPane setCurrentPane(String name) {
+    currentPane.clear();
+    currentPane = panes.get(name);
+    currentPane.reset();
+    return currentPane;
   }
   
   public static synchronized void setMode(UIState name) {
-    current.setMode(name);
+    currentPane.setMode(name, DEFAULT_ANIMATION_TIME_MILLIS);
   }
   
   public static UIState getMode() {
-    return current.getMode();
+    return currentPane.getMode();
   }
 
   public static boolean isMode(UIState name) {
-    return current.getMode() == name;
+    return currentPane.getMode() == name;
   }
   
   public static synchronized void retMode() {
-    current.retMode();
+    currentPane.retMode();
   }
   
   public static synchronized void back() {
-    current.back();
+    currentPane.back();
   }
   
   public static synchronized void transOut() {
-    current.transOut();
+    currentPane.transOut();
   }
   
   public static synchronized void transIn() {
-    current.transIn();
+    currentPane.transIn();
   }
   
   public static boolean isTransitioning() {
-    return current.isTransitioning();
+    return currentPane.isTransitioning();
   }
   
   public static UIComponent getComponent(double x, double y) {
-    return current == null ? null : current.getComponent(x, y);
+    return currentPane == null ? null : currentPane.getComponent(x, y);
   }
   
   public static synchronized void resetClickables() {
-    current.resetClickables();
+    currentPane.resetClickables();
   }
   
   /**
@@ -113,14 +116,14 @@ public abstract class UIController {
   *
   * @param highlighted The UIInteractable to set as highlighted
   */
-  public static void setHighlighted(UIInteractable highlighted) {UIController.highlighted = highlighted;}
+  public static void setHighlightedInteractable(UIInteractable highlighted) {UIController.highlightedInteractable = highlighted;}
   
   /**
   * Gets the highlighted UIInteractable
   *
   * @return The UIInteractable currently highlighted
   */
-  public static UIInteractable getHighlighted() {return UIController.highlighted;}
+  public static UIInteractable getHighlightedInteractable() {return UIController.highlightedInteractable;}
   
   /**
   * Sets the active UITextfield
@@ -142,7 +145,7 @@ public abstract class UIController {
   
   public static void cursorMove(int x, int y) {
     UIComponent comp = getComponent(x, y);
-    setHighlighted(comp instanceof UIInteractable ? (UIInteractable) comp : null);
+    setHighlightedInteractable(comp instanceof UIInteractable ? (UIInteractable) comp : null);
 
     useSlider(x);
   }
@@ -153,20 +156,20 @@ public abstract class UIController {
    * @return true if a highlighted {@code UIInteractible} was pressed
    */
   public static boolean press() {
-    if (highlighted == null) return false;
-    if (highlighted.isLocked()) return true;
-    highlighted.setIn();
-    if (highlighted instanceof UISlider) activeSlider = (UISlider)highlighted;
+    if (highlightedInteractable == null) return false;
+    if (highlightedInteractable.isLocked()) return true;
+    highlightedInteractable.setIn();
+    if (highlightedInteractable instanceof UISlider) activeSlider = (UISlider)highlightedInteractable;
     return true;
   }
   
   public static void release() {
-    selectInteractable(highlighted);
+    selectInteractable(highlightedInteractable);
     activeSlider = null;
   }
   
   public static void draw(Graphics2D g, int screenSizeX, int screenSizeY) {
-    current.draw(g, screenSizeX, screenSizeY, highlighted);
+    currentPane.draw(g, screenSizeX, screenSizeY, highlightedInteractable);
   }
   
   public static void drawBoundingBox(Graphics2D g, Vector2 a, Vector2 b) {
@@ -196,7 +199,7 @@ public abstract class UIController {
   public static void typeKey(KeyEvent e) {
     int keyCode = e.getKeyCode();
     if (keyCode == KeyEvent.VK_ENTER) {
-      if (highlighted == null || highlighted == activeTextfield) {
+      if (highlightedInteractable == null || highlightedInteractable == activeTextfield) {
         activeTextfield.enterAct();
         return;
       }

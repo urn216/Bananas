@@ -378,7 +378,7 @@ class UICreator {
         
         join.start();
         
-        connecting.getComponents()[1] = new UIButton("Cancel", () -> {Client.disconnect(); connecting.transOut();});
+        connecting.getComponents()[1] = new UIButton("Cancel", () -> {Client.disconnect(); connecting.transOut(UIController.DEFAULT_ANIMATION_TIME_MILLIS);});
         
         UIController.displayTempElement(connecting);
       }),

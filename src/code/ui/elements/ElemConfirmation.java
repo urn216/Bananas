@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import code.math.Vector2;
 import code.ui.UIAction;
 import code.ui.UIColours;
+import code.ui.UIController;
 import code.ui.components.UIComponent;
 import code.ui.components.UIInteractable;
 import code.ui.components.UIText;
@@ -30,7 +31,7 @@ public class ElemConfirmation extends UIElement {
     }
     components[info.length  ] = new UIButton("Yes"   , yes           );
     components[info.length+1] = new UIButton("No"    , no            );
-    components[info.length+2] = new UIButton("Cancel", this::transOut);
+    components[info.length+2] = new UIButton("Cancel", () -> this.transOut(UIController.DEFAULT_ANIMATION_TIME_MILLIS));
   }
 
   @Override

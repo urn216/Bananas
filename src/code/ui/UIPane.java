@@ -46,7 +46,7 @@ public class UIPane {
   
   public void reset() {
     clear();
-    setMode(UIState.DEFAULT);
+    setMode(UIState.DEFAULT, UIController.TRANSITION_ANIMATION_TIME_MILLIS);
   }
   
   public void clear() {
@@ -85,13 +85,13 @@ public class UIPane {
   
   public void transOut() {
     for (UIElement e : elements) {
-      e.transOut();
+      e.transOut(UIController.DEFAULT_ANIMATION_TIME_MILLIS);
     }
   }
   
   public void transIn() {
     for (UIElement e : elements) {
-      e.transIn();
+      e.transIn(UIController.DEFAULT_ANIMATION_TIME_MILLIS);
     }
   }
   
@@ -107,23 +107,23 @@ public class UIPane {
   }
   
   public void retMode() {
-    setMode(modes.get(current).getParent());
+    setMode(modes.get(current).getParent(), UIController.DEFAULT_ANIMATION_TIME_MILLIS);
   }
   
-  public void setMode(UIState name) {
+  public void setMode(UIState name, long animTimeMillis) {
     if (isTransitioning()
-    ||  name == null
-    ||  modes.get(name) == null
-    ||  name.equals(current)) return;
+    ||  name            == current
+    ||  name            == null
+    ||  modes.get(name) == null   ) return;
     
     Mode mode = modes.get(name);
     current = name;
     for (UIElement e : elements) {
-      if (mode.contains(e)) {e.transIn();}
-      else {e.transOut();}
+      if (mode.contains(e)) {e.transIn(animTimeMillis);}
+      else {e.transOut(animTimeMillis);}
     }
 
-    tempElement.transOut();
+    tempElement.transOut(UIController.DEFAULT_ANIMATION_TIME_MILLIS);
   }
   
   public UIState getMode() {
@@ -201,9 +201,9 @@ class Mode {
   public Mode(UIAction back) {
     this(null, back);
   }
-  
+
   public Mode(UIState parent, UIAction back) {
-    if (back == null) throw new RuntimeException();
+    if (back == null) throw new RuntimeException("Must have a valid return action");
     this.parent = parent;
     this.back = back;
   }
