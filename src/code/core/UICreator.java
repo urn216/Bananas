@@ -33,8 +33,8 @@ class UICreator {
   new Vector2(0.65, 0.5+UIHelp.calculateListHeight(BUFFER_HEIGHT, COMPON_HEIGHT/2, COMPON_HEIGHT)/2), 
   BUFFER_HEIGHT, 
   new boolean[]{false, false, false, false}, 
-  () -> {Core.GLOBAL_SETTINGS.saveChanges();   UIController.retMode();},
-  () -> {Core.GLOBAL_SETTINGS.revertChanges(); UIController.retMode();},
+  () -> {Core.GLOBAL_SETTINGS.saveChanges();   UIController.retState();},
+  () -> {Core.GLOBAL_SETTINGS.revertChanges(); UIController.retState();},
   "Save Changes?"
   );
   
@@ -45,7 +45,7 @@ class UICreator {
   */
   public static final UIAction checkSettings = () -> {
     if (Core.GLOBAL_SETTINGS.hasChanged()) UIController.displayTempElement(settingsChanged);
-    else UIController.retMode();
+    else UIController.retState();
   };
   
   /**
@@ -71,8 +71,8 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Play"           , () -> UIController.setMode(UIState.NEW_GAME)),
-      new UIButton("Options"        , () -> UIController.setMode(UIState.OPTIONS) ),
+      new UIButton("Play"           , () -> UIController.setState(UIState.NEW_GAME)),
+      new UIButton("Options"        , () -> UIController.setState(UIState.OPTIONS) ),
       new UIButton("Quit to Desktop", Core::quitToDesk                            ),
     },
     new boolean[]{false, false, true, false}
@@ -84,8 +84,8 @@ class UICreator {
     COMPON_HEIGHT,
     BUFFER_HEIGHT,
     new UIInteractable[]{
-      new UIButton("Host Game", () -> UIController.setMode(UIState.SETUP_HOST)  ),
-      new UIButton("Join Game", () -> UIController.setMode(UIState.SETUP_CLIENT)),
+      new UIButton("Host Game", () -> UIController.setState(UIState.SETUP_HOST)  ),
+      new UIButton("Join Game", () -> UIController.setState(UIState.SETUP_CLIENT)),
       new UIButton("Back"     , UIController::back                              ),
     },
     new boolean[]{false, false, true, false}
@@ -103,8 +103,8 @@ class UICreator {
     new UIInteractable[]{
       new UITextfield("Nickname"  , 16, 1, (s) -> Core.GLOBAL_SETTINGS.setStringSetting("nickname", s), () -> Core.GLOBAL_SETTINGS.getStringSetting("nickname")),
       new UIToggle   ("Fullscreen", Core.WINDOW::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.WINDOW.setFullscreen(b);}    ),
-      new UIButton   ("Audio"     , () -> UIController.setMode(UIState.AUDIO)                                                                                  ),
-      new UIButton   ("Gameplay"  , () -> UIController.setMode(UIState.GAMEPLAY)                                                                               ),
+      new UIButton   ("Audio"     , () -> UIController.setState(UIState.AUDIO)                                                                                  ),
+      new UIButton   ("Gameplay"  , () -> UIController.setState(UIState.GAMEPLAY)                                                                               ),
       new UIButton   ("Back"      , UIController::back                                                                                                         ),
     },
     new boolean[]{false, false, true, false}
@@ -190,27 +190,27 @@ class UICreator {
     
     ((UIButton)(lobbyHostStart.getComponents()[0])).setLockCheck(() -> !Server.allReady());
     
-    mainMenu.addMode(UIState.DEFAULT     , title          );
-    mainMenu.addMode(UIState.DEFAULT     , outPanel       );
-    mainMenu.addMode(UIState.NEW_GAME    , title           , UIState.DEFAULT );
-    mainMenu.addMode(UIState.NEW_GAME    , playModes      );
-    mainMenu.addMode(UIState.SETUP_HOST  , title           , UIState.NEW_GAME);
-    mainMenu.addMode(UIState.SETUP_HOST  , playModes      );
-    mainMenu.addMode(UIState.SETUP_HOST  , hostSetup      );
-    mainMenu.addMode(UIState.SETUP_CLIENT, title           , UIState.NEW_GAME);
-    mainMenu.addMode(UIState.SETUP_CLIENT, playModes      );
-    mainMenu.addMode(UIState.SETUP_CLIENT, clientSetup    );
-    mainMenu.addMode(UIState.OPTIONS     , title           , UIState.DEFAULT  , checkSettings);
-    mainMenu.addMode(UIState.OPTIONS     , options        );
-    mainMenu.addMode(UIState.AUDIO       , title           , UIState.OPTIONS  , checkSettings);
-    mainMenu.addMode(UIState.AUDIO       , options        );
-    mainMenu.addMode(UIState.AUDIO       , optaud         );
-    mainMenu.addMode(UIState.GAMEPLAY    , title           , UIState.OPTIONS  , checkSettings);
-    mainMenu.addMode(UIState.GAMEPLAY    , options        );
-    mainMenu.addMode(UIState.GAMEPLAY    , optgme         );
-    mainMenu.addMode(UIState.LOBBY       , lobbyClientList , UIState.DEFAULT  , Core::toMenu );
-    mainMenu.addMode(UIState.LOBBY_HOST  , lobbyClientList , UIState.DEFAULT  , Core::toMenu );
-    mainMenu.addMode(UIState.LOBBY_HOST  , lobbyHostStart );
+    mainMenu.addState(UIState.DEFAULT     , title          );
+    mainMenu.addState(UIState.DEFAULT     , outPanel       );
+    mainMenu.addState(UIState.NEW_GAME    , title           , UIState.DEFAULT );
+    mainMenu.addState(UIState.NEW_GAME    , playModes      );
+    mainMenu.addState(UIState.SETUP_HOST  , title           , UIState.NEW_GAME);
+    mainMenu.addState(UIState.SETUP_HOST  , playModes      );
+    mainMenu.addState(UIState.SETUP_HOST  , hostSetup      );
+    mainMenu.addState(UIState.SETUP_CLIENT, title           , UIState.NEW_GAME);
+    mainMenu.addState(UIState.SETUP_CLIENT, playModes      );
+    mainMenu.addState(UIState.SETUP_CLIENT, clientSetup    );
+    mainMenu.addState(UIState.OPTIONS     , title           , UIState.DEFAULT  , checkSettings);
+    mainMenu.addState(UIState.OPTIONS     , options        );
+    mainMenu.addState(UIState.AUDIO       , title           , UIState.OPTIONS  , checkSettings);
+    mainMenu.addState(UIState.AUDIO       , options        );
+    mainMenu.addState(UIState.AUDIO       , optaud         );
+    mainMenu.addState(UIState.GAMEPLAY    , title           , UIState.OPTIONS  , checkSettings);
+    mainMenu.addState(UIState.GAMEPLAY    , options        );
+    mainMenu.addState(UIState.GAMEPLAY    , optgme         );
+    mainMenu.addState(UIState.LOBBY       , lobbyClientList , UIState.DEFAULT  , Core::toMenu );
+    mainMenu.addState(UIState.LOBBY_HOST  , lobbyClientList , UIState.DEFAULT  , Core::toMenu );
+    mainMenu.addState(UIState.LOBBY_HOST  , lobbyHostStart );
     
     mainMenu.clear();
     
@@ -239,7 +239,7 @@ class UICreator {
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIButton("Resume"         , UIController::back                         ),
-      new UIButton("Options"        , () -> UIController.setMode(UIState.OPTIONS)),
+      new UIButton("Options"        , () -> UIController.setState(UIState.OPTIONS)),
       new UIButton("Quit to Title"  , Core::toMenu                               ),
       new UIButton("Quit to Desktop", Core::quitToDesk                           ),
     },
@@ -253,8 +253,8 @@ class UICreator {
     BUFFER_HEIGHT,
     new UIInteractable[]{
       new UIToggle("Fullscreen", Core.WINDOW::isFullScreen, (b) -> {Core.GLOBAL_SETTINGS.setBoolSetting("fullScreen", b); Core.WINDOW.setFullscreen(b);}),
-      new UIButton("Audio"     , () -> UIController.setMode(UIState.AUDIO)                                                                              ),
-      new UIButton("Gameplay"  , () -> UIController.setMode(UIState.GAMEPLAY)                                                                           ),
+      new UIButton("Audio"     , () -> UIController.setState(UIState.AUDIO)                                                                              ),
+      new UIButton("Gameplay"  , () -> UIController.setState(UIState.GAMEPLAY)                                                                           ),
       new UIButton("Back"      , UIController::back                                                                                                     ),
     },
     new boolean[]{false, true, true, true}
@@ -289,14 +289,14 @@ class UICreator {
     
     HUD.setModeParent(UIState.DEFAULT, UIState.PAUSED);
     
-    HUD.addMode(UIState.PAUSED  , greyed   , UIState.DEFAULT);
-    HUD.addMode(UIState.PAUSED  , outPause);
-    HUD.addMode(UIState.OPTIONS , greyed   , UIState.PAUSED  , checkSettings);
-    HUD.addMode(UIState.OPTIONS , options );
-    HUD.addMode(UIState.AUDIO   , greyed   , UIState.OPTIONS , checkSettings);
-    HUD.addMode(UIState.AUDIO   , optaud  );
-    HUD.addMode(UIState.GAMEPLAY, greyed   , UIState.OPTIONS , checkSettings);
-    HUD.addMode(UIState.GAMEPLAY, optgme  );
+    HUD.addState(UIState.PAUSED  , greyed   , UIState.DEFAULT);
+    HUD.addState(UIState.PAUSED  , outPause);
+    HUD.addState(UIState.OPTIONS , greyed   , UIState.PAUSED  , checkSettings);
+    HUD.addState(UIState.OPTIONS , options );
+    HUD.addState(UIState.AUDIO   , greyed   , UIState.OPTIONS , checkSettings);
+    HUD.addState(UIState.AUDIO   , optaud  );
+    HUD.addState(UIState.GAMEPLAY, greyed   , UIState.OPTIONS , checkSettings);
+    HUD.addState(UIState.GAMEPLAY, optgme  );
     
     HUD.clear();
     
@@ -327,7 +327,7 @@ class UICreator {
         
         try {
           Core.hostGame(Integer.parseInt(hostport.getText()));
-          if (Client.isConnected()) UIController.setMode(UIState.LOBBY_HOST);
+          if (Client.isConnected()) UIController.setState(UIState.LOBBY_HOST);
         } catch (ConnectionException e) {UIController.displayWarning(BUFFER_HEIGHT, COMPON_HEIGHT, "Server Creation Failed");}
       }),
     },
@@ -372,7 +372,7 @@ class UICreator {
         Thread join = new Thread(() -> {
           try {
             Core.joinGame(ipaddr.getText(), Integer.parseInt(joinport.getText()));
-            if (Client.isConnected()) {UIController.setMode(UIState.LOBBY); UIController.clearTempElement();}
+            if (Client.isConnected()) {UIController.setState(UIState.LOBBY); UIController.clearTempElement();}
           } catch (ConnectionException e) {UIController.displayWarning(BUFFER_HEIGHT, COMPON_HEIGHT, "Connection failed!", "Please check details are correct");}
         });
         

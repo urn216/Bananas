@@ -47,6 +47,15 @@ public abstract class UIElement {
   
   protected UIComponent[] components = {};
   
+  /**
+   * Constructs a generic {@code UIElement} with no contents, to be placed into a {@code UIPane}.
+   * <p>
+   * Override the {@code draw} method to display something within this element.
+   * 
+   * @param topLeft
+   * @param botRight
+   * @param ties
+   */
   public UIElement(Vector2 topLeft, Vector2 botRight, boolean[] ties) {
     if (ties == null || ties.length != 4) throw new IllegalArgumentException("Must have four ties: (up, down, left, right)");
     this.topLeft = topLeft;
@@ -64,6 +73,10 @@ public abstract class UIElement {
     init();
   }
   
+  /**
+   * Performed once on initialisation of {@code UIElement}. 
+   * Does nothing by default; override for additional functionality on creation of this object.
+   */
   protected void init() {}
   
   /**
@@ -138,7 +151,7 @@ public abstract class UIElement {
   *
   * @return the UIComponent present at this location, provided it exists
   */
-  public UIComponent getComponent(double x, double y) {
+  public final UIComponent getComponent(double x, double y) {
     for (UIComponent c : components) {
       if (c.touching(x, y)) return c;
     }
@@ -148,7 +161,7 @@ public abstract class UIElement {
   /**
   * resets all the clickables in this element
   */
-  public void resetClickables() {
+  public final void resetClickables() {
     for (UIComponent c : components) {
       if (c instanceof UIInteractable) ((UIInteractable)c).setOut();
     }
@@ -157,10 +170,10 @@ public abstract class UIElement {
   /**
   * @return the components tied to this element
   */
-  public UIComponent[] getComponents() {return components;}
+  public final UIComponent[] getComponents() {return components;}
   
   /**
-  * draws the current element
+  * draws this element
   *
   * @param g The Graphics2D object to draw to
   * @param UIscale The scale to magnify the UI to
@@ -231,7 +244,7 @@ public abstract class UIElement {
   }
   
   /**
-  * draws the current element
+  * draws this element
   * 
   * @param g The Graphics2D object to draw to
   * @param screenSizeY The height of the screen

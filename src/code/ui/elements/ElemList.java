@@ -13,7 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.Color;
 
 /**
-* An element consisting of a vertical list of components
+* An element consisting of a vertical list of {@code UIComponent}s
 *
 * @author William Kilty
 * @version 0.1
@@ -24,7 +24,7 @@ public class ElemList extends UIElement {
   protected double componentHeight;
 
   /**
-  * Vertical Button box element
+  * Constructor for a vertical list of {@code UIComponent}s.
   *
   * @param tL The percent inwards from the top left corner of the screen for the top left corner of this element
   * @param bR The percent inwards from the top left corner of the screen for the bottom right corner of this element

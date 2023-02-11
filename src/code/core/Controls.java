@@ -255,7 +255,7 @@ abstract class Controls {
   * moves the camera around the scene
   */
   public static void cameraMovement() {
-    if (!UIController.isMode(UIState.DEFAULT)) return;
+    if (!UIController.isState(UIState.DEFAULT)) return;
 
     Camera cam = Core.getActiveCam();
 
