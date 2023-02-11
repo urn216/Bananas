@@ -47,15 +47,15 @@ public abstract class Client {
     } catch(IOException e){System.out.println("clientcon "+e); return sock.isClosed() ? 0 : -1;}
     
     //Text output
-    new Thread(){
-      public void run() {
-        try {
-          while(true) {
-            handleTextOut(System.in.read());
-          }
-        } catch(IOException e){System.out.println("clientout "+e); Core.toMenu();}
-      }
-    }.start();
+    // new Thread(){
+    //   public void run() {
+    //     try {
+    //       while(true) {
+    //         handleTextOut(System.in.read());
+    //       }
+    //     } catch(IOException e){System.out.println("clientout "+e); Core.toMenu();}
+    //   }
+    // }.start();
     
     //Input
     new Thread() {
