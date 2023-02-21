@@ -46,17 +46,6 @@ public abstract class Client {
       sock.connect(new InetSocketAddress(ip, port));//TODO reconnect if there's a hiccup
     } catch(IOException e){System.out.println("clientcon "+e); return sock.isClosed() ? 0 : -1;}
     
-    //Text output
-    // new Thread(){
-    //   public void run() {
-    //     try {
-    //       while(true) {
-    //         handleTextOut(System.in.read());
-    //       }
-    //     } catch(IOException e){System.out.println("clientout "+e); Core.toMenu();}
-    //   }
-    // }.start();
-    
     //Input
     new Thread() {
       public void run() {
@@ -123,6 +112,17 @@ public abstract class Client {
   }
   
   /**
+  * Handles the outputting of a {@code String} typed by the client.
+  * 
+  * @param msg the {@code String} to send to the Server
+  * 
+  * @throws IOException if when writing to the server, the connection is interrupted.
+  */
+  public static synchronized void handleTextOut(String msg) throws IOException {
+    sock.getOutputStream().write((IOHelp.MSG + msg + IOHelp.END).getBytes());
+  }
+  
+  /**
   * Handles input of data from the connected server.
   * 
   * @param header The first byte of a message, containing the type of data to process.
@@ -153,24 +153,6 @@ public abstract class Client {
         UIController.displayWarning(0.015, 0.075, "Returning to menu...", IOHelp.decodeExitCondition(header));
       }
     }
-  }
-  
-  /**
-  * Handles the outputting of text typed into the terminal by the client.
-  * Triggered by entering a newline character,
-  * and will read an entire line of input from the user
-  * 
-  * @param c The first char in the line to read.
-  * @throws IOException if when writing to the server, the connection is interrupted.
-  */
-  private static synchronized void handleTextOut(int c) throws IOException {
-    sock.getOutputStream().write(IOHelp.MSG);
-    while (c != '\n' && c != '\r') {
-      sock.getOutputStream().write(c);
-      c = System.in.read();
-    }
-    if (c == '\r') System.in.read();
-    sock.getOutputStream().write(IOHelp.END);
   }
   
   /**
