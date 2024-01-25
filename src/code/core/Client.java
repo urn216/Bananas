@@ -1,6 +1,7 @@
 package code.core;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -130,20 +131,23 @@ public abstract class Client {
   */
   private static void handleInput(int header) throws IOException {
     // System.out.println("Reading Message " + header);
+
+    InputStream sockIn = sock.getInputStream();
+
     switch(header) {
       
       case IOHelp.MSG:
-      int c = sock.getInputStream().read();
+      int c = sockIn.read();
       while(c!=IOHelp.END) {
         System.out.print((char)c);
-        c = sock.getInputStream().read();
+        c = sockIn.read();
       }
       return;
       
       case IOHelp.SET:     handleSetCommand(); return;
       case IOHelp.MVE:     handleMoveCommand(); return;
-      case IOHelp.BGN:     Core.beginMatch(); sock.getInputStream().read(); return;
-      case IOHelp.USR_REQ: handleUserDataRequest(); sock.getInputStream().read(); return;
+      case IOHelp.BGN:     Core.beginMatch(); sockIn.read(); return;
+      case IOHelp.USR_REQ: handleUserDataRequest(); sockIn.read(); return;
       case IOHelp.USR_SND: handleUserDataInput(); return;
 
       default:
@@ -239,11 +243,14 @@ public abstract class Client {
   */
   private static byte[] readBytesFromServer(int required) throws IOException {
     if (buffer == null) buffer = new byte[IOHelp.MAX_MESSAGE_LENGTH];
-    int b = sock.getInputStream().read();
+
+    InputStream sockIn = sock.getInputStream();
+
+    int b = sockIn.read();
     int i;
     for (i = 0; b != IOHelp.END || i < required; i++) {
       if (i < buffer.length) buffer[i] = (byte)b;
-      b = sock.getInputStream().read();
+      b = sockIn.read();
     }
     byte[] msg = new byte[i];
     for (i = 0; i < msg.length; i++) msg[i] = buffer[i];
